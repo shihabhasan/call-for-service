@@ -8,8 +8,9 @@ You need to have both [VirtualBox](https://www.virtualbox.org) and [Vagrant](htt
 
 1. Clone this repository
 2. In terminal, `cd` into the repository's directory.
-3. Enter `vagrant up`. The first time you do this it will take ~ 30 minutes to pull down the VirtualBox image.
-4. Once 3 is complete, run `vagrant ssh` to enter the shell of the virtual machine.
+3. Go [here](https://atlas.hashicorp.com) (Vagrant cloud), register a user account, and tell Clay what it is. Wait for him to add you to the rtidatascience group.
+4. Enter `vagrant up`. The first time you do this it will take ~ 30 minutes to pull down the VirtualBox image.
+5. Once 4 is complete, run `vagrant ssh` to enter the shell of the virtual machine.
 
 You'll notice that the repository contains the Django app. Vagrant is set to configure the VM to share the repository directory with your host OS. That means that you can develop on your computer with your preferred dev tools. However, you'll need to run the Django app from within the VM. Vagrant makes this easy.
 
