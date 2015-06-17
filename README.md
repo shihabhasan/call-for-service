@@ -1,6 +1,6 @@
-## MacArthur Security and Justice Challenge Web Portal
+## 911 CFS Analytics Backend / API Project
 
-This is a Django app built for the MacArthur SJC project.
+This is a Django app built for the CFS Analytics project.
 
 ### Development instructions
 
