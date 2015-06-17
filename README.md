@@ -17,7 +17,7 @@ If you are not in the VM, follow the steps above.
 
 If you are in the VM, then do the following...
 
-1. `cd /vagrant` (this is the shared directory with the repository)
+1. `cd /vagrant/cfsbackend` (this is the shared directory with the repository)
 2. `python manage.py runserver 0.0.0.0:8888`
 
 If you look in the `Vagrantfile`, you'll see that the VM forwards port `8888` to the host OS's port `8888`. To see whether Django is running properly, open a browser and point it to `127.0.0.1:8888` and you should see the app respond. The terminal where you have the VM open also should show that you hit the web app.
@@ -27,6 +27,8 @@ When you are done working for the day, use `ctrl-c` to quit Django in the VM. Ty
 The next day, when you're ready to work again, simply follow these instructions again. 
 
 Note: from time to time, we may update the Vagrant box. If that happens, you'll see some yellow text in the terminal, warning that you're using an outdated version of the VM. To update the box, just enter `vagrant box update` and it will pull down the new VM image.
+
+Also note that the provisioning script for Vagrant sets `python` to be an alias for `python3` within the VM.
 
 ### Notes for Windows 7 Users
 
