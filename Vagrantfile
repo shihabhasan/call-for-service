@@ -5,7 +5,7 @@
 # https://scotch.io/tutorials/how-to-create-a-vagrant-base-box-from-an-existing-one
 
 Vagrant.configure(2) do |config|
-  # config.ssh.insert_key = false
+  #config.ssh.insert_key = false
 
   # The box is private and available to logged in members of the Center for Data Science
   # https://atlas.hashicorp.com/rtidatascience/boxes/cfs_analytics
