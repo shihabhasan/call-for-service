@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine # database connection
 import datetime as dt
 
-engine = create_engine('postgresql://localhost/cfs')
+engine = create_engine('postgresql://<USER_NAME>:<PASSWORD>@freyja.rtp.rti.org:5432/cfs')
 
 def reset_db():
     """
