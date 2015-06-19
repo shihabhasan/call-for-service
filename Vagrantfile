@@ -28,5 +28,5 @@ Vagrant.configure(2) do |config|
   config.vm.provision :shell, path: "bootstrap_provisioning.sh"
 
   # Port forwarding
-  config.vm.network :forwarded_port, host: 8888, guest: 8888
+  config.vm.network :forwarded_port, host: 8887, guest: 8888
 end
