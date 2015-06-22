@@ -1,6 +1,9 @@
 # CSV data used for testing; too big to store in the repo
 csv_data/
 
+# vim temporary files
+*.swp
+
 .DS_Store
 
 webapp_credentials.py
