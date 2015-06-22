@@ -1,8 +1,37 @@
+# coding: utf-8
+
+# #Data Loading, Cleaning, and Normalization
+# We need to load the data from .csv into Postgres.  We also need to normalize the data to make analysis easy.  We'll use Pandas to deal with the .csv loading and data storage.
+# 
+# Files we need to load:
+# - cfs_2014_inmain.csv (CFS data)
+# - cfs_xxx2014_incilog.csv (CFS event data -- one for each month)
+# - cfs_2014_lwmain.csv (incident data)
+# - cfs_2014_lwmodop.csv (incident modus operandi data)
+# - LWMAIN.THING.csv (incident lookup tables, where THING is one of the following: CSSTATUS, EMDIVISION, EMSECTION, EMUNIT, INSTSTATS, PREMISE, or WEAPON)
+
+# We'll use pandas and sqlalchemy to stuff the data into a local instance of postgres.
+
+# In[2]:
+
 import pandas as pd
 from sqlalchemy import create_engine # database connection
 import datetime as dt
 
+
+# We need to create the tables before touching the data so they have all the proper constraints.  Pandas' to_sql method, while helpful, won't handle the constraints automatically.
+
+# #Database DDL
+# 
+# Code to create the database schema is below.
+
+# In[3]:
+
+# CHANGE CREDENTIALS AS APPROPRIATE
 engine = create_engine('postgresql://<USER_NAME>:<PASSWORD>@freyja.rtp.rti.org:5432/cfs')
+
+
+# In[11]:
 
 def reset_db():
     """
@@ -31,7 +60,7 @@ def reset_db():
       call_id bigint NOT NULL,
       call_time timestamp without time zone,
       call_dow bigint,
-      case_id text,
+      case_id bigint,
       call_source text,
       primary_unit text,
       first_dispatched text,
@@ -194,14 +223,14 @@ def reset_db():
     CREATE TABLE incident
     (
       incident_id bigint NOT NULL,
-      call_id bigint,
+      case_id bigint,
       time_filed timestamp without time zone,
       street_num text,
       street_name text,
       city text,
       zip text,
-      geox bigint,
-      geoy bigint,
+      geox double precision,
+      geoy double precision,
       beat text,
       district text,
       sector text,
@@ -270,6 +299,11 @@ def reset_db():
     
 reset_db()
 
+
+# ##cfs_2014_inmain.csv
+
+# In[18]:
+
 import re
 
 timestamp_expr = re.compile("\[(\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) (.+?)\]")
@@ -308,6 +342,10 @@ def safe_strip(str_):
         return str_.strip()
     except AttributeError:
         return str_
+    
+def clean_caseid(c):
+    c = str(c).replace('nan','').replace('-','').replace(' ','')
+    return None if c == '' else int(c)
 
 start = dt.datetime.now()
 # load the data in chunks so we don't use too much memory
@@ -414,8 +452,17 @@ for call in pd.read_csv('../csv_data/cfs_2014_inmain.csv', chunksize=chunksize, 
     # rename to the CFS Analytics column names
     call.rename(columns=call_mappings, inplace=True)
     
+
+    
     ##### USING DPD COLUMN NAMES ABOVE #########
     ##### USING CFS ANALYTICS COLUMN NAMES BELOW ######
+    
+    # get rid of some weird records that break the case_id cleanup
+    call = call[~(call.call_id.isin((2014055521,2014269353)))]
+    note = note[~(note.call_id.isin((2014055521,2014269353)))]
+    
+    # clean up the case_id column
+    call['case_id'] = call['case_id'].map(clean_caseid)
     
     # Perform datetime conversions
     call['call_time'] = pd.to_datetime(call['call_time'])
@@ -439,6 +486,12 @@ for call in pd.read_csv('../csv_data/cfs_2014_inmain.csv', chunksize=chunksize, 
     # store in the database
     call.to_sql('call', engine, index=False, if_exists='append')
     note.to_sql('note', engine, index=False, if_exists='append')
+
+
+# #cfs_xxx2014_incilog.csv
+# There is one of these for each month, so we have to load them separately.
+
+# In[19]:
 
 months = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
 
@@ -496,6 +549,11 @@ for month in months:
         # store in the database
         call_log.to_sql('call_log', engine, index=False, if_exists='append')
 
+
+# #Assorted small lookup tables
+
+# In[20]:
+
 # There are a million of these, so let's make life easier and reuse all that code
 lookup_jobs = [
     {
@@ -537,6 +595,9 @@ for job in lookup_jobs:
     data.rename(columns=job['mapping'], inplace=True)
     data.to_sql(job['table'], engine, index=False, if_exists='append')
 
+
+# In[21]:
+
 #These have to create "nested" tables and are a little tougher, but we can still reuse the code
 
 nested_lookup_jobs = [
@@ -568,6 +629,11 @@ for job in nested_lookup_jobs:
     outer_data.to_sql(job['outer_table'], engine, index=False, if_exists='append')
     inner_data.to_sql(job['inner_table'], engine, index=False, if_exists='append')
 
+
+# #cfs_2014_lwmain.csv
+
+# In[24]:
+
 def combine_date_time(str_date, str_time):
     date = dt.datetime.strptime(str_date, "%m/%d/%y")
     time = dt.datetime.strptime(str_time, "%I:%M %p")
@@ -588,7 +654,7 @@ j = 0
 # if an incilog column isn't in this dict, it means we need to drop it
 incident_mappings = {
     "lwmainid": "incident_id",
-    "inci_id": "call_id",
+    "inci_id": "case_id",
     "time": "time_filed",
     "streetnbr": "street_num",
     "street": "street_name",
@@ -652,11 +718,6 @@ for incident in pd.read_csv('../csv_data/cfs_2014_lwmain.csv', chunksize=chunksi
     # These "primary key" values have two records and I don't want to deal with it
     incident = incident[~(incident.incident_id.isin((498659, 503578, 521324)))]
     
-    # incident call_ids don't have the same '20' prefix that the others do, so here we add it
-    # also get rid of anything pre-2014 because we don't have those in the calls table
-    incident['call_id'] = incident['call_id'].map(lambda x: x + 2000000000)
-    incident = incident[incident.call_id > 2014000001]
-    
     # Drop duplicate ucr_descs
     ucr_desc = ucr_desc.drop_duplicates()
     
@@ -670,6 +731,11 @@ for incident in pd.read_csv('../csv_data/cfs_2014_lwmain.csv', chunksize=chunksi
     incident.to_sql('incident', engine, index=False, if_exists='append')
 
 ucr_desc.to_sql('ucr_desc', engine, index=False, if_exists='append')
+
+
+# #cfs_2014_lwmodop.csv
+
+# In[25]:
 
 def safe_strip(str_):
     try:
@@ -741,6 +807,12 @@ for modop in pd.read_csv('../csv_data/cfs_2014_lwmodop.csv', chunksize=chunksize
 mo_item['mo_item_desc'] = mo_item['mo_item_desc'].map(lambda x: "Discharged" if x == "Discharged34" else x)
 mo_item.to_sql('mo_item', engine, index=False, if_exists='append')
 
+
+# #Adding foreign key constraints
+# We can't add some of the foreign key constraints until all the data is in there, so we'll do that down here
+
+# In[26]:
+
 engine.execute("""
 ALTER TABLE incident
 ADD CONSTRAINT incident_ucr_short_desc_fkey FOREIGN KEY (ucr_short_desc) REFERENCES ucr_desc (ucr_short_desc);
@@ -761,3 +833,9 @@ engine.execute("""
 ALTER TABLE premise
 ADD CONSTRAINT premise_premise_desc_fk FOREIGN KEY (premise_desc) REFERENCES premise_group (premise_desc);
 """)
+
+
+# In[ ]:
+
+
+

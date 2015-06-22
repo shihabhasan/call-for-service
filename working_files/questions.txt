@@ -26,6 +26,7 @@ lwmain
     inci_id doesn't function as a foreign key (ex. there are values of inci_id in lwmain that don't exist in inmain, some pre 2014) -- why?
     lwchrgid -- what is the "offense" table?
     *data only corresponds to calls from january/february -- can we get the rest of this data/does it exist?
+    *incident/call data doesn't seem to match up?  is lwmain.inci_id a true foreign key? we just added 20 to the front of it, was that correct?
     
 
     *which code (code_fbi, code_sbi, code_agcy) is the one corresponding to the csstatus foreign key? (assuming code_agcy) are any columns other than descriptn informative?
