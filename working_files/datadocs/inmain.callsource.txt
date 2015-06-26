@@ -1,0 +1,13 @@
+Code	Description
+ALARM	Alarm Line
+DCI	DCI Message
+E911	E-911
+LL	Language Line
+PHONE	Phone Call
+RADIO	Radio
+RPTO	Report Only
+SELF	Self Initiated
+SS	In-House Translation
+TDD	Telephone Device for the Deaf
+TXT	Texting
+W911	Wireless 911 Call
