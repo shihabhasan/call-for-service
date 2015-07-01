@@ -1,6 +1,9 @@
 # CSV data used for testing; too big to store in the repo
 csv_data/
 
+# Stores intermediate shapefiles we won't be using
+beats_districts_esri/
+
 # vim temporary files
 *.swp
 
