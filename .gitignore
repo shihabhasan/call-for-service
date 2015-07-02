@@ -3,6 +3,7 @@ csv_data/
 
 # Stores intermediate shapefiles we won't be using
 beats_districts_esri/
+tabgeohack/
 
 # vim temporary files
 *.swp
