@@ -1,7 +1,5 @@
 SET CLIENT_ENCODING TO UTF8;
 SET STANDARD_CONFORMING_STRINGS TO ON;
-SELECT DropGeometryColumn('public','beat','geom');
-DROP TABLE "public"."beat";
 BEGIN;
 CREATE TABLE "public"."beat" (gid serial,
 "objectid" numeric(10,0),
