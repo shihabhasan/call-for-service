@@ -3,6 +3,7 @@
 apt-get install -y postgresql-server-dev-9.4
 apt-get install -y libpq-dev
 pip3 install psycopg2
+pip3 install djangorestframework
 
 cat >> /home/vagrant/.bashrc << END
 # Make the python command invoke python3

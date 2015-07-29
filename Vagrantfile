@@ -29,4 +29,5 @@ Vagrant.configure(2) do |config|
 
   # Port forwarding
   config.vm.network :forwarded_port, host: 8887, guest: 8888
+  config.vm.network :forwarded_port, host: 5433, guest: 5432
 end
