@@ -10,23 +10,48 @@
 from __future__ import unicode_literals
 from django.db import models
 
-class Weapon(models.Model):
-    weapon_id = models.AutoField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
-    weapon_group = models.ForeignKey('WeaponGroup', blank=True, null=True)
+class Call(models.Model):
+    call_id = models.BigIntegerField(primary_key=True)
+    month_received = models.IntegerField(blank=True, null=True)
+    week_received = models.IntegerField(blank=True, null=True)
+    dow_received = models.IntegerField(blank=True, null=True)
+    hour_received = models.IntegerField(blank=True, null=True)
+    case_id = models.BigIntegerField(blank=True, null=True)
+    #call_source = models.ForeignKey('CallSource', blank=True, null=True)
+    #primary_unit = models.ForeignKey('CallUnit', blank=True, null=True)
+    #first_dispatched = models.ForeignKey('CallUnit', blank=True, null=True)
+    #reporting_unit = models.ForeignKey('CallUnit', blank=True, null=True)
+    street_num = models.IntegerField(blank=True, null=True)
+    street_name = models.TextField(blank=True, null=True)
+    #city = models.ForeignKey('City', blank=True, null=True)
+    zip = models.IntegerField(blank=True, null=True)
+    crossroad1 = models.TextField(blank=True, null=True)
+    crossroad2 = models.TextField(blank=True, null=True)
+    geox = models.FloatField(blank=True, null=True)
+    geoy = models.FloatField(blank=True, null=True)
+    beat = models.TextField(blank=True, null=True)
+    district = models.TextField(blank=True, null=True)
+    sector = models.TextField(blank=True, null=True)
+    business = models.TextField(blank=True, null=True)
+    #nature = models.ForeignKey('Nature', blank=True, null=True)
+    priority = models.TextField(blank=True, null=True)
+    report_only = models.NullBooleanField()
+    cancelled = models.NullBooleanField()
+    time_received = models.DateTimeField(blank=True, null=True)
+    time_routed = models.DateTimeField(blank=True, null=True)
+    time_finished = models.DateTimeField(blank=True, null=True)
+    first_unit_dispatch = models.DateTimeField(blank=True, null=True)
+    first_unit_enroute = models.DateTimeField(blank=True, null=True)
+    first_unit_arrive = models.DateTimeField(blank=True, null=True)
+    first_unit_transport = models.DateTimeField(blank=True, null=True)
+    last_unit_clear = models.DateTimeField(blank=True, null=True)
+    time_closed = models.DateTimeField(blank=True, null=True)
+    #close_code = models.ForeignKey('CloseCode', blank=True, null=True)
+    close_comments = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'weapon'
-
-
-class WeaponGroup(models.Model):
-    weapon_group_id = models.AutoField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'weapon_group'
+        db_table = 'call'
 
 class City(models.Model):
     city_id = models.AutoField(primary_key=True)
@@ -53,7 +78,7 @@ class Incident(models.Model):
     district = models.TextField(blank=True, null=True)
     sector = models.TextField(blank=True, null=True)
     #premise = models.ForeignKey('Premise', blank=True, null=True)
-    weapon = models.ForeignKey('Weapon', blank=True, null=True)
+    #weapon = models.ForeignKey('Weapon', blank=True, null=True)
     domestic = models.NullBooleanField()
     juvenile = models.NullBooleanField()
     gang_related = models.NullBooleanField()

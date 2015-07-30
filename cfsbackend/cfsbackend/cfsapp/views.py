@@ -2,8 +2,8 @@ from django.shortcuts import render
 
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets
-from .models import Incident
-from cfsbackend.cfsapp.serializers import UserSerializer, GroupSerializer, IncidentSerializer
+from .models import Incident, Call
+from cfsbackend.cfsapp.serializers import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -22,10 +22,18 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
 
 
-
 class IncidentViewSet(viewsets.ModelViewSet):
 	"""
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that allows incidents to be viewed or edited.
     """
 	queryset = Incident.objects.all()
 	serializer_class = IncidentSerializer
+
+
+class CallViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows calls to be viewed or edited.
+    """
+    queryset = Call.objects.all()
+    serializer_class = CallSerializer
+
