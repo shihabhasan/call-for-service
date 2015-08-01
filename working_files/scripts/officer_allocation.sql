@@ -20,6 +20,14 @@ create index in_call_start_time on in_call(start_time);
 create index in_call_end_time on in_call(end_time);
 */
 
+DROP VIEW IF EXISTS sergeants CASCADE;
+CREATE VIEW sergeants AS
+SELECT call_unit_id FROM call_unit WHERE descr IN (
+'A100', 'A200', 'A300', 'A400', 'A500',
+'B100', 'B200', 'B300', 'B400', 'B500',
+'C100', 'C200', 'C300', 'C400', 'C500',
+'D100', 'D200', 'D300', 'D400', 'D500');
+
 -- Time sample
 DROP MATERIALIZED VIEW IF EXISTS time_sample CASCADE;
 CREATE MATERIALIZED VIEW time_sample AS
@@ -47,7 +55,8 @@ FROM
       SELECT time_sample.time_ AS time_, COUNT(*) AS num
       FROM time_sample, shift
       WHERE (time_out-time_in) < (interval '1 day')
-        AND time_sample.time_ BETWEEN time_in AND time_out 
+        AND time_sample.time_ BETWEEN time_in AND time_out
+        AND call_unit_id NOT IN (SELECT * FROM sergeants)
       GROUP BY time_sample.time_
     ) AS d ON (ts.time_ = d.time_);
 
@@ -71,7 +80,8 @@ FROM
       FROM time_sample, out_of_service
       WHERE duration < (interval '1 day')
         AND out_of_service.call_unit_id IN (SELECT DISTINCT call_unit_id FROM shift)
-        AND time_sample.time_ BETWEEN start_time AND end_time 
+        AND time_sample.time_ BETWEEN start_time AND end_time
+        AND out_of_service.call_unit_id NOT IN (SELECT * FROM sergeants)
       GROUP BY time_sample.time_
     ) AS d ON (ts.time_ = d.time_);
     
@@ -90,8 +100,8 @@ FROM in_call,
     call,
     time_sample ts
 WHERE (in_call.start_call_unit_id IN ( SELECT DISTINCT shift.call_unit_id
-         FROM shift)) AND (in_call.end_call_unit_id IN ( SELECT DISTINCT shift.call_unit_id
-         FROM shift)) AND ts.time_ >= in_call.start_time AND ts.time_ <= in_call.end_time AND in_call.call_id = call.call_id
+         FROM shift) AND in_call.start_call_unit_id NOT IN (SELECT * FROM sergeants)) AND (in_call.end_call_unit_id IN ( SELECT DISTINCT shift.call_unit_id
+         FROM shift) AND in_call.end_call_unit_id NOT IN (SELECT * FROM sergeants)) AND ts.time_ >= in_call.start_time AND ts.time_ <= in_call.end_time AND in_call.call_id = call.call_id
 GROUP BY ts.time_, call.call_source_id, call.nature_id;
 
 -- On Directed Patrol
@@ -108,9 +118,9 @@ SELECT
 FROM
   time_sample AS ts
   LEFT JOIN (
-    SELECT time_, SUM(num) AS num FROM in_call_count WHERE
-      in_call_count.nature_id IN (58,121)
-      GROUP BY time_
+    SELECT time_, SUM(num) AS num FROM in_call_count
+    WHERE in_call_count.nature_id IN (58,121)
+    GROUP BY time_
   ) AS d ON (ts.time_ = d.time_);
 
 CREATE UNIQUE INDEX dp_count_time
