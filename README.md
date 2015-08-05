@@ -4,13 +4,15 @@ This is a Django app built for the CFS Analytics project.
 
 ### Development instructions
 
-You need to have both [VirtualBox](https://www.virtualbox.org) and [Vagrant](https://www.vagrantup.com) installed to proceed.
+You need to have both [VirtualBox](https://www.virtualbox.org) and [Vagrant](https://www.vagrantup.com) installed to proceed. To provison the database we are using Chef, which works nicely with vagrant when you install vagrant's omnibus plugin.  Once you have vagrant installed, this plugin can be installed by running: _vagrant plugin install vagrant-omnibus_ from the command line.  All this does is to install Chef on the VM.
 
 1. Clone this repository
 2. In terminal, `cd` into the repository's directory.
 3. Go [here](https://atlas.hashicorp.com) (Vagrant cloud), register a user account, and tell Clay what it is. Wait for him to add you to the rtidatascience group.
-4. Enter `vagrant up`. The first time you do this it will take ~ 30 minutes to pull down the VirtualBox image.
-5. Once 4 is complete, run `vagrant ssh` to enter the shell of the virtual machine.
+4. Enter `vagrant up cfs_backend`. The first time you do this it will take ~ 30 minutes to pull down the VirtualBox image.  
+5. Once 4 is complete, run `vagrant ssh cfs_backend` to enter the shell of the virtual machine.
+6. To start up the database, run `vagrant up cfs_database`.  This will use Chef to provision a postgreSQL database and forward host traffic on 5433 to the standard PostgreSQL port.
+7. At this point you should be able to connect to this database pgAdmin or any other PostgreSQL client on port 5433 using as _postgres_ with a password of _1234thumbwar_
 
 You'll notice that the repository contains the Django app. Vagrant is set to configure the VM to share the repository directory with your host OS. That means that you can develop on your computer with your preferred dev tools. However, you'll need to run the Django app from within the VM. Vagrant makes this easy.
 
@@ -21,7 +23,7 @@ If you are in the VM, then do the following...
 1. `cd /vagrant/cfsbackend` (this is the shared directory with the repository)
 2. `python manage.py runserver 0.0.0.0:8888`
 
-If you look in the `Vagrantfile`, you'll see that the VM forwards port `8888` to the host OS's port `8888`. To see whether Django is running properly, open a browser and point it to `127.0.0.1:8888` and you should see the app respond. The terminal where you have the VM open also should show that you hit the web app.
+If you look in the `Vagrantfile`, you'll see that the VM forwards port `8888` to the host OS's port `8887`. To see whether Django is running properly, open a browser and point it to `127.0.0.1:8887` and you should see the app respond. The terminal where you have the VM open also should show that you hit the web app.
 
 When you are done working for the day, use `ctrl-c` to quit Django in the VM. Type `exit` to exit the VM. Then type `vagrant halt` to gracefully shut down the VM. Check in your changes, push to the repository, etc... 
 

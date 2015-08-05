@@ -1,0 +1,15 @@
+[submodule "chef/cookbooks/apt"]
+	path = chef/cookbooks/apt
+	url = https://github.com/opscode-cookbooks/apt.git
+[submodule "chef/cookbooks/openssl"]
+	path = chef/cookbooks/openssl
+	url = https://github.com/opscode-cookbooks/openssl.git
+[submodule "chef/cookbooks/chef-sugar"]
+	path = chef/cookbooks/chef-sugar
+	url = git@github.com:sethvargo/chef-sugar.git
+[submodule "chef/cookbooks/build-essential"]
+	path = chef/cookbooks/build-essential
+	url = git@github.com:opscode-cookbooks/build-essential.git
+[submodule "chef/cookbooks/postgresql"]
+	path = chef/cookbooks/postgresql
+	url = git@github.com:hw-cookbooks/postgresql.git
