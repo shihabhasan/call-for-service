@@ -1,0 +1,65 @@
+-- dp
+SELECT
+  descr
+FROM
+  in_call,
+  call_unit,
+  call
+WHERE
+  TIMESTAMP '2014-06-16 15:00' BETWEEN start_time AND end_time
+  AND call.call_id = in_call.call_id
+  AND start_call_unit_id = call_unit.call_unit_id
+  AND call.nature_id IN (58, 121)
+  AND start_call_unit_id IN (
+    SELECT DISTINCT call_unit_id FROM SHIFT
+  )
+  AND start_call_unit_id NOT IN (SELECT * FROM sergeants);
+  
+-- other_init
+SELECT
+  descr
+FROM
+  in_call,
+  call_unit,
+  call
+WHERE
+  TIMESTAMP '2014-06-16 15:00' BETWEEN start_time AND end_time
+  AND call.call_id = in_call.call_id
+  AND start_call_unit_id = call_unit.call_unit_id
+  AND call.nature_id NOT IN (58, 121)
+  AND call.call_source_id <> 8
+  AND start_call_unit_id IN (
+    SELECT DISTINCT call_unit_id FROM SHIFT
+  )
+  AND start_call_unit_id NOT IN (SELECT * FROM sergeants);
+  
+-- self_init
+SELECT
+  descr
+FROM
+  in_call,
+  call_unit,
+  call
+WHERE
+  TIMESTAMP '2014-06-16 15:00' BETWEEN start_time AND end_time
+  AND call.call_id = in_call.call_id
+  AND start_call_unit_id = call_unit.call_unit_id
+  AND call.nature_id NOT IN (58, 121)
+  AND call.call_source_id = 8
+  AND start_call_unit_id IN (
+    SELECT DISTINCT call_unit_id FROM SHIFT
+  )
+  AND start_call_unit_id NOT IN (SELECT * FROM sergeants);
+  
+-- out of service
+SELECT
+  descr
+FROM
+  call_unit,
+  out_of_service
+WHERE
+  duration < (interval '1 day')
+  AND out_of_service.call_unit_id IN (SELECT DISTINCT call_unit_id FROM shift)
+  AND TIMESTAMP '2014-06-16 15:00' BETWEEN start_time AND end_time
+  AND out_of_service.call_unit_id NOT IN (SELECT * FROM sergeants)
+  AND call_unit.call_unit_id = out_of_service.call_unit_id;
