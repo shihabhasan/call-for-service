@@ -10,7 +10,6 @@ Vagrant.configure(2) do |config|
   # The box is private and available to logged in members of the Center for Data Science
   # https://atlas.hashicorp.com/rtidatascience/boxes/cfs_analytics
   config.vm.box = "rtidatascience/cfs_analytics"
-  config.vm.define "cfs_backend"
 
   config.vm.provider "virtualbox" do |vb|
     # Display the VirtualBox GUI when booting the machine
@@ -20,14 +19,30 @@ Vagrant.configure(2) do |config|
     vb.memory = "2048"
   end
 
-  # Provisioning every time
-  # This basically looks for 
-  config.vm.provision :shell, run: "always", path: "always_provisioning.sh"
+  config.vm.define "cfs_backend" do |web_config|
+    
+    web_config.vm.box = "rtidatascience/cfs_analytics"
+    web_config.vm.network :forwarded_port, host: 8887, guest: 8888
+    
+    # Provisioning every time
+    web_config.vm.provision :shell, run: "always", path: "always_provisioning.sh"
+    
+    # Provisioning just the first time
+    web_config.vm.provision :shell, path: "bootstrap_provisioning.sh"
+  end
 
-  # Provisioning just the first time
-  config.vm.provision :shell, path: "bootstrap_provisioning.sh"
+  config.vm.define "cfs_database" do |db_config|
+    
+    db_config.vm.box = "ubuntu/trusty64"
+    db_config.omnibus.chef_version = :latest
+    db_config.vm.network :forwarded_port, host: 5433, guest: 5432
+    db_config.vm.provision :chef_solo do |chef|
+     chef.node_name = 'cfs_database' 
+     chef.cookbooks_path = "chef/cookbooks"
+     chef.roles_path = "chef/roles"
+     chef.add_role "cfs_database"
+    end
+  end
 
-  # Port forwarding
-  config.vm.network :forwarded_port, host: 8887, guest: 8888
-  config.vm.network :forwarded_port, host: 5433, guest: 5432
+
 end
