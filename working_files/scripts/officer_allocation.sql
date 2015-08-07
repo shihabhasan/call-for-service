@@ -52,12 +52,18 @@ SELECT
 FROM
     time_sample AS ts
     LEFT JOIN (
-      SELECT time_sample.time_ AS time_, COUNT(*) AS num
-      FROM time_sample, shift
-      WHERE (time_out-time_in) < (interval '1 day')
-        AND time_sample.time_ BETWEEN time_in AND time_out
-        AND call_unit_id NOT IN (SELECT * FROM sergeants)
-      GROUP BY time_sample.time_
+      SELECT time_, COUNT(*) AS num FROM (
+        -- This gets the number of officers; we need to do an additional
+        -- aggregation to get the number of units, since there can be
+        -- multiple officers per unit.
+        SELECT time_sample.time_ AS time_, COUNT(*)
+        FROM time_sample, shift
+        WHERE (time_out-time_in) < (interval '1 day')
+          AND time_sample.time_ BETWEEN time_in AND time_out
+          AND call_unit_id NOT IN (SELECT * FROM sergeants)
+        GROUP BY time_sample.time_, shift.call_unit_id
+      ) AS a
+      GROUP BY time_
     ) AS d ON (ts.time_ = d.time_);
 
 CREATE UNIQUE INDEX on_duty_count_time
