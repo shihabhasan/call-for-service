@@ -3,7 +3,7 @@ For each hour in 2014, displays the number of officers clocked in,
 the number of officers out of service, and the number of officers on a call.
 
 Helper views are used to increase performance (without this, with 1 hour granularity,
-   view takes ~1200 secs to creat; with this, with 1 hour granularity,
+   view takes ~1200 secs to create; with this, with 1 hour granularity,
    only a few secs)
    
 For some reason, using 5 minute intervals for the time sample causes the query
@@ -18,6 +18,8 @@ create index oos_start_time on out_of_service(start_time);
 create index oos_end_time on out_of_service(end_time);
 create index in_call_start_time on in_call(start_time);
 create index in_call_end_time on in_call(end_time);
+create index call_log_transaction_id ON call_log(transaction_id);
+create index call_log_call_id ON call_log(call_id);
 */
 
 DROP VIEW IF EXISTS sergeants CASCADE;
