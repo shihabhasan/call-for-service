@@ -12,6 +12,7 @@ router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 router.register(r'incidents', views.IncidentViewSet)
 router.register(r'calls', views.CallViewSet)
+router.register(r'callsoverview', views.CallOverviewViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),

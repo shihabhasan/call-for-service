@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': creds['DEV_DB_NAME'],
         'USER': creds['DEV_DB_USER'],
         'PASSWORD': creds['DEV_DB_PASSWORD'],
-        'HOST': '127.0.0.1',
+        'HOST': creds['DEV_DB_ADDRESS'],
         'PORT': '5432'
     }
 }
