@@ -791,6 +791,7 @@ try:
                 'incident_id': safe_int(row[0]),
                 'case_id': safe_int(row[1]),
                 'time_filed': time_filed,
+                'year_filed': time_filed.year,
                 'month_filed': time_filed.month,
                 'week_filed': time_filed.isocalendar()[1],
                 'dow_filed': time_filed.weekday(),
@@ -1174,6 +1175,7 @@ try:
             db_row = {
                 'call_id': call_id,
                 'time_received': time_received,
+                'year_received': time_received.year,
                 'hour_received': time_received.hour,
                 'month_received': time_received.month,
                 'week_received': time_received.isocalendar()[1],

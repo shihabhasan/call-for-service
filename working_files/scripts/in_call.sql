@@ -7,6 +7,7 @@ The view is materialized because it takes about 2 seconds to create.  This is in
  -- ensure these indexes exist or else it will be super slow
  --CREATE INDEX call_log_transaction_id ON call_log (transaction_id);
  --CREATE INDEX call_log_call_id ON call_log (call_id);
+ --CREATE INDEX call_log_call_unit_id ON call_log(call_unit_id);
 DROP MATERIALIZED VIEW IF EXISTS in_call CASCADE;
 CREATE MATERIALIZED VIEW in_call AS
  SELECT c.call_id,
@@ -37,13 +38,13 @@ CREATE MATERIALIZED VIEW in_call AS
   WHERE start_.call_id = c.call_id
     AND end_.call_id = c.call_id
     AND start_.shift_unit_id = end_.shift_unit_id
+    
     -- ensure our start is the closest dispatch to the clear/cancel
-    
     AND start_.time_recorded = (
-    
       SELECT MAX(time_recorded)
       FROM call_log cl_closest_start
       WHERE cl_closest_start.call_id = end_.call_id
+        AND cl_closest_start.call_unit_id = end_.call_unit_id
         AND cl_closest_start.transaction_id = 115
         AND cl_closest_start.time_recorded < end_.time_recorded
     /*
@@ -56,12 +57,13 @@ CREATE MATERIALIZED VIEW in_call AS
       ORDER BY call_id, time_recorded DESC
     */
     )
+    
     -- ensure our end is the closest clear/cancel to the dispatch
     AND end_.time_recorded =  (
-    
       SELECT MIN(time_recorded)
       FROM call_log cl_closest_end
       WHERE cl_closest_end.call_id = start_.call_id
+        AND cl_closest_end.call_unit_id = start_.call_unit_id
         AND cl_closest_end.transaction_id IN (145, 384)
         AND cl_closest_end.time_recorded > start_.time_recorded
     /*
