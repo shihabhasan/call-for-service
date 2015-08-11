@@ -41,7 +41,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'corsheaders',
     'rest_framework_swagger',
-    'django.contrib.sites'
+    'django.contrib.sites',
+    'cfsbackend.cfsapp'
 )
 
 MIDDLEWARE_CLASSES = (
