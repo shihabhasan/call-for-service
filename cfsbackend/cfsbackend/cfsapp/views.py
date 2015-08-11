@@ -40,8 +40,7 @@ class CallViewSet(viewsets.ModelViewSet):
 
 class CallOverviewViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for reduced data payload for summary page.
+    API endpoint for reduced data payload for summary page. Note that it aggregates by count of calls
     """
     queryset = Call.objects.values('month_received','week_received','dow_received','hour_received').annotate(Count('call_id'))
-    print(queryset)
     serializer_class = CallOverviewSerializer

@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'corsheaders',
     'rest_framework_swagger',
+    'django.contrib.sites'
 )
 
 MIDDLEWARE_CLASSES = (
