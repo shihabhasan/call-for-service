@@ -83,6 +83,15 @@ class OOSCodeSerializer(serializers.HyperlinkedModelSerializer):
         model = OOSCode
         fields = ('url', 'oos_code_id', 'descr')
 
+class OutOfServicePeriodsSerializer(NonNullSerializer):
+
+    call_unit = CallUnitSerializer(read_only=True,allow_null=False)
+    oos_code  = OOSCodeSerializer(read_only=True, allow_null=False)
+
+    class Meta:
+        model = OutOfServicePeriods
+        read_only_fields = ('url', 'oos_id', 'call_unit', 'shift_unit_id', 'oos_code', 'location', 'comments', 'start_time', 'end_time', 'duration')
+
 # Main Class / Analytic Serializers
 
 class IncidentSerializer(serializers.HyperlinkedModelSerializer):

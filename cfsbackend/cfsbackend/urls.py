@@ -18,6 +18,7 @@ router.register(r'nature', views.NatureViewSet)
 router.register(r'close_codes', views.CloseCodeViewSet)
 router.register(r'cities', views.CityViewSet)
 router.register(r'oos_codes', views.OOSCodeViewSet)
+router.register(r'out_of_service_periods', views.OutOfServicePeriodsViewSet)
 
 router.register(r'calls', views.CallViewSet)
 

@@ -61,6 +61,21 @@ class OOSCode(models.Model):
         managed = False
         db_table= 'oos_code'
 
+class OutOfServicePeriods(models.Model):
+    oos_id        = models.IntegerField(primary_key=True)
+    call_unit     = models.OneToOneField(CallUnit, blank=True, null=True, db_column="call_unit_id", related_name="call_unit")
+    shift_unit_id = models.BigIntegerField(blank=True,null=True)
+    oos_code      = models.OneToOneField(OOSCode, blank=True, null=True, db_column="oos_code_id", related_name="oos_code")
+    location      = models.TextField(blank=True,null=True)
+    comments      = models.TextField(blank=True,null=True)
+    start_time    = models.DateTimeField(blank=True,null=True)
+    end_time      = models.DateTimeField(blank=True,null=True)
+    duration      = models.DurationField(blank=True,null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'out_of_service'
+
 # Primary Classes
 
 class Call(models.Model):

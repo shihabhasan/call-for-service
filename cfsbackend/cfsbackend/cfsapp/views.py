@@ -86,5 +86,10 @@ class OOSCodeViewSet(viewsets.ModelViewSet):
     queryset = OOSCode.objects.all()
     serializer_class = ser.OOSCodeSerializer
 
-
+class OutOfServicePeriodsViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for showing the out of service periods.
+    """
+    queryset = OutOfServicePeriods.objects.all()
+    serializer_class = ser.OutOfServicePeriodsSerializer
 
