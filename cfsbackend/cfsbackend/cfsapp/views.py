@@ -7,6 +7,9 @@ from .models import * #Incident, City, Call, CallSource, CallUnit, Nature, Close
 import cfsbackend.cfsapp.serializers as ser # import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
 
 
+# The order in which these appear determines the order in which they appear in the self-documenting API
+
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
