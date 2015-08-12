@@ -5,7 +5,14 @@ from rest_framework import serializers
 from collections import OrderedDict
 from rest_framework.fields import SkipField
 
+# Documentation here: http://www.django-rest-framework.org/api-guide/serializers/
+
 class NonNullSerializer(serializers.HyperlinkedModelSerializer):
+
+    """
+    This overrides the HyperlinkedModelSerializer to skips keys with null values.
+    http://stackoverflow.com/a/28870066/373402
+    """
 
     def to_representation(self, instance):
         """
@@ -33,6 +40,8 @@ class NonNullSerializer(serializers.HyperlinkedModelSerializer):
         return ret
 
 
+
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
@@ -52,12 +61,12 @@ class CitySerializer(serializers.HyperlinkedModelSerializer):
 class CallSourceSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CallSource
-        fields = ('call_source_id', 'descr')
+        read_only_fields = ('call_source_id', 'descr')
 
 class CallUnitSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CallUnit
-        fields = ('call_unit_id', 'descr')
+        read_only_fields = ('call_unit_id', 'descr')
 
 class IncidentSerializer(serializers.HyperlinkedModelSerializer):
     
@@ -65,20 +74,20 @@ class IncidentSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = Incident
-        read_only_fields = ('incident_id', 'case_id', 'time_filed', 'month_filed', 'week_filed', 'dow_filed', 'street_num', 'street_name', 'zip', 'city',
+        read_only_fields = ('incident_id', 'case_id', 'time_filed', 'month_filed', 'week_filed', 'dow_filed', 'street_num', 'street_name', 'zipcode', 'city',
         	'geox', 'geoy', 'beat', 'district', 'sector', 'domestic', 'juvenile', 'gang_related', 'num_officers', 'ucr_code', 'committed')
 
 class CallSerializer(NonNullSerializer):
 
-    city = CitySerializer(read_only=True)
-    call_source  = CallSourceSerializer(read_only=True)
-    primary_unit = CallUnitSerializer(read_only=True,allow_null=False)
+    city             = CitySerializer(read_only=True)
+    call_source      = CallSourceSerializer(read_only=True)
+    primary_unit     = CallUnitSerializer(read_only=True,allow_null=False)
     first_dispatched = CallUnitSerializer(read_only=True)
     reporting_unit   = CallUnitSerializer(read_only=True,allow_null=True)
 
     class Meta:
         model = Call
-        read_only_fields = ('call_id', 'city', 'call_source', 'primary_unit', 'first_dispatched', 'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id', 'street_num', 'street_name', 'zip', 'crossroad1', 'crossroad2', 'geox', 'geoy', 'beat', 'district', 'sector', 'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed', 'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport', 'last_unit_clear', 'time_closed', 'close_comments')
+        read_only_fields = ('call_id', 'city', 'call_source', 'primary_unit', 'first_dispatched', 'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id', 'street_num', 'street_name', 'zipcode', 'crossroad1', 'crossroad2', 'geox', 'geoy', 'beat', 'district', 'sector', 'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed', 'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport', 'last_unit_clear', 'time_closed', 'close_comments')
 
 # Testing reduced payload
 class CallOverviewSerializer(serializers.HyperlinkedModelSerializer):
