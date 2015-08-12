@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
 from rest_framework import viewsets
-from .models import Incident, Call, CallSource
-from cfsbackend.cfsapp.serializers import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer
+from .models import Incident, Call, CallSource, CallUnit
+from cfsbackend.cfsapp.serializers import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -51,3 +51,9 @@ class CallSourceViewSet(viewsets.ModelViewSet):
     queryset = CallSource.objects.all()
     serializer_class = CallSourceSerializer
 
+class CallUnitViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for showing the units that respond to a call.
+    """
+    queryset = CallUnit.objects.all()
+    serializer_class = CallUnitSerializer

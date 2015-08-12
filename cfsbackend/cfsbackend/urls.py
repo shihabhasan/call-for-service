@@ -13,6 +13,7 @@ router.register(r'groups', views.GroupViewSet)
 router.register(r'incidents', views.IncidentViewSet)
 
 router.register(r'calls_sources', views.CallSourceViewSet)
+router.register(r'calls_units', views.CallUnitViewSet)
 
 router.register(r'calls', views.CallViewSet)
 

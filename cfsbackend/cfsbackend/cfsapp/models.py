@@ -7,6 +7,7 @@
 #
 # Also note: You'll have to insert the output of 'django-admin sqlcustom [app_label]'
 # into your database.
+
 from __future__ import unicode_literals
 from django.db import models
 
@@ -26,6 +27,14 @@ class City(models.Model):
         managed = False
         db_table = 'city'
 
+class CallUnit(models.Model):
+    call_unit_id = models.IntegerField(primary_key=True)
+    descr = models.TextField(blank=False,null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'call_unit'
+
 class Call(models.Model):
     call_id = models.BigIntegerField(primary_key=True)
     month_received = models.IntegerField(blank=True, null=True)
@@ -33,13 +42,13 @@ class Call(models.Model):
     dow_received = models.IntegerField(blank=True, null=True)
     hour_received = models.IntegerField(blank=True, null=True)
     case_id = models.BigIntegerField(blank=True, null=True)
-    call_source = models.ForeignKey(CallSource, blank=True, null=True)
-    #primary_unit = models.ForeignKey('CallUnit', blank=True, null=True)
-    #first_dispatched = models.ForeignKey('CallUnit', blank=True, null=True)
-    #reporting_unit = models.ForeignKey('CallUnit', blank=True, null=True)
+    call_source = models.OneToOneField(CallSource, blank=True, null=True)
+    primary_unit = models.OneToOneField(CallUnit, blank=True, null=True, related_name="primary_unit")
+    first_dispatched = models.OneToOneField(CallUnit, blank=True, null=True, related_name="first_dispatched")
+    reporting_unit = models.OneToOneField(CallUnit, blank=True, null=True, related_name="reporting_unit")
     street_num = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
-    #city = models.ForeignKey('City', blank=True, null=True)
+    city = models.OneToOneField(City, blank=True, null=True)
     zip = models.IntegerField(blank=True, null=True)
     crossroad1 = models.TextField(blank=True, null=True)
     crossroad2 = models.TextField(blank=True, null=True)
