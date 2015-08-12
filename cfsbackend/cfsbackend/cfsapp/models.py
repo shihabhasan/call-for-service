@@ -53,6 +53,14 @@ class CloseCode(models.Model):
         managed = False
         db_table = 'close_code'
 
+class OOSCode(models.Model):
+    oos_code_id = models.IntegerField(primary_key=True)
+    descr       = models.TextField(blank=False,null=False)
+
+    class Meta:
+        managed = False
+        db_table= 'oos_code'
+
 # Primary Classes
 
 class Call(models.Model):
@@ -100,24 +108,24 @@ class Call(models.Model):
 
 class Incident(models.Model):
     incident_id = models.BigIntegerField(primary_key=True)
-    case_id = models.BigIntegerField(unique=True, blank=True, null=True)
-    time_filed = models.DateTimeField(blank=True, null=True)
+    case_id     = models.BigIntegerField(unique=True, blank=True, null=True)
+    time_filed  = models.DateTimeField(blank=True, null=True)
     month_filed = models.IntegerField(blank=True, null=True)
-    week_filed = models.IntegerField(blank=True, null=True)
-    dow_filed = models.IntegerField(blank=True, null=True)
-    street_num = models.IntegerField(blank=True, null=True)
+    week_filed  = models.IntegerField(blank=True, null=True)
+    dow_filed   = models.IntegerField(blank=True, null=True)
+    street_num  = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
-    city = models.OneToOneField(City, blank=True, null=True)
-    zipcode = models.IntegerField(blank=True, null=True, db_column="zip")
-    geox = models.FloatField(blank=True, null=True)
-    geoy = models.FloatField(blank=True, null=True)
-    beat = models.TextField(blank=True, null=True)
-    district = models.TextField(blank=True, null=True)
-    sector = models.TextField(blank=True, null=True)
-    #premise = models.ForeignKey('Premise', blank=True, null=True)
-    #weapon = models.ForeignKey('Weapon', blank=True, null=True)
-    domestic = models.NullBooleanField()
-    juvenile = models.NullBooleanField()
+    city        = models.OneToOneField(City, blank=True, null=True)
+    zipcode     = models.IntegerField(blank=True, null=True, db_column="zip")
+    geox        = models.FloatField(blank=True, null=True)
+    geoy        = models.FloatField(blank=True, null=True)
+    beat        = models.TextField(blank=True, null=True)
+    district    = models.TextField(blank=True, null=True)
+    sector      = models.TextField(blank=True, null=True)
+    #premise    = models.ForeignKey('Premise', blank=True, null=True)
+    #weapon     = models.ForeignKey('Weapon', blank=True, null=True)
+    domestic    = models.NullBooleanField()
+    juvenile    = models.NullBooleanField()
     gang_related = models.NullBooleanField()
     #emp_bureau = models.ForeignKey(Bureau, blank=True, null=True)
     #emp_division = models.ForeignKey(Division, blank=True, null=True)

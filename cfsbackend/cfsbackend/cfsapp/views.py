@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
 from rest_framework import viewsets
-from .models import Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
+from .models import * #Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
 import cfsbackend.cfsapp.serializers as ser # import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
 
 
@@ -67,14 +67,24 @@ class CallUnitViewSet(viewsets.ModelViewSet):
 
 class NatureViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for showing the units that respond to a call.
+    API endpoint for showing the nature of a call.
     """
     queryset = Nature.objects.all()
     serializer_class = ser.NatureSerializer
 
 class CloseCodeViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for showing the units that respond to a call.
+    API endpoint for showing the code applied to a call that when it was closed.
     """
     queryset = CloseCode.objects.all()
     serializer_class = ser.CloseCodeSerializer
+
+class OOSCodeViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for showing the out of service codes and their descriptions.
+    """
+    queryset = OOSCode.objects.all()
+    serializer_class = ser.OOSCodeSerializer
+
+
+

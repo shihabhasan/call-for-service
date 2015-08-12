@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User, Group
-from .models import Incident, Call, City, CallSource, CallUnit, CloseCode, Nature
+
+from .models import * # Incident, Call, City, CallSource, CallUnit, CloseCode, Nature
 from rest_framework import serializers
 
 from collections import OrderedDict
@@ -77,6 +78,10 @@ class CloseCodeSerializer(serializers.HyperlinkedModelSerializer):
         model = CloseCode 
         fields = ('url', 'close_code_id', 'descr')
 
+class OOSCodeSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = OOSCode
+        fields = ('url', 'oos_code_id', 'descr')
 
 # Main Class / Analytic Serializers
 
