@@ -30,7 +30,6 @@ class IncidentViewSet(viewsets.ModelViewSet):
 	queryset = Incident.objects.all()
 	serializer_class = IncidentSerializer
 
-
 class CallViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows calls to be viewed or edited.
@@ -44,3 +43,4 @@ class CallOverviewViewSet(viewsets.ModelViewSet):
     """
     queryset = Call.objects.values('month_received','week_received','dow_received','hour_received').annotate(Count('call_id'))
     serializer_class = CallOverviewSerializer
+

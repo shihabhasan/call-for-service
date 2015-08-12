@@ -1,3 +1,5 @@
+nohup.out
+
 # CSV data used for testing; too big to store in the repo
 #csv_data/
 # We take care of this with a .gitignore file in that directory now.
