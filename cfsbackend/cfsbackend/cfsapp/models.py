@@ -11,6 +11,8 @@
 from __future__ import unicode_literals
 from django.db import models
 
+# Support Classes
+
 class CallSource(models.Model):
     call_source_id = models.IntegerField(primary_key=True)
     descr = models.TextField(blank=False,null=False)
@@ -20,7 +22,7 @@ class CallSource(models.Model):
         db_table = 'call_source'
 
 class City(models.Model):
-    city_id = models.AutoField(primary_key=True)
+    city_id = models.IntegerField(primary_key=True)
     descr = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -35,44 +37,62 @@ class CallUnit(models.Model):
         managed = False
         db_table = 'call_unit'
 
+class Nature(models.Model):
+    nature_id = models.IntegerField(primary_key=True)
+    descr     = models.TextField(blank=False,null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'nature'
+
+class CloseCode(models.Model):
+    close_code_id = models.IntegerField(primary_key=True)
+    descr         = models.TextField(blank=False,null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'close_code'
+
+# Primary Classes
+
 class Call(models.Model):
-    call_id             = models.BigIntegerField(primary_key=True)
-    month_received      = models.IntegerField(blank=True, null=True)
-    week_received       = models.IntegerField(blank=True, null=True)
-    dow_received        = models.IntegerField(blank=True, null=True)
-    hour_received       = models.IntegerField(blank=True, null=True)
-    case_id             = models.BigIntegerField(blank=True, null=True)
-    call_source         = models.OneToOneField(CallSource, blank=True, null=True)
-    primary_unit        = models.OneToOneField(CallUnit, blank=True, null=True, related_name="primary_unit")
-    first_dispatched    = models.OneToOneField(CallUnit, blank=True, null=True, related_name="first_dispatched")
-    reporting_unit      = models.OneToOneField(CallUnit, blank=True, null=True, related_name="reporting_unit")
-    street_num          = models.IntegerField(blank=True, null=True)
-    street_name         = models.TextField(blank=True, null=True)
-    city                = models.OneToOneField(City, blank=True, null=True)
-    zipcode             = models.IntegerField(blank=True, null=True, db_column="zip")
-    crossroad1          = models.TextField(blank=True, null=True)
-    crossroad2          = models.TextField(blank=True, null=True)
-    geox                = models.FloatField(blank=True, null=True)
-    geoy                = models.FloatField(blank=True, null=True)
-    beat                = models.TextField(blank=True, null=True)
-    district            = models.TextField(blank=True, null=True)
-    sector              = models.TextField(blank=True, null=True)
-    business            = models.TextField(blank=True, null=True)
-    #nature             = models.ForeignKey('Nature', blank=True, null=True)
-    priority            = models.TextField(blank=True, null=True)
-    report_only         = models.NullBooleanField()
-    cancelled           = models.NullBooleanField()
-    time_received       = models.DateTimeField(blank=True, null=True)
-    time_routed         = models.DateTimeField(blank=True, null=True)
-    time_finished       = models.DateTimeField(blank=True, null=True)
-    first_unit_dispatch = models.DateTimeField(blank=True, null=True)
-    first_unit_enroute  = models.DateTimeField(blank=True, null=True)
-    first_unit_arrive   = models.DateTimeField(blank=True, null=True)
+    call_id              = models.BigIntegerField(primary_key=True)
+    month_received       = models.IntegerField(blank=True, null=True)
+    week_received        = models.IntegerField(blank=True, null=True)
+    dow_received         = models.IntegerField(blank=True, null=True)
+    hour_received        = models.IntegerField(blank=True, null=True)
+    case_id              = models.BigIntegerField(blank=True, null=True)
+    call_source          = models.OneToOneField(CallSource, blank=True, null=True)
+    primary_unit         = models.OneToOneField(CallUnit, blank=True, null=True, related_name="primary_unit")
+    first_dispatched     = models.OneToOneField(CallUnit, blank=True, null=True, related_name="first_dispatched")
+    reporting_unit       = models.OneToOneField(CallUnit, blank=True, null=True, related_name="reporting_unit")
+    street_num           = models.IntegerField(blank=True, null=True)
+    street_name          = models.TextField(blank=True, null=True)
+    city                 = models.OneToOneField(City, blank=True, null=True, related_name="city")
+    zipcode              = models.IntegerField(blank=True, null=True, db_column="zip")
+    crossroad1           = models.TextField(blank=True, null=True)
+    crossroad2           = models.TextField(blank=True, null=True)
+    geox                 = models.FloatField(blank=True, null=True)
+    geoy                 = models.FloatField(blank=True, null=True)
+    beat                 = models.TextField(blank=True, null=True)
+    district             = models.TextField(blank=True, null=True)
+    sector               = models.TextField(blank=True, null=True)
+    business             = models.TextField(blank=True, null=True)
+    nature               = models.OneToOneField(Nature, blank=True, null=True)
+    priority             = models.TextField(blank=True, null=True)
+    report_only          = models.NullBooleanField()
+    cancelled            = models.NullBooleanField()
+    time_received        = models.DateTimeField(blank=True, null=True)
+    time_routed          = models.DateTimeField(blank=True, null=True)
+    time_finished        = models.DateTimeField(blank=True, null=True)
+    first_unit_dispatch  = models.DateTimeField(blank=True, null=True)
+    first_unit_enroute   = models.DateTimeField(blank=True, null=True)
+    first_unit_arrive    = models.DateTimeField(blank=True, null=True)
     first_unit_transport = models.DateTimeField(blank=True, null=True)
-    last_unit_clear     = models.DateTimeField(blank=True, null=True)
-    time_closed         = models.DateTimeField(blank=True, null=True)
-    #close_code         = models.ForeignKey('CloseCode', blank=True, null=True)
-    close_comments      = models.TextField(blank=True, null=True)
+    last_unit_clear      = models.DateTimeField(blank=True, null=True)
+    time_closed          = models.DateTimeField(blank=True, null=True)
+    close_code           = models.OneToOneField(CloseCode, blank=True, null=True)
+    close_comments       = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -87,7 +107,7 @@ class Incident(models.Model):
     dow_filed = models.IntegerField(blank=True, null=True)
     street_num = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
-    city = models.ForeignKey(City, blank=True, null=True)
+    city = models.OneToOneField(City, blank=True, null=True)
     zipcode = models.IntegerField(blank=True, null=True, db_column="zip")
     geox = models.FloatField(blank=True, null=True)
     geoy = models.FloatField(blank=True, null=True)

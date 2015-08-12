@@ -14,6 +14,9 @@ router.register(r'incidents', views.IncidentViewSet)
 
 router.register(r'calls_sources', views.CallSourceViewSet)
 router.register(r'calls_units', views.CallUnitViewSet)
+router.register(r'nature', views.NatureViewSet)
+router.register(r'close_codes', views.CloseCodeViewSet)
+router.register(r'cities', views.CityViewSet)
 
 router.register(r'calls', views.CallViewSet)
 
