@@ -10,6 +10,22 @@
 from __future__ import unicode_literals
 from django.db import models
 
+class CallSource(models.Model):
+    call_source_id = models.IntegerField(primary_key=True)
+    descr = models.TextField(blank=False,null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'call_source'
+
+class City(models.Model):
+    city_id = models.AutoField(primary_key=True)
+    descr = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'city'
+
 class Call(models.Model):
     call_id = models.BigIntegerField(primary_key=True)
     month_received = models.IntegerField(blank=True, null=True)
@@ -17,7 +33,7 @@ class Call(models.Model):
     dow_received = models.IntegerField(blank=True, null=True)
     hour_received = models.IntegerField(blank=True, null=True)
     case_id = models.BigIntegerField(blank=True, null=True)
-    #call_source = models.ForeignKey('CallSource', blank=True, null=True)
+    call_source = models.ForeignKey(CallSource, blank=True, null=True)
     #primary_unit = models.ForeignKey('CallUnit', blank=True, null=True)
     #first_dispatched = models.ForeignKey('CallUnit', blank=True, null=True)
     #reporting_unit = models.ForeignKey('CallUnit', blank=True, null=True)
@@ -52,14 +68,6 @@ class Call(models.Model):
     class Meta:
         managed = False
         db_table = 'call'
-
-class City(models.Model):
-    city_id = models.AutoField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'city'
 
 class Incident(models.Model):
     incident_id = models.BigIntegerField(primary_key=True)

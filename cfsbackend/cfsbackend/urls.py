@@ -11,11 +11,14 @@ router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 router.register(r'incidents', views.IncidentViewSet)
+
+router.register(r'calls_sources', views.CallSourceViewSet)
+
 router.register(r'calls', views.CallViewSet)
 
 # You must use the optional 3rd parameter here. or otherwise it changes the URL for calls.
 # the same holds true for any double-usage of the same queryset model in the ViewSet. 
-router.register(r'callsoverview', views.CallOverviewViewSet, 'callsoverview')
+router.register(r'calls_overview', views.CallOverviewViewSet, 'callsoverview')
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),

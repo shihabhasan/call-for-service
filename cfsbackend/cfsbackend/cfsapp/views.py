@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
 from rest_framework import viewsets
-from .models import Incident, Call
-from cfsbackend.cfsapp.serializers import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer
+from .models import Incident, Call, CallSource
+from cfsbackend.cfsapp.serializers import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -43,4 +43,11 @@ class CallOverviewViewSet(viewsets.ModelViewSet):
     """
     queryset = Call.objects.values('month_received','week_received','dow_received','hour_received').annotate(Count('call_id'))
     serializer_class = CallOverviewSerializer
+
+class CallSourceViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for showing the possible call sources for a 911 call.
+    """
+    queryset = CallSource.objects.all()
+    serializer_class = CallSourceSerializer
 

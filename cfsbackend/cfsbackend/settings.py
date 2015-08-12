@@ -109,6 +109,15 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Not sure this is properly set up - even for dev testing
+# https://docs.djangoproject.com/en/1.8/topics/cache/
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -118,6 +127,6 @@ STATIC_URL = '/static/'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
     'DEFAULT_PERMISSION_CLASSES': [],
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 20,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
