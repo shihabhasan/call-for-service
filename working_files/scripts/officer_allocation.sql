@@ -22,6 +22,7 @@ create index call_log_transaction_id ON call_log(transaction_id);
 create index call_log_call_id ON call_log(call_id);
 */
 
+
 DROP VIEW IF EXISTS sergeants CASCADE;
 CREATE VIEW sergeants AS
 SELECT call_unit_id FROM call_unit WHERE descr IN (
@@ -117,6 +118,11 @@ GROUP BY ts.time_, call.call_source_id, call.nature_id;
 DROP MATERIALIZED VIEW IF EXISTS dp_count CASCADE;
 CREATE MATERIALIZED VIEW dp_count AS
 
+WITH dp_ids AS (
+  SELECT nature_id
+  FROM nature
+  WHERE descr IN ('FOOT PATROL', 'DIRECTED PATROL')
+)
 SELECT 
   ts.time_,
   CASE
@@ -127,7 +133,7 @@ FROM
   time_sample AS ts
   LEFT JOIN (
     SELECT time_, SUM(num) AS num FROM in_call_count
-    WHERE in_call_count.nature_id IN (58,121)
+    WHERE in_call_count.nature_id IN (SELECT nature_id FROM dp_ids)
     GROUP BY time_
   ) AS d ON (ts.time_ = d.time_);
 
@@ -139,6 +145,16 @@ CREATE UNIQUE INDEX dp_count_time
 DROP MATERIALIZED VIEW IF EXISTS self_init_count CASCADE;
 CREATE MATERIALIZED VIEW self_init_count AS
 
+WITH dp_ids AS (
+  SELECT nature_id
+  FROM nature
+  WHERE descr IN ('FOOT PATROL', 'DIRECTED PATROL')
+),
+self_init_id AS (
+  SELECT call_source_id
+  FROM call_source
+  WHERE descr = 'Self Initiated'
+)
 SELECT 
   ts.time_,
   CASE
@@ -148,9 +164,11 @@ SELECT
 FROM
   time_sample AS ts
   LEFT JOIN (
-    SELECT time_, SUM(num) AS num FROM in_call_count WHERE
-      in_call_count.call_source_id = 8 AND in_call_count.nature_id NOT IN (58,121)
-      GROUP BY time_
+    SELECT time_, SUM(num) AS num
+    FROM in_call_count
+    WHERE in_call_count.call_source_id = (SELECT call_source_id FROM self_init_id)
+      AND in_call_count.nature_id NOT IN (SELECT nature_id FROM dp_ids)
+    GROUP BY time_
   ) AS d ON (ts.time_ = d.time_);
 
 CREATE UNIQUE INDEX self_init_count_time
@@ -161,6 +179,16 @@ CREATE UNIQUE INDEX self_init_count_time
 DROP MATERIALIZED VIEW IF EXISTS other_init_count CASCADE;
 CREATE MATERIALIZED VIEW other_init_count AS
 
+WITH dp_ids AS (
+  SELECT nature_id
+  FROM nature
+  WHERE descr IN ('FOOT PATROL', 'DIRECTED PATROL')
+),
+self_init_id AS (
+  SELECT call_source_id
+  FROM call_source
+  WHERE descr = 'Self Initiated'
+)
 SELECT 
   ts.time_,
   CASE
@@ -170,8 +198,10 @@ SELECT
 FROM
   time_sample AS ts
   LEFT JOIN (
-    SELECT time_, SUM(num) AS num FROM in_call_count WHERE
-      in_call_count.call_source_id <> 8 AND in_call_count.nature_id NOT IN (58, 121)
+    SELECT time_, SUM(num) AS num
+    FROM in_call_count
+    WHERE in_call_count.call_source_id <> (SELECT call_source_id FROM self_init_id)
+      AND in_call_count.nature_id NOT IN (SELECT nature_id FROM dp_ids)
       GROUP BY time_
   ) AS d ON (ts.time_ = d.time_);
 
