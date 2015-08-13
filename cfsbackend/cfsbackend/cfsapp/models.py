@@ -11,6 +11,35 @@
 from __future__ import unicode_literals
 from django.db import models
 
+# Geography as it pertains to policing
+
+class Sector(models.Model):
+    sector_id = models.IntegerField(primary_key=True)
+    descr     = models.TextField(blank=False,null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'sector'
+
+class District(models.Model):
+    district_id = models.IntegerField(primary_key=True)
+    sector      = models.OneToOneField(Sector, blank=True, null=True)
+    descr       = models.TextField(blank=False, null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'district'
+
+class Beat(models.Model):
+    beat_id   = models.IntegerField(primary_key=True)
+    district  = models.OneToOneField(District, blank=True, null=True)
+    sector    = models.OneToOneField(Sector, blank=True, null=True)
+    descr     = models.TextField(blank=False, null=False)
+
+    class Meta:
+        managed = False
+        db_table = 'beat'
+
 # Support Classes
 
 class CallSource(models.Model):
@@ -61,6 +90,7 @@ class OOSCode(models.Model):
         managed = False
         db_table= 'oos_code'
 
+
 class OutOfServicePeriods(models.Model):
     oos_id        = models.IntegerField(primary_key=True)
     call_unit     = models.OneToOneField(CallUnit, blank=True, null=True, db_column="call_unit_id", related_name="call_unit")
@@ -97,9 +127,9 @@ class Call(models.Model):
     crossroad2           = models.TextField(blank=True, null=True)
     geox                 = models.FloatField(blank=True, null=True)
     geoy                 = models.FloatField(blank=True, null=True)
-    beat                 = models.TextField(blank=True, null=True)
-    district             = models.TextField(blank=True, null=True)
-    sector               = models.TextField(blank=True, null=True)
+    beat                 = models.OneToOneField(Beat,blank=True, null=True)
+    district             = models.OneToOneField(District,blank=True, null=True)
+    sector               = models.OneToOneField(Sector,blank=True, null=True)
     business             = models.TextField(blank=True, null=True)
     nature               = models.OneToOneField(Nature, blank=True, null=True)
     priority             = models.TextField(blank=True, null=True)
@@ -134,9 +164,9 @@ class Incident(models.Model):
     zipcode     = models.IntegerField(blank=True, null=True, db_column="zip")
     geox        = models.FloatField(blank=True, null=True)
     geoy        = models.FloatField(blank=True, null=True)
-    beat        = models.TextField(blank=True, null=True)
-    district    = models.TextField(blank=True, null=True)
-    sector      = models.TextField(blank=True, null=True)
+    beat        = models.OneToOneField(Beat,blank=True, null=True)
+    district    = models.OneToOneField(District,blank=True, null=True)
+    sector      = models.OneToOneField(Sector,blank=True, null=True)
     #premise    = models.ForeignKey('Premise', blank=True, null=True)
     #weapon     = models.ForeignKey('Weapon', blank=True, null=True)
     domestic    = models.NullBooleanField()

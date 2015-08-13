@@ -9,6 +9,27 @@ import cfsbackend.cfsapp.serializers as ser # import UserSerializer, GroupSerial
 
 # The order in which these appear determines the order in which they appear in the self-documenting API
 
+class SectorViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that shows details about all Sectors. Not used in analysis.
+    """
+    queryset = Sector.objects.all()
+    serializer_class = ser.SectorSerializer
+
+class DistrictViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that shows details about policing districts. 
+    """
+    queryset = District.objects.all()
+    serializer_class = ser.DistrictSerializer
+
+class BeatViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that shows details about policing beats.
+    """
+    queryset = Beat.objects.all()
+    serializer_class = ser.BeatSerializer
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -53,6 +74,7 @@ class CallOverviewViewSet(viewsets.ModelViewSet):
     """
     queryset = Call.objects.values('month_received','week_received','dow_received','hour_received').annotate(Count('call_id'))
     serializer_class = ser.CallOverviewSerializer
+
 
 class CallSourceViewSet(viewsets.ModelViewSet):
     """

@@ -39,3 +39,6 @@ Also note that the provisioning script for Vagrant sets `python` to be an alias 
 
 * The `vagrant ssh` command requires `ssh.exe` to be in your `PATH`. Because ssh is shipped with git, the easiest way to do this is to add `C:\programs\Git\bin` (or wherever you installed git) to your `PATH`. Another option is to use Putty with the connection information provided by the output of the `vagrant ssh` command. However, the private key file provided by Vagrant isn't compatible with Putty. You'll first need to open the key in puttygen and convert it to a `.ppk` file, then you can tell Putty to use that file for authenticating.
 
+### Generating a database schema diagram
+
+In `/working_files/datadocs` is a shell script called `update_schema_diagram.sh`. Edit/use it to create a diagram of the database. However, you will have to install [schemacrawler](http://sualeh.github.io/SchemaCrawler/) first.

@@ -41,6 +41,21 @@ class NonNullSerializer(serializers.ModelSerializer):
         return ret
 
 
+class SectorSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Sector
+        fields = ('url', 'sector_id', 'descr')
+
+class DistrictSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = District
+        fields = ('url', 'district_id', 'sector', 'descr')
+
+class BeatSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Beat
+        fields = ('url', 'beat_id', 'district', 'sector', 'descr')
+
 # Support Serializers
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -113,6 +128,10 @@ class CallSerializer(NonNullSerializer):
     close_code       = CloseCodeSerializer(read_only=True,allow_null=True)
     nature           = NatureSerializer(read_only=True,allow_null=True)
 
+    beat             = BeatSerializer(read_only=True, allow_null=True)
+    district         = DistrictSerializer(read_only=True, allow_null=True)
+    sector           = SectorSerializer(read_only=True, allow_null=True)
+
     class Meta:
         model = Call
         read_only_fields = ('call_id', 'city', 'call_source', 'primary_unit', 'first_dispatched', 'close_code', 'nature', 'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id', 'street_num', 'street_name', 'zipcode', 'crossroad1', 'crossroad2', 'geox', 'geoy', 'beat', 'district', 'sector', 'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed', 'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport', 'last_unit_clear', 'time_closed', 'close_comments')
@@ -126,4 +145,7 @@ class CallOverviewSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Call
-        read_only_fields = ('m','w','d','h','n')
+        fields = ('m','w','d','h','n')
+
+
+

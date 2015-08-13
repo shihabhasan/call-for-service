@@ -19,6 +19,9 @@ router.register(r'close_codes', views.CloseCodeViewSet)
 router.register(r'cities', views.CityViewSet)
 router.register(r'oos_codes', views.OOSCodeViewSet)
 router.register(r'out_of_service_periods', views.OutOfServicePeriodsViewSet)
+router.register(r'sectors', views.SectorViewSet)
+router.register(r'districts', views.DistrictViewSet)
+router.register(r'beats', views.BeatViewSet)
 
 router.register(r'calls', views.CallViewSet)
 
