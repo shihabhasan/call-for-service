@@ -6,4 +6,4 @@ UPDATE call SET incident_id = (SELECT incident_id FROM incident WHERE incident.c
 
 ALTER TABLE call ADD CONSTRAINT incident_call_fk FOREIGN KEY (incident_id) REFERENCES incident(incident_id);
 
-CREATE INDEX call_incident_id ON call (incident_id);
+CREATE INDEX call_incident_id_ndx ON call (incident_id);
