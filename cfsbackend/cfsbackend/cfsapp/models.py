@@ -23,7 +23,7 @@ class Sector(models.Model):
 
 class District(models.Model):
     district_id = models.IntegerField(primary_key=True)
-    sector      = models.OneToOneField(Sector, blank=True, null=True)
+    sector      = models.ForeignKey(Sector, blank=True, null=True)
     descr       = models.TextField(blank=False, null=False)
 
     class Meta:
@@ -32,8 +32,8 @@ class District(models.Model):
 
 class Beat(models.Model):
     beat_id   = models.IntegerField(primary_key=True)
-    district  = models.OneToOneField(District, blank=True, null=True)
-    sector    = models.OneToOneField(Sector, blank=True, null=True)
+    district  = models.ForeignKey(District, blank=True, null=True)
+    sector    = models.ForeignKey(Sector, blank=True, null=True)
     descr     = models.TextField(blank=False, null=False)
 
     class Meta:
@@ -52,7 +52,7 @@ class CallSource(models.Model):
 
 class City(models.Model):
     city_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
+    descr   = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -93,9 +93,9 @@ class OOSCode(models.Model):
 
 class OutOfServicePeriods(models.Model):
     oos_id        = models.IntegerField(primary_key=True)
-    call_unit     = models.OneToOneField(CallUnit, blank=True, null=True, db_column="call_unit_id", related_name="call_unit")
+    call_unit     = models.ForeignKey(CallUnit, blank=True, null=True, db_column="call_unit_id", related_name="call_unit")
     shift_unit_id = models.BigIntegerField(blank=True,null=True)
-    oos_code      = models.OneToOneField(OOSCode, blank=True, null=True, db_column="oos_code_id", related_name="oos_code")
+    oos_code      = models.ForeignKey(OOSCode, blank=True, null=True, db_column="oos_code_id", related_name="oos_code")
     location      = models.TextField(blank=True,null=True)
     comments      = models.TextField(blank=True,null=True)
     start_time    = models.DateTimeField(blank=True,null=True)
@@ -115,23 +115,23 @@ class Call(models.Model):
     dow_received         = models.IntegerField(blank=True, null=True)
     hour_received        = models.IntegerField(blank=True, null=True)
     case_id              = models.BigIntegerField(blank=True, null=True)
-    call_source          = models.OneToOneField(CallSource, blank=True, null=True)
-    primary_unit         = models.OneToOneField(CallUnit, blank=True, null=True, related_name="primary_unit")
-    first_dispatched     = models.OneToOneField(CallUnit, blank=True, null=True, related_name="first_dispatched")
-    reporting_unit       = models.OneToOneField(CallUnit, blank=True, null=True, related_name="reporting_unit")
+    call_source          = models.ForeignKey(CallSource, blank=True, null=True)
+    primary_unit         = models.ForeignKey(CallUnit, blank=True, null=True, related_name="primary_unit")
+    first_dispatched     = models.ForeignKey(CallUnit, blank=True, null=True, related_name="first_dispatched")
+    reporting_unit       = models.ForeignKey(CallUnit, blank=True, null=True, related_name="reporting_unit")
     street_num           = models.IntegerField(blank=True, null=True)
     street_name          = models.TextField(blank=True, null=True)
-    city                 = models.OneToOneField(City, blank=True, null=True, related_name="city")
+    city                 = models.ForeignKey(City, blank=True, null=True)
     zipcode              = models.IntegerField(blank=True, null=True, db_column="zip")
     crossroad1           = models.TextField(blank=True, null=True)
     crossroad2           = models.TextField(blank=True, null=True)
     geox                 = models.FloatField(blank=True, null=True)
     geoy                 = models.FloatField(blank=True, null=True)
-    beat                 = models.OneToOneField(Beat,blank=True, null=True)
-    district             = models.OneToOneField(District,blank=True, null=True)
-    sector               = models.OneToOneField(Sector,blank=True, null=True)
+    beat                 = models.ForeignKey(Beat,blank=True, null=True)
+    district             = models.ForeignKey(District,blank=True, null=True)
+    sector               = models.ForeignKey(Sector,blank=True, null=True)
     business             = models.TextField(blank=True, null=True)
-    nature               = models.OneToOneField(Nature, blank=True, null=True)
+    nature               = models.ForeignKey(Nature, blank=True, null=True)
     priority             = models.TextField(blank=True, null=True)
     report_only          = models.NullBooleanField()
     cancelled            = models.NullBooleanField()
@@ -144,7 +144,7 @@ class Call(models.Model):
     first_unit_transport = models.DateTimeField(blank=True, null=True)
     last_unit_clear      = models.DateTimeField(blank=True, null=True)
     time_closed          = models.DateTimeField(blank=True, null=True)
-    close_code           = models.OneToOneField(CloseCode, blank=True, null=True)
+    close_code           = models.ForeignKey(CloseCode, blank=True, null=True)
     close_comments       = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -160,13 +160,13 @@ class Incident(models.Model):
     dow_filed   = models.IntegerField(blank=True, null=True)
     street_num  = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
-    city        = models.OneToOneField(City, blank=True, null=True)
+    city        = models.ForeignKey(City, blank=True, null=True)
     zipcode     = models.IntegerField(blank=True, null=True, db_column="zip")
     geox        = models.FloatField(blank=True, null=True)
     geoy        = models.FloatField(blank=True, null=True)
-    beat        = models.OneToOneField(Beat,blank=True, null=True)
-    district    = models.OneToOneField(District,blank=True, null=True)
-    sector      = models.OneToOneField(Sector,blank=True, null=True)
+    beat        = models.ForeignKey(Beat,blank=True, null=True)
+    district    = models.ForeignKey(District,blank=True, null=True)
+    sector      = models.ForeignKey(Sector,blank=True, null=True)
     #premise    = models.ForeignKey('Premise', blank=True, null=True)
     #weapon     = models.ForeignKey('Weapon', blank=True, null=True)
     domestic    = models.NullBooleanField()
