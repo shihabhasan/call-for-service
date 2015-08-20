@@ -42,7 +42,8 @@ INSTALLED_APPS = (
     'corsheaders',
     'rest_framework_swagger',
     'django.contrib.sites',
-    'cfsapp'
+    'cfsapp',
+    'django_filters'
 )
 
 MIDDLEWARE_CLASSES = (

@@ -187,3 +187,49 @@ class Incident(models.Model):
         managed = False
         db_table = 'incident'
 
+
+class CallSummary:
+    def __init__(self, queryset):
+        self.queryset = queryset
+
+    def summary(self, field):
+        return dict(self.queryset. \
+                    values(field). \
+                    annotate(models.Count(field)). \
+                    values_list(field, field + '__count'))
+
+    def hour(self):
+        results = dict.fromkeys(range(24), 0)
+        results.update(self.summary('hour_received'))
+        return results
+
+    def dow(self):
+        results = dict.fromkeys(range(7), 0)
+        results.update(self.summary('dow_received'))
+        return results
+
+    def month(self):
+        results = dict.fromkeys(range(1, 13), 0)
+        results.update(self.summary('month_received'))
+        return results
+
+    def call_source(self):
+        return self.summary('call_source__descr')
+
+    def nature(self):
+        return self.summary('nature__descr')
+
+    def beat(self):
+        return self.summary('beat__descr')
+
+    def to_dict(self):
+        return {
+            "hour": self.hour(),
+            "dow": self.dow(),
+            "month": self.month(),
+            "source": self.call_source(),
+            "nature": self.nature(),
+            "beat": self.beat(),
+            "district": self.summary("beat__district__descr"),
+            "sector": self.summary("beat__sector__descr"),
+        }
