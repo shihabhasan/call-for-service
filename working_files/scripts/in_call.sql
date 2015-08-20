@@ -6,9 +6,9 @@ The view is materialized because it takes several seconds to create.  This is in
 */
 
  -- ensure these indexes exist or else it will be super slow
- --CREATE INDEX call_log_transaction_id ON call_log (transaction_id);
- --CREATE INDEX call_log_call_id ON call_log (call_id);
- --CREATE INDEX call_log_call_unit_id ON call_log(call_unit_id);
+ --CREATE INDEX call_log_transaction_id_ndx ON call_log (transaction_id);
+ --CREATE INDEX call_log_call_id_ndx ON call_log (call_id);
+ --CREATE INDEX call_log_call_unit_id_ndx ON call_log(call_unit_id);
 DROP MATERIALIZED VIEW IF EXISTS in_call CASCADE;
 
 
@@ -19,13 +19,13 @@ end_ids AS (SELECT transaction_id FROM transaction WHERE descr in ('Cleared','Ca
  SELECT c.call_id,
     start_.time_recorded AS start_time,
     end_.time_recorded AS end_time,
-    start_.shift_unit_id,
+    start_.shift_id,
     start_.call_unit_id AS start_call_unit_id,
     end_.call_unit_id AS end_call_unit_id
    FROM call c, (
        SELECT cl1.call_log_id,
             cl1.transaction_id,
-            cl1.shift_unit_id,
+            cl1.shift_id,
             cl1.time_recorded,
             cl1.call_id,
             cl1.call_unit_id,
@@ -35,7 +35,7 @@ end_ids AS (SELECT transaction_id FROM transaction WHERE descr in ('Cleared','Ca
     ) start_, (
         SELECT cl2.call_log_id,
             cl2.transaction_id,
-            cl2.shift_unit_id,
+            cl2.shift_id,
             cl2.time_recorded,
             cl2.call_id,
             cl2.call_unit_id,

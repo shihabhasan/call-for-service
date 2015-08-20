@@ -16,7 +16,7 @@ WHERE
   AND start_call_unit_id = call_unit.call_unit_id
   AND call.nature_id IN (SELECT nature_id FROM dp_ids)
   AND start_call_unit_id IN (
-    SELECT DISTINCT call_unit_id FROM SHIFT
+    SELECT DISTINCT call_unit_id FROM shift_unit
   )
   AND start_call_unit_id NOT IN (SELECT * FROM sergeants);
   
@@ -44,7 +44,7 @@ WHERE
   AND call.nature_id NOT IN (SELECT nature_id FROM dp_ids)
   AND call.call_source_id <> (SELECT call_source_id FROM self_init_id)
   AND start_call_unit_id IN (
-    SELECT DISTINCT call_unit_id FROM SHIFT
+    SELECT DISTINCT call_unit_id FROM shift_unit
   )
   AND start_call_unit_id NOT IN (SELECT * FROM sergeants);
   
@@ -72,7 +72,7 @@ WHERE
   AND call.nature_id NOT IN (SELECT nature_id FROM dp_ids)
   AND call.call_source_id = (SELECT call_source_id FROM self_init_id)
   AND start_call_unit_id IN (
-    SELECT DISTINCT call_unit_id FROM SHIFT
+    SELECT DISTINCT call_unit_id FROM shift_unit
   )
   AND start_call_unit_id NOT IN (SELECT * FROM sergeants);
   

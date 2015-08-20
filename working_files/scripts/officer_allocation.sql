@@ -12,16 +12,16 @@ to the end of July.  It's something about the number of records used to create t
 We can, however, query the whole year fairly quickly (~3 secs) with 10 minute intervals.
 
 In addition, these indices should be present:
-create index shift_time_in on shift(time_in);
-create index shift_time_out on shift(time_out);
-create index oos_start_time on out_of_service(start_time);
-create index oos_end_time on out_of_service(end_time);
-create index in_call_start_time on in_call(start_time);
-create index in_call_end_time on in_call(end_time);
-create index call_log_transaction_id ON call_log(transaction_id);
-create index call_log_call_id ON call_log(call_id);
+create index shift_unit_in_time_ndx on shift_unit(in_time);
+create index shift_unit_out_time_ndx on shift_unit(out_time);
+create index shift_unit_shift_id_ndx on shift_unit(shift_id);
+create index oos_start_time_ndx on out_of_service(start_time);
+create index oos_end_time_ndx on out_of_service(end_time);
+create index in_call_start_time_ndx on in_call(start_time);
+create index in_call_end_time_ndx on in_call(end_time);
+create index call_log_transaction_id_ndx ON call_log(transaction_id);
+create index call_log_call_id_ndx ON call_log(call_id);
 */
-
 
 DROP VIEW IF EXISTS sergeants CASCADE;
 CREATE VIEW sergeants AS
@@ -60,11 +60,12 @@ FROM
         -- aggregation to get the number of units, since there can be
         -- multiple officers per unit.
         SELECT time_sample.time_ AS time_, COUNT(*)
-        FROM time_sample, shift
-        WHERE (time_out-time_in) < (interval '1 day')
-          AND time_sample.time_ BETWEEN time_in AND time_out
+        FROM time_sample, shift, shift_unit
+        WHERE shift.shift_id = shift_unit.shift_id
+          AND (out_time-in_time) < (interval '1 day')
+          AND time_sample.time_ BETWEEN in_time AND out_time
           AND call_unit_id NOT IN (SELECT * FROM sergeants)
-        GROUP BY time_sample.time_, shift.call_unit_id
+        GROUP BY time_sample.time_, shift_unit.call_unit_id
       ) AS a
       GROUP BY time_
     ) AS d ON (ts.time_ = d.time_);
@@ -88,7 +89,7 @@ FROM
       SELECT time_sample.time_ AS time_, COUNT(*) AS num
       FROM time_sample, out_of_service
       WHERE duration < (interval '1 day')
-        AND out_of_service.call_unit_id IN (SELECT DISTINCT call_unit_id FROM shift)
+        AND out_of_service.call_unit_id IN (SELECT DISTINCT call_unit_id FROM shift_unit)
         AND time_sample.time_ BETWEEN start_time AND end_time
         AND out_of_service.call_unit_id NOT IN (SELECT * FROM sergeants)
       GROUP BY time_sample.time_
@@ -108,9 +109,17 @@ SELECT ts.time_,
 FROM in_call,
     call,
     time_sample ts
-WHERE (in_call.start_call_unit_id IN ( SELECT DISTINCT shift.call_unit_id
-         FROM shift) AND in_call.start_call_unit_id NOT IN (SELECT * FROM sergeants)) AND (in_call.end_call_unit_id IN ( SELECT DISTINCT shift.call_unit_id
-         FROM shift) AND in_call.end_call_unit_id NOT IN (SELECT * FROM sergeants)) AND ts.time_ >= in_call.start_time AND ts.time_ <= in_call.end_time AND in_call.call_id = call.call_id
+WHERE (
+    in_call.start_call_unit_id IN ( SELECT DISTINCT shift_unit.call_unit_id FROM shift_unit)
+    AND in_call.start_call_unit_id NOT IN (SELECT * FROM sergeants)
+  )
+  AND (
+    in_call.end_call_unit_id IN ( SELECT DISTINCT shift_unit.call_unit_id FROM shift_unit)
+    AND in_call.end_call_unit_id NOT IN (SELECT * FROM sergeants)
+  ) 
+  AND ts.time_ >= in_call.start_time
+  AND ts.time_ <= in_call.end_time
+  AND in_call.call_id = call.call_id
 GROUP BY ts.time_, call.call_source_id, call.nature_id;
 
 -- On Directed Patrol
