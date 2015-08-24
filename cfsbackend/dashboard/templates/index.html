@@ -8,18 +8,36 @@
     <title>CFS</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
     {% render_bundle 'app' 'css' %}
 </head>
 <body>
+<div class="container">
     <header><a href="/" class="logo">CFS</a></header>
     <main>
-        <div id="dc-call-dow-chart"></div>
-        <div id="dc-call-hour-chart"></div>
-        <div id="dc-call-month-chart"></div>
-        <div id="dc-call-source-chart"></div>
-        <div id="dc-call-nature-chart"></div>
+        <div class="row">
+            <div class="col-xs-6">
+                <div id="dc-call-dow-chart"></div>
+                <div id="dc-call-hour-chart"></div>
+                <div id="dc-call-month-chart"></div>
+            </div>
+
+            <div class="col-xs-6">
+                <div id="dc-call-source-chart"></div>
+                <div id="dc-call-nature-chart"></div>
+            </div>
+        </div>
+
+
     </main>
     <footer>RTI 2015</footer>
-    {% render_bundle 'app' 'js' %}
+</div>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+{% render_bundle 'app' 'js' %}
 </body>
 </html>
