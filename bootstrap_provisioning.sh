@@ -6,11 +6,12 @@ apt-get install -y libpq-dev
 pip3 install psycopg2
 pip3 install djangorestframework
 
-curl --silent --location https://deb.nodesource.com/setup_0.12 | sudo bash -
+rm /etc/apt/sources.list.d/ubuntugis-ppa-trusty.list
+curl --silent --location https://deb.nodesource.com/setup_0.12 | bash -
 sudo apt-get install -y nodejs
-sudo apt-get autoremove
+sudo apt-get autoremove -y
 
-cat >> /home/vagrant/.bashrc << END
+cat > /home/vagrant/.bashrc << END
 # Make the python command invoke python3
 alias python=python3
 # Make the pip command invoke pip3
