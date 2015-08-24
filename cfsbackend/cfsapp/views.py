@@ -3,8 +3,9 @@ from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
 from rest_framework import viewsets
-from .models import * #Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
-import cfsbackend.cfsapp.serializers as ser # import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
+from .models import *  # Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
+import \
+    cfsapp.serializers as ser  # import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
 
 
 # The order in which these appear determines the order in which they appear in the self-documenting API
@@ -16,12 +17,14 @@ class SectorViewSet(viewsets.ModelViewSet):
     queryset = Sector.objects.all()
     serializer_class = ser.SectorSerializer
 
+
 class DistrictViewSet(viewsets.ModelViewSet):
     """
     API endpoint that shows details about policing districts. 
     """
     queryset = District.objects.all()
     serializer_class = ser.DistrictSerializer
+
 
 class BeatViewSet(viewsets.ModelViewSet):
     """
@@ -48,11 +51,12 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class IncidentViewSet(viewsets.ModelViewSet):
-	"""
+    """
     API endpoint that allows incidents to be viewed or edited.
     """
-	queryset = Incident.objects.all()
-	serializer_class = ser.IncidentSerializer
+    queryset = Incident.objects.all()
+    serializer_class = ser.IncidentSerializer
+
 
 class CityViewSet(viewsets.ModelViewSet):
     """
@@ -61,6 +65,7 @@ class CityViewSet(viewsets.ModelViewSet):
     queryset = City.objects.all()
     serializer_class = ser.CitySerializer
 
+
 class CallViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows calls to be viewed or edited.
@@ -68,11 +73,13 @@ class CallViewSet(viewsets.ModelViewSet):
     queryset = Call.objects.all()
     serializer_class = ser.CallSerializer
 
+
 class CallOverviewViewSet(viewsets.ModelViewSet):
     """
     API endpoint for reduced data payload for summary page. Note that it aggregates by count of calls
     """
-    queryset = Call.objects.values('month_received','week_received','dow_received','hour_received').annotate(Count('call_id'))
+    queryset = Call.objects.values('month_received', 'week_received', 'dow_received', 'hour_received').annotate(
+        Count('call_id'))
     serializer_class = ser.CallOverviewSerializer
 
 
@@ -83,12 +90,14 @@ class CallSourceViewSet(viewsets.ModelViewSet):
     queryset = CallSource.objects.all()
     serializer_class = ser.CallSourceSerializer
 
+
 class CallUnitViewSet(viewsets.ModelViewSet):
     """
     API endpoint for showing the units that respond to a call.
     """
     queryset = CallUnit.objects.all()
     serializer_class = ser.CallUnitSerializer
+
 
 class NatureViewSet(viewsets.ModelViewSet):
     """
@@ -97,12 +106,14 @@ class NatureViewSet(viewsets.ModelViewSet):
     queryset = Nature.objects.all()
     serializer_class = ser.NatureSerializer
 
+
 class CloseCodeViewSet(viewsets.ModelViewSet):
     """
     API endpoint for showing the code applied to a call that when it was closed.
     """
     queryset = CloseCode.objects.all()
     serializer_class = ser.CloseCodeSerializer
+
 
 class OOSCodeViewSet(viewsets.ModelViewSet):
     """
@@ -111,10 +122,10 @@ class OOSCodeViewSet(viewsets.ModelViewSet):
     queryset = OOSCode.objects.all()
     serializer_class = ser.OOSCodeSerializer
 
+
 class OutOfServicePeriodsViewSet(viewsets.ModelViewSet):
     """
     API endpoint for showing the out of service periods.
     """
     queryset = OutOfServicePeriods.objects.all()
     serializer_class = ser.OutOfServicePeriodsSerializer
-
