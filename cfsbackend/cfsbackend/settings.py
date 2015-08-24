@@ -42,7 +42,8 @@ INSTALLED_APPS = (
     'corsheaders',
     'rest_framework_swagger',
     'django.contrib.sites',
-    'cfsapp',
+    'api',
+    'dashboard',
     'django_filters'
 )
 

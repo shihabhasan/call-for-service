@@ -6,8 +6,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import *  # Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
-import \
-    cfsbackend.cfsapp.serializers as ser  # import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
+from . import serializers as ser
 import django_filters
 
 
