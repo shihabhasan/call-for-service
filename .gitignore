@@ -124,3 +124,8 @@ website/www/.sass-cache
 website/www/build
 website/www/Rakefile
 exec/
+
+# Front end
+node_modules
+cfsbackend/assets/bundles/
+cfsbackend/webpack-stats.json

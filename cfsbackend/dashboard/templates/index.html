@@ -1,0 +1,25 @@
+{% load render_bundle from webpack_loader %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>CFS</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% render_bundle 'app' 'css' %}
+</head>
+<body>
+    <header><a href="/" class="logo">CFS</a></header>
+    <main>
+        <div id="dc-call-dow-chart"></div>
+        <div id="dc-call-hour-chart"></div>
+        <div id="dc-call-month-chart"></div>
+        <div id="dc-call-source-chart"></div>
+        <div id="dc-call-nature-chart"></div>
+    </main>
+    <footer>RTI 2015</footer>
+    {% render_bundle 'app' 'js' %}
+</body>
+</html>
