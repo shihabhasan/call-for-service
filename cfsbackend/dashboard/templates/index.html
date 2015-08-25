@@ -15,19 +15,32 @@
     {% render_bundle 'app' 'css' %}
 </head>
 <body>
-<div class="container">
-    <header><a href="/" class="logo">CFS</a></header>
+<div class="container-fluid">
     <main>
         <div class="row">
             <div class="col-xs-6">
-                <div id="dc-call-dow-chart"></div>
-                <div id="dc-call-hour-chart"></div>
-                <div id="dc-call-month-chart"></div>
+                <div id="dc-call-dow-chart" class="chart">
+                    <h3>Number of Calls by Day of Week</h3>
+                </div>
+
+                <div id="dc-call-hour-chart" class="chart">
+                    <h3>Number of Calls by Hour of Day</h3>
+                </div>
+
+                <div id="dc-call-month-chart" class="chart">
+                    <h3>Number of Calls by Month</h3>
+                </div>
             </div>
 
             <div class="col-xs-6">
-                <div id="dc-call-source-chart"></div>
-                <div id="dc-call-nature-chart"></div>
+                <div id="dc-call-source-chart" class="chart">
+                    <h3>Calls by Source</h3>
+                </div>
+
+
+                <div id="dc-call-nature-chart" class="chart">
+                    <h3>Call Nature</h3>
+                </div>
             </div>
         </div>
 
