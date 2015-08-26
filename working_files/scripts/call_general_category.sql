@@ -26,6 +26,14 @@ gang_ids AS (
     (upper(body) LIKE '%BLOODS%') OR
     (upper(body) LIKE '%MS13%')
   )
+),
+spanish_ids AS (
+  SELECT distinct call_id
+  FROM note
+  WHERE (
+    (upper(body) LIKE '%SPANISH%') OR
+    (upper(body) LIKE '%SPAINISH%')
+  )
 )
 SELECT
   call_id,
