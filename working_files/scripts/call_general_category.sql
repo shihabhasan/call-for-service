@@ -34,6 +34,21 @@ spanish_ids AS (
     (upper(body) LIKE '%SPANISH%') OR
     (upper(body) LIKE '%SPAINISH%')
   )
+),
+mentally_ill_ids AS (
+  SELECT distinct call_id
+  FROM note
+  WHERE
+    (upper(body) LIKE '%10-73%' AND
+      upper(body) ~ '\m73\M') OR
+    (upper(body) LIKE '%73%' AND
+      upper(body) ~ '\m73\M' AND
+      upper(body) !~ 'AGE: 73' AND
+      upper(body) !~ '73(\.| YOA|-YEAR| YEARS)' AND
+      upper(body) !~ '[-|.|/]73' AND
+      upper(body) !~ '\(73\)'
+    ) OR
+    (upper(body) LIKE '%BAKER ACT%')
 )
 SELECT
   call_id,
@@ -44,5 +59,13 @@ SELECT
   CASE
     WHEN call_id IN (SELECT * FROM gang_ids) THEN TRUE
     ELSE FALSE
-   END AS gang_related
+   END AS gang_related,
+  CASE
+    WHEN call_id IN (SELECT * FROM spanish_ids) THEN TRUE
+    ELSE FALSE
+  END AS spanish_related,
+  CASE
+    WHEN call_id IN (SELECT * FROM mentally_ill_ids) THEN TRUE
+    ELSE FALSE
+  END AS mental_illness_related
 FROM call;
