@@ -4,7 +4,8 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework import routers
-from cfsapp import views
+from api import views
+from dashboard.views import DashboardView
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -29,8 +30,10 @@ router.register(r'calls', views.CallViewSet)
 router.register(r'calls_overview', views.CallOverviewViewSet, 'callsoverview')
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include(router.urls)),
+    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/summary/', views.SummaryView.as_view()),
+    url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', include('rest_framework_swagger.urls')),
+    url(r'^$', DashboardView.as_view()),
 ]

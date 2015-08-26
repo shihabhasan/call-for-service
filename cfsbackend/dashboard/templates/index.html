@@ -1,0 +1,56 @@
+{% load render_bundle from webpack_loader %}
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>CFS</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    {% render_bundle 'app' 'css' %}
+</head>
+<body>
+<div class="container-fluid">
+    <main>
+        <div class="row">
+            <div class="col-xs-6">
+                <div id="dc-call-dow-chart" class="chart">
+                    <h3>Number of Calls by Day of Week</h3>
+                </div>
+
+                <div id="dc-call-hour-chart" class="chart">
+                    <h3>Number of Calls by Hour of Day</h3>
+                </div>
+
+                <div id="dc-call-month-chart" class="chart">
+                    <h3>Number of Calls by Month</h3>
+                </div>
+            </div>
+
+            <div class="col-xs-6">
+                <div id="dc-call-source-chart" class="chart">
+                    <h3>Calls by Source</h3>
+                </div>
+
+
+                <div id="dc-call-nature-chart" class="chart">
+                    <h3>Call Nature</h3>
+                </div>
+            </div>
+        </div>
+
+
+    </main>
+    <footer>RTI 2015</footer>
+</div>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+{% render_bundle 'app' 'js' %}
+</body>
+</html>

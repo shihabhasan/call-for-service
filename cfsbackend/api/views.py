@@ -3,9 +3,11 @@ from django.shortcuts import render
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
 from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from .models import *  # Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
-import \
-    cfsapp.serializers as ser  # import UserSerializer, GroupSerializer, IncidentSerializer, CallSerializer, CallOverviewSerializer, CallSourceSerializer, CallUnitSerializer
+from . import serializers as ser
+import django_filters
 
 
 # The order in which these appear determines the order in which they appear in the self-documenting API
@@ -129,3 +131,21 @@ class OutOfServicePeriodsViewSet(viewsets.ModelViewSet):
     """
     queryset = OutOfServicePeriods.objects.all()
     serializer_class = ser.OutOfServicePeriodsSerializer
+
+
+class CallFilter(django_filters.FilterSet):
+    class Meta:
+        model = Call
+        fields = ['month_received', 'dow_received', 'hour_received']
+
+
+class SummaryView(APIView):
+    """
+    Gives summary statistics about calls for service based off of user-
+    submitted filters.
+    """
+
+    def get(self, request, format=None):
+        filter = CallFilter(request.GET, queryset=Call.objects.all())
+        summary = CallSummary(filter.qs)
+        return Response(summary.to_dict())
