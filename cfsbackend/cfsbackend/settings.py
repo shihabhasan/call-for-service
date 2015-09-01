@@ -38,12 +38,15 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
-    'corsheaders',
     'rest_framework_swagger',
+    'corsheaders',
     'django.contrib.sites',
     'django_filters',
     'webpack_loader',
+    'django_extensions',
+
     'api',
     'dashboard',
 
@@ -131,6 +134,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'assets'),
 )
+
+TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
+
+
+# Third party
 
 WEBPACK_LOADER = {
     'BUNDLE_DIR_NAME': 'bundles/',
