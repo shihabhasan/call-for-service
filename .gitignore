@@ -129,3 +129,9 @@ exec/
 node_modules
 cfsbackend/assets/bundles/
 cfsbackend/webpack-stats.json
+
+# Various
+*.sql
+.idea
+.direnv/
+.envrc
