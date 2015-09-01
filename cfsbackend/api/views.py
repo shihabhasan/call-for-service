@@ -71,6 +71,9 @@ class CityViewSet(viewsets.ModelViewSet):
 class CallViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows calls to be viewed or edited.
+
+    You can filter by date/time received using `time_received_0` for start date
+    and `time_received_1` for end date.
     """
     queryset = Call.objects.all()
     serializer_class = ser.CallSerializer
