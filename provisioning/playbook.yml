@@ -71,7 +71,7 @@
       copy: src=files/pg_hba.conf dest=/etc/postgresql/9.4/main/pg_hba.conf owner=postgres group=postgres force=yes
       notify:
         - Restart Postgres
-    - name: "Create Vagrant user for Postgres"
+    - name: "Create datascientist user for Postgres"
       postgresql_user: name=datascientist password=1234thumbwar
     - name: "Create Vagrant user for Postgres"
       postgresql_user: name=vagrant role_attr_flags=CREATEDB,CREATEROLE,SUPERUSER
