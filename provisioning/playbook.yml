@@ -72,10 +72,10 @@
       notify:
         - Restart Postgres
     - name: "Create datascientist user for Postgres"
-      postgresql_user: name=datascientist password=1234thumbwar
+      postgresql_user: name=datascientist password=1234thumbwar role_attr_flags=CREATEDB
     - name: "Create Vagrant user for Postgres"
       postgresql_user: name=vagrant role_attr_flags=CREATEDB,CREATEROLE,SUPERUSER
-    - name: "Create PostgreSQL database"
+    - name: "Create PostgreSQL databases"
       postgresql_db: name=cfs owner=datascientist state=present
     - name: "Add PostGIS"
       postgresql_ext: name=postgis db=cfs
