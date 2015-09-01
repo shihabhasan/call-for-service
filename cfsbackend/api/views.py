@@ -2,12 +2,12 @@ from django.shortcuts import render
 
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import *  # Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
+from .filters import SummaryFilter, CallFilter
 from . import serializers as ser
-import django_filters
 
 
 # The order in which these appear determines the order in which they appear in the self-documenting API
@@ -74,6 +74,8 @@ class CallViewSet(viewsets.ModelViewSet):
     """
     queryset = Call.objects.all()
     serializer_class = ser.CallSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = CallFilter
 
 
 class CallOverviewViewSet(viewsets.ModelViewSet):
@@ -133,12 +135,6 @@ class OutOfServicePeriodsViewSet(viewsets.ModelViewSet):
     serializer_class = ser.OutOfServicePeriodsSerializer
 
 
-class CallFilter(django_filters.FilterSet):
-    class Meta:
-        model = Call
-        fields = ['month_received', 'dow_received', 'hour_received']
-
-
 class SummaryView(APIView):
     """
     Gives summary statistics about calls for service based off of user-
@@ -146,6 +142,6 @@ class SummaryView(APIView):
     """
 
     def get(self, request, format=None):
-        filter = CallFilter(request.GET, queryset=Call.objects.all())
+        filter = SummaryFilter(request.GET, queryset=Call.objects.all())
         summary = CallSummary(filter.qs)
         return Response(summary.to_dict())
