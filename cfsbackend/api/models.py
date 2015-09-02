@@ -183,7 +183,7 @@ class Incident(models.Model):
     #investigation_status = models.ForeignKey('InvestigationStatus', blank=True, null=True)
     #investigator_unit = models.ForeignKey('Unit', blank=True, null=True)
     #case_status = models.ForeignKey(CaseStatus, blank=True, null=True)
-    ucr_code = models.IntegerField(blank=True, null=True)
+    #ucr_code = models.IntegerField(blank=True, null=True)
     #ucr_descr = models.ForeignKey('UcrDescr', blank=True, null=True)
     committed = models.NullBooleanField()
 
