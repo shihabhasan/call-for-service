@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load compress %}
 <!DOCTYPE html>
 <html lang="en" class="no-js">
 <head>
@@ -50,9 +51,11 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+{% compress js %}
 <script src="{% static 'd3/d3.js' %}"></script>
 <script src="{% static 'moment/moment.js' %}"></script>
 <script src="{% static 'underscore/underscore.js' %}"></script>
 <script src="{% static 'dashboard/dashboard.js' %}"></script>
+{% endcompress %}
 </body>
 </html>

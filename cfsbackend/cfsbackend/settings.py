@@ -38,12 +38,14 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'corsheaders',
     'rest_framework_swagger',
-    'django.contrib.sites',
     'django_filters',
     'djangobower',
+    "compressor",
+
     'api',
     'dashboard',
 
@@ -127,11 +129,13 @@ CACHES = {
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     'djangobower.finders.BowerFinder',
+    'compressor.finders.CompressorFinder',
 )
 
 BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
