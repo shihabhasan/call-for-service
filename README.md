@@ -41,8 +41,15 @@ Also note that the provisioning script for Vagrant sets `python` to be an alias 
 
 The front-end is managed by [webpack](http://webpack.github.io/). You have to run this in order to make the dashboard work.
 
-1. `cd /vagrant`
-2. `webpack`
+
+1. `npm install webpack-bundle-tracker`
+2. `npm install extract-text-webpack-plugin`
+3. `npm install d3`
+4. `npm install underscore`
+5. `npm install moment`
+6. `npm install style-loader`
+3. `cd /vagrant`
+4. `webpack`
 
 If you expect to be changing the CSS and JS, you may want to run `webpack -w` to watch for changes.
 
