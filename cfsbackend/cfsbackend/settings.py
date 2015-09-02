@@ -46,9 +46,7 @@ INSTALLED_APPS = (
     'djangobower',
     "compressor",
 
-    'api',
-    'dashboard',
-
+    'core',
 )
 
 MIDDLEWARE_CLASSES = (

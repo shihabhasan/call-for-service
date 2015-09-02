@@ -6,7 +6,7 @@ from rest_framework import serializers
 from collections import OrderedDict
 from rest_framework.fields import SkipField
 
-# Documentation here: http://www.django-rest-framework.org/api-guide/serializers/
+# Documentation here: http://www.django-rest-framework.org/core-guide/serializers/
 
 class NonNullSerializer(serializers.ModelSerializer):
 
