@@ -43,7 +43,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'django.contrib.sites',
     'django_filters',
-    'webpack_loader',
+    'djangobower',
     'api',
     'dashboard',
 
@@ -128,16 +128,19 @@ CACHES = {
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    'djangobower.finders.BowerFinder',
 )
 
-WEBPACK_LOADER = {
-    'BUNDLE_DIR_NAME': 'bundles/',
-    'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
-    'POLL_DELAY': 0.2,
-    'IGNORE': ['.+\.hot-update.js', '.+\.map']
-}
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
+
+BOWER_INSTALLED_APPS = (
+    'd3',
+    'moment',
+    'underscore',
+)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],

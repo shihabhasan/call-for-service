@@ -39,12 +39,10 @@ Also note that the provisioning script for Vagrant sets `python` to be an alias 
 
 ### Front-end assets
 
-The front-end is managed by [webpack](http://webpack.github.io/). You have to run this in order to make the dashboard work.
+Front-end assets are managed by [Bower](http://bower.io). You have to run this in order to make the dashboard work.
 
-1. `cd /vagrant`
-2. `webpack`
-
-If you expect to be changing the CSS and JS, you may want to run `webpack -w` to watch for changes.
+1. `cd /vagrant/cfsbackend`
+2. `python3 manage.py bower install`
 
 ### Notes for Windows 7 Users
 
