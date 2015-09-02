@@ -1,13 +1,15 @@
-from django.shortcuts import render
+from django.views.generic import TemplateView
+from django.db.models import Count
 
 from django.contrib.auth.models import User, Group
-from django.db.models import Count
+
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+import django_filters
+
 from .models import *  # Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
 from . import serializers as ser
-import django_filters
 
 
 # The order in which these appear determines the order in which they appear in the self-documenting API
@@ -149,3 +151,7 @@ class SummaryView(APIView):
         filter = CallFilter(request.GET, queryset=Call.objects.all())
         summary = CallSummary(filter.qs)
         return Response(summary.to_dict())
+
+
+class DashboardView(TemplateView):
+    template_name = "index.html"
