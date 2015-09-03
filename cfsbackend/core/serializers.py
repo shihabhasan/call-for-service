@@ -134,7 +134,7 @@ class CallSerializer(NonNullSerializer):
 
     class Meta:
         model = Call
-        read_only_fields = ('call_id', 'city', 'call_source', 'primary_unit', 'first_dispatched', 'close_code', 'nature', 'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id', 'street_num', 'street_name', 'zipcode', 'crossroad1', 'crossroad2', 'geox', 'geoy', 'beat', 'district', 'sector', 'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed', 'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport', 'last_unit_clear', 'time_closed', 'close_comments')
+        read_only_fields = ('call_id', 'city', 'call_source', 'primary_unit', 'first_dispatched', 'close_code', 'nature', 'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id', 'street_num', 'street_name', 'zip_code', 'crossroad1', 'crossroad2', 'geox', 'geoy', 'beat', 'district', 'sector', 'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed', 'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport', 'last_unit_clear', 'time_closed', 'close_comments')
 
 class CallOverviewSerializer(serializers.HyperlinkedModelSerializer):
     m = serializers.IntegerField(source='month_received')

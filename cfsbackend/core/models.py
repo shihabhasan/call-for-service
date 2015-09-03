@@ -109,47 +109,50 @@ class OutOfServicePeriods(models.Model):
 # Primary Classes
 
 class Call(models.Model):
-    call_id              = models.BigIntegerField(primary_key=True)
-    month_received       = models.IntegerField(blank=True, null=True)
-    week_received        = models.IntegerField(blank=True, null=True)
-    dow_received         = models.IntegerField(blank=True, null=True)
-    hour_received        = models.IntegerField(blank=True, null=True)
-    case_id              = models.BigIntegerField(blank=True, null=True)
-    call_source          = models.ForeignKey(CallSource, blank=True, null=True)
-    primary_unit         = models.ForeignKey(CallUnit, blank=True, null=True, related_name="primary_unit")
-    first_dispatched     = models.ForeignKey(CallUnit, blank=True, null=True, related_name="first_dispatched")
-    reporting_unit       = models.ForeignKey(CallUnit, blank=True, null=True, related_name="reporting_unit")
-    street_num           = models.IntegerField(blank=True, null=True)
-    street_name          = models.TextField(blank=True, null=True)
-    city                 = models.ForeignKey(City, blank=True, null=True)
-    zipcode              = models.IntegerField(blank=True, null=True, db_column="zip")
-    crossroad1           = models.TextField(blank=True, null=True)
-    crossroad2           = models.TextField(blank=True, null=True)
-    geox                 = models.FloatField(blank=True, null=True)
-    geoy                 = models.FloatField(blank=True, null=True)
-    beat                 = models.ForeignKey(Beat,blank=True, null=True)
-    district             = models.ForeignKey(District,blank=True, null=True)
-    sector               = models.ForeignKey(Sector,blank=True, null=True)
-    business             = models.TextField(blank=True, null=True)
-    nature               = models.ForeignKey(Nature, blank=True, null=True)
-    priority             = models.TextField(blank=True, null=True)
-    report_only          = models.NullBooleanField()
-    cancelled            = models.NullBooleanField()
-    time_received        = models.DateTimeField(blank=True, null=True)
-    time_routed          = models.DateTimeField(blank=True, null=True)
-    time_finished        = models.DateTimeField(blank=True, null=True)
-    first_unit_dispatch  = models.DateTimeField(blank=True, null=True)
-    first_unit_enroute   = models.DateTimeField(blank=True, null=True)
-    first_unit_arrive    = models.DateTimeField(blank=True, null=True)
+    call_id = models.BigIntegerField(primary_key=True)
+    year_receieved = models.IntegerField(blank=True, null=True)
+    month_received = models.IntegerField(blank=True, null=True)
+    week_received = models.IntegerField(blank=True, null=True)
+    dow_received = models.IntegerField(blank=True, null=True)
+    hour_received = models.IntegerField(blank=True, null=True)
+    case_id = models.BigIntegerField(blank=True, null=True)
+    call_source = models.ForeignKey('CallSource', blank=True, null=True)
+    primary_unit = models.ForeignKey(CallUnit, blank=True, null=True, related_name="primary_unit")
+    first_dispatched = models.ForeignKey(CallUnit, blank=True, null=True, related_name="first_dispatched")
+    reporting_unit = models.ForeignKey(CallUnit, blank=True, null=True, related_name="reporting_unit")    
+    street_num = models.IntegerField(blank=True, null=True)
+    street_name = models.TextField(blank=True, null=True)
+    city = models.ForeignKey('City', blank=True, null=True)
+    zip_code = models.ForeignKey('ZipCode', blank=True, null=True)
+    crossroad1 = models.TextField(blank=True, null=True)
+    crossroad2 = models.TextField(blank=True, null=True)
+    geox = models.FloatField(blank=True, null=True)
+    geoy = models.FloatField(blank=True, null=True)
+    beat = models.ForeignKey(Beat, blank=True, null=True)
+    district = models.ForeignKey('District', blank=True, null=True)
+    sector = models.ForeignKey('Sector', blank=True, null=True)
+    business = models.TextField(blank=True, null=True)
+    nature = models.ForeignKey('Nature', blank=True, null=True)
+    priority = models.ForeignKey('Priority', blank=True, null=True)
+    report_only = models.NullBooleanField()
+    cancelled = models.NullBooleanField()
+    time_received = models.DateTimeField(blank=True, null=True)
+    time_routed = models.DateTimeField(blank=True, null=True)
+    time_finished = models.DateTimeField(blank=True, null=True)
+    first_unit_dispatch = models.DateTimeField(blank=True, null=True)
+    first_unit_enroute = models.DateTimeField(blank=True, null=True)
+    first_unit_arrive = models.DateTimeField(blank=True, null=True)
     first_unit_transport = models.DateTimeField(blank=True, null=True)
-    last_unit_clear      = models.DateTimeField(blank=True, null=True)
-    time_closed          = models.DateTimeField(blank=True, null=True)
-    close_code           = models.ForeignKey(CloseCode, blank=True, null=True)
-    close_comments       = models.TextField(blank=True, null=True)
+    last_unit_clear = models.DateTimeField(blank=True, null=True)
+    time_closed = models.DateTimeField(blank=True, null=True)
+    close_code = models.ForeignKey('CloseCode', blank=True, null=True)
+    close_comments = models.TextField(blank=True, null=True)
+    incident = models.ForeignKey('Incident', blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'call'
+
 
 class Incident(models.Model):
     incident_id = models.BigIntegerField(primary_key=True)
@@ -161,7 +164,8 @@ class Incident(models.Model):
     street_num  = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
     city        = models.ForeignKey(City, blank=True, null=True)
-    zipcode     = models.IntegerField(blank=True, null=True, db_column="zip")
+    #zip_code = models.ForeignKey('ZipCode', blank=True, null=True)
+    #zipcode     = models.IntegerField(blank=True, null=True, db_column="zip")
     geox        = models.FloatField(blank=True, null=True)
     geoy        = models.FloatField(blank=True, null=True)
     beat        = models.ForeignKey(Beat,blank=True, null=True)
@@ -179,7 +183,7 @@ class Incident(models.Model):
     #investigation_status = models.ForeignKey('InvestigationStatus', blank=True, null=True)
     #investigator_unit = models.ForeignKey('Unit', blank=True, null=True)
     #case_status = models.ForeignKey(CaseStatus, blank=True, null=True)
-    ucr_code = models.IntegerField(blank=True, null=True)
+    #ucr_code = models.IntegerField(blank=True, null=True)
     #ucr_descr = models.ForeignKey('UcrDescr', blank=True, null=True)
     committed = models.NullBooleanField()
 
@@ -233,3 +237,21 @@ class CallSummary:
             "district": self.summary("beat__district__descr"),
             "sector": self.summary("beat__sector__descr"),
         }
+
+
+class Priority(models.Model):
+    priority_id = models.IntegerField(primary_key=True)
+    descr = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'priority'
+
+
+class ZipCode(models.Model):
+    zip_code_id = models.IntegerField(primary_key=True)
+    descr = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'zip_code'

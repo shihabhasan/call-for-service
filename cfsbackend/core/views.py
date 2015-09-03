@@ -1,14 +1,13 @@
+from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.db.models import Count
 
 from django.contrib.auth.models import User, Group
-
-from rest_framework import viewsets
+from django.db.models import Count
+from rest_framework import viewsets, filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
-import django_filters
-
 from .models import *  # Incident, City, Call, CallSource, CallUnit, Nature, CloseCode
+from .filters import SummaryFilter, CallFilter, IncidentFilter
 from . import serializers as ser
 
 
@@ -57,9 +56,17 @@ class GroupViewSet(viewsets.ModelViewSet):
 class IncidentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows incidents to be viewed or edited.
+
+    You can filter by date/time received using 
+
+    `time_filed_0` for filed date
+    and `time_filed_1` for filed end date.
+
     """
     queryset = Incident.objects.all()
     serializer_class = ser.IncidentSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = IncidentFilter
 
 
 class CityViewSet(viewsets.ModelViewSet):
@@ -70,12 +77,29 @@ class CityViewSet(viewsets.ModelViewSet):
     serializer_class = ser.CitySerializer
 
 
-class CallViewSet(viewsets.ModelViewSet):
+class CallViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows calls to be viewed or edited.
+
+    You can filter by date/time received using 
+
+    `time_received_0` for received start date
+    and `time_received_1` for received end date.
+    
+    `time_routed_0` for routed start date
+    and `time_routed_1` for routed end date.
+
+    `time_finished_0` for finished start date
+    and `time_finished_1` for finished end date.
+
+    `time_closed_0` for closed start date
+    and `time_closed_1` for closed end date.
+
     """
     queryset = Call.objects.all()
     serializer_class = ser.CallSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = CallFilter
 
 
 class CallOverviewViewSet(viewsets.ModelViewSet):
@@ -135,12 +159,6 @@ class OutOfServicePeriodsViewSet(viewsets.ModelViewSet):
     serializer_class = ser.OutOfServicePeriodsSerializer
 
 
-class CallFilter(django_filters.FilterSet):
-    class Meta:
-        model = Call
-        fields = ['month_received', 'dow_received', 'hour_received']
-
-
 class SummaryView(APIView):
     """
     Gives summary statistics about calls for service based off of user-
@@ -148,7 +166,7 @@ class SummaryView(APIView):
     """
 
     def get(self, request, format=None):
-        filter = CallFilter(request.GET, queryset=Call.objects.all())
+        filter = SummaryFilter(request.GET, queryset=Call.objects.all())
         summary = CallSummary(filter.qs)
         return Response(summary.to_dict())
 

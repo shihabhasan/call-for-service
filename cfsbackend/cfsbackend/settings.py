@@ -40,11 +40,11 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'rest_framework',
-    'corsheaders',
     'rest_framework_swagger',
     'django_filters',
     'djangobower',
     "compressor",
+    'django_extensions',
 
     'core',
 )
@@ -121,6 +121,10 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
+
+## Testing
+
+TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
 
 
 # Static files (CSS, JavaScript, Images)
