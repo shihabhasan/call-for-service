@@ -1,5 +1,5 @@
-{% load render_bundle from webpack_loader %}
 {% load staticfiles %}
+{% load compress %}
 <!DOCTYPE html>
 <html lang="en" class="no-js">
 <head>
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-    {% render_bundle 'app' 'css' %}
+    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
 </head>
 <body>
 <div class="container-fluid">
@@ -51,6 +51,11 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-{% render_bundle 'app' 'js' %}
+{% compress js %}
+<script src="{% static 'd3/d3.js' %}"></script>
+<script src="{% static 'moment/moment.js' %}"></script>
+<script src="{% static 'underscore/underscore.js' %}"></script>
+<script src="{% static 'dashboard/dashboard.js' %}"></script>
+{% endcompress %}
 </body>
 </html>

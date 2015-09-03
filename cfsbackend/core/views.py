@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.views.generic import TemplateView
 
 from django.contrib.auth.models import User, Group
 from django.db.models import Count
@@ -168,3 +169,7 @@ class SummaryView(APIView):
         filter = SummaryFilter(request.GET, queryset=Call.objects.all())
         summary = CallSummary(filter.qs)
         return Response(summary.to_dict())
+
+
+class DashboardView(TemplateView):
+    template_name = "index.html"

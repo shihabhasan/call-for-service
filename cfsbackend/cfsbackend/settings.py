@@ -41,15 +41,12 @@ INSTALLED_APPS = (
 
     'rest_framework',
     'rest_framework_swagger',
-    'corsheaders',
-    'django.contrib.sites',
     'django_filters',
-    'webpack_loader',
+    'djangobower',
+    "compressor",
     'django_extensions',
 
-    'api',
-    'dashboard',
-
+    'core',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -125,27 +122,31 @@ CACHES = {
     }
 }
 
+## Testing
+
+TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'assets'),
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    'djangobower.finders.BowerFinder',
+    'compressor.finders.CompressorFinder',
 )
 
-TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
+BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
 
-
-# Third party
-
-WEBPACK_LOADER = {
-    'BUNDLE_DIR_NAME': 'bundles/',
-    'STATS_FILE': os.path.join(BASE_DIR, 'webpack-stats.json'),
-    'POLL_DELAY': 0.2,
-    'IGNORE': ['.+\.hot-update.js', '.+\.map']
-}
+BOWER_INSTALLED_APPS = (
+    'd3',
+    'moment',
+    'underscore',
+)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],

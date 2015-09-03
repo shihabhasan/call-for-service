@@ -1,9 +1,3 @@
-require("../css/main.css");
-
-var d3 = require('d3');
-var _ = require('underscore');
-var moment = require('moment');
-
 var filter = {};
 var url = "/api/summary/";
 
@@ -83,8 +77,8 @@ function drawRowBarChart(id, selection, data, colors, clickFn, textFn, titleFn) 
 
     var enter = g.enter()
         .append("g")
-        .attr("transform", function (d) { 
-            return "translate(" + margin.left + ", " + (y(d.key) + margin.top) + ")" 
+        .attr("transform", function (d) {
+            return "translate(" + margin.left + ", " + (y(d.key) + margin.top) + ")"
         })
         .classed("bar", true)
         .on("click", clickFn);
