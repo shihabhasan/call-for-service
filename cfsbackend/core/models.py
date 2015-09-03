@@ -110,7 +110,7 @@ class OutOfServicePeriods(models.Model):
 
 class Call(models.Model):
     call_id = models.BigIntegerField(primary_key=True)
-    year_receieved = models.IntegerField(blank=True, null=True)
+    year_received = models.IntegerField(blank=True, null=True)
     month_received = models.IntegerField(blank=True, null=True)
     week_received = models.IntegerField(blank=True, null=True)
     dow_received = models.IntegerField(blank=True, null=True)
