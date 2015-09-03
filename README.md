@@ -27,9 +27,9 @@ The first time:
 After that:
 
 1. `cd /vagrant/cfsbackend` (this is the shared directory with the repository)
-2. `python3 manage.py runserver`
+2. `python3 manage.py runserver` to use the development server or `gunicorn cfsbackend.wsgi -b 0.0.0.0:8000` to use what we will use in production
 
-If you look in the `Vagrantfile`, you'll see that the VM forwards port `8000` to the host OS's port `8887`. To see whether Django is running properly, open a browser and point it to `127.0.0.1:8887` and you should see the app respond. The terminal where you have the VM open also should show that you hit the web app.
+If you look in the `Vagrantfile`, you'll see that the VM forwards port `8000` to the host OS's port `8887`. To see whether Django is running properly, open a browser and point it to `192.168.50.4` and you should see the app respond. The terminal where you have the VM open also should show that you hit the web app.
 
 When you are done working for the day, use `ctrl-c` to quit Django in the VM. Type `exit` to exit the VM. Then type `vagrant halt` to gracefully shut down the VM. Check in your changes, push to the repository, etc... 
 
