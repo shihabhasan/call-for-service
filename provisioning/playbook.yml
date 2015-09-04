@@ -59,10 +59,21 @@
       apt: name=nginx state=present
     - name: Copy Nginx Configuration
       copy: src=files/cfs.nginx.conf dest=/etc/nginx/sites-available/cfs.nginx.conf force=yes
+      notify:
+        - Restart Nginx
     - name: Remove Nginx default configuration
       file: path=/etc/nginx/sites-enabled/default state=absent
-    - name: Setup Ngix proxy
+      notify:
+        - Restart Nginx
+    - name: Setup Nginx proxy
       file: src=/etc/nginx/sites-available/cfs.nginx.conf dest=/etc/nginx/sites-enabled/cfs.nginx.conf state=link
+      notify:
+        - Restart Nginx
+  handlers:
+    - name: Restart Nginx
+      sudo: yes
+      service: name=nginx state=restarted
+
 - hosts: all
   become: yes
   become_method: sudo
