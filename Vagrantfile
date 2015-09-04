@@ -13,7 +13,6 @@ Vagrant.configure(2) do |config|
   
   # Django dev server
   config.vm.network :forwarded_port, host: 8887, guest: 8000
-  config.vm.network :forwarded_port, host: 8887, guest: 8000
   config.vm.network :forwarded_port, host: 5433, guest: 5432
   
   config.vm.provision :ansible do |ansible|
