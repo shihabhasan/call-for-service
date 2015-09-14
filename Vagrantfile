@@ -3,11 +3,14 @@
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
+  config.vm.hostname = "cfsbackend"
 
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
     vb.memory = "2048"
   end
+  
+  config.vm.network "private_network", ip: "192.168.50.4"
   
   # Django dev server
   config.vm.network :forwarded_port, host: 8887, guest: 8000
