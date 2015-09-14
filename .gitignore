@@ -137,3 +137,4 @@ cfsbackend/webpack-stats.json
 .idea
 .direnv/
 .envrc
+cfsbackend/cfsbackend/staticfiles/

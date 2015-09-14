@@ -27,7 +27,7 @@ The first time:
 After that:
 
 1. `cd /vagrant/cfsbackend` (this is the shared directory with the repository)
-2. `python3 manage.py runserver_plus 0.0.0.0:8000 --settings=cfsbackend.settings.local` to use the development server or `gunicorn cfsbackend.wsgi -b 0.0.0.0:8000  --settings=cfsbackend.settings.prod` to use what we will use in production
+2. `python3 manage.py runserver_plus 0.0.0.0:8000 --settings=cfsbackend.settings.local` to use the development server or `gunicorn cfsbackend.wsgi -b 0.0.0.0:8000 --settings=cfsbackend.settings.prod` to use what we will use in production
 
 To see whether Django is running properly, open a browser and point it to `192.168.50.4` and you should see the app respond. The terminal where you have the VM open also should show that you hit the web app.
 
