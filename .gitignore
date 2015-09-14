@@ -133,7 +133,8 @@ cfsbackend/assets/bundles/
 cfsbackend/webpack-stats.json
 
 # Various
-*.sql
+/*.sql
+/*.csv
 .idea
 .direnv/
 .envrc

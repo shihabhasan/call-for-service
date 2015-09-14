@@ -143,10 +143,16 @@ STATICFILES_FINDERS = (
 BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
 
 BOWER_INSTALLED_APPS = (
-    'd3',
-    'moment',
-    'underscore',
+    'd3#3.5.6',
+    'moment#2.10.6',
+    'underscore#1.8.3',
+    'foundation#5.5.2',
 )
+
+COMPRESS_PRECOMPILERS = (
+    ('text/sass', 'node-sass {infile} --include-path ' + BOWER_COMPONENTS_ROOT + "/bower_components/"),
+)
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
