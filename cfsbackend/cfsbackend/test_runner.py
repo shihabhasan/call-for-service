@@ -1,8 +1,9 @@
 from django.test.runner import DiscoverRunner
 from django.apps import apps
+from django_nose import NoseTestSuiteRunner
 
 
-class ManagedModelTestRunner(DiscoverRunner):
+class ManagedModelTestRunner(NoseTestSuiteRunner):
     """
     Test runner that automatically makes all unmanaged models in your Django
     project managed for the duration of the test run, so that one doesn't need
