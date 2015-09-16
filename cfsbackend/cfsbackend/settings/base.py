@@ -14,8 +14,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 from webapp_credentials import creds
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+BASE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..')
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -140,13 +141,20 @@ STATICFILES_FINDERS = (
     'compressor.finders.CompressorFinder',
 )
 
-BOWER_COMPONENTS_ROOT = os.path.join(BASE_DIR, '..', 'components')
+BOWER_COMPONENTS_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..', 'components'))
 
 BOWER_INSTALLED_APPS = (
-    'd3',
-    'moment',
-    'underscore',
+    'jquery#2.1.4',
+    'd3#3.5.6',
+    'moment#2.10.6',
+    'underscore#1.8.3',
+    'foundation#5.5.2',
 )
+
+COMPRESS_PRECOMPILERS = (
+    ('text/sass', 'node-sass {infile} --include-path ' + BOWER_COMPONENTS_ROOT + "/bower_components/"),
+)
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],
