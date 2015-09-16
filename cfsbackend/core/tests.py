@@ -23,3 +23,18 @@ class CallTestCase(APITestCase):
     def test_district_can_be_queried(self):
         response = self.client.get('/api/calls/?district=1')
         self.assertEqual(response.data['count'], 1)
+
+
+class IncidentTestCase(APITestCase):
+
+     def setUp(self):
+         Incident.objects.create(incident_id=1, time_filed='2015-01-01')
+
+     def test_incidents_can_be_queried(self):
+        incidents = Incident.objects.all()
+
+        self.assertEqual(incidents.count(), 1)
+
+     def test_time_filed_can_be_queried(self):
+        response = self.client.get('/api/incidents/?time_filed_0=2015-01-01')
+        self.assertEqual(response.data['count'], 1)
