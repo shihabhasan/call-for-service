@@ -1,7 +1,8 @@
 from collections import OrderedDict
 
 from rest_framework import serializers
-from rest_framework.fields import SkipField
+from rest_framework.fields import SkipField, CharField
+from rest_framework.serializers import Serializer
 
 from .models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode
@@ -46,15 +47,20 @@ class SectorSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class DistrictSerializer(serializers.HyperlinkedModelSerializer):
+    sector = CharField(source="sector.descr", read_only=True)
+
     class Meta:
         model = District
-        fields = ('url', 'district_id', 'sector', 'descr')
+        fields = ('sector', 'descr')
 
 
 class BeatSerializer(serializers.HyperlinkedModelSerializer):
+    district = CharField(source="district.descr", read_only=True)
+    sector = CharField(source="sector.descr", read_only=True)
+
     class Meta:
         model = Beat
-        fields = ('url', 'beat_id', 'district', 'sector', 'descr')
+        fields = ('district', 'sector', 'descr')
 
 
 class CitySerializer(serializers.HyperlinkedModelSerializer):
@@ -72,19 +78,19 @@ class CallSourceSerializer(serializers.HyperlinkedModelSerializer):
 class CallUnitSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CallUnit
-        fields = ('url', 'call_unit_id', 'descr')
+        fields = ('call_unit_id', 'descr')
 
 
 class NatureSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Nature
-        fields = ('url', 'nature_id', 'descr')
+        fields = ('nature_id', 'descr')
 
 
 class CloseCodeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = CloseCode
-        fields = ('url', 'close_code_id', 'descr')
+        fields = ('close_code_id', 'descr')
 
 
 class CallSerializer(NonNullSerializer):
@@ -92,26 +98,29 @@ class CallSerializer(NonNullSerializer):
         view_name='call-detail',
         lookup_field='pk'
     )
-    city = CitySerializer(read_only=True)
-    call_source = CallSourceSerializer(read_only=True)
+    city = CharField(source="city.descr", read_only=True)
+    call_source = CharField(source="call_source.descr", read_only=True)
+    zip_code = CharField(source="zip_code.descr", read_only=True)
+    beat = CharField(source="beat.descr", read_only=True)
+    district = CharField(source="district.descr", read_only=True)
+    sector = CharField(source="sector.descr", read_only=True)
+
     primary_unit = CallUnitSerializer(read_only=True, allow_null=False)
     first_dispatched = CallUnitSerializer(read_only=True)
     reporting_unit = CallUnitSerializer(read_only=True, allow_null=True)
     close_code = CloseCodeSerializer(read_only=True, allow_null=True)
     nature = NatureSerializer(read_only=True, allow_null=True)
-    beat = BeatSerializer(read_only=True, allow_null=True)
-    district = DistrictSerializer(read_only=True, allow_null=True)
-    sector = SectorSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = Call
         fields = (
-            'url', 'call_id', 'city', 'call_source', 'primary_unit', 'first_dispatched', 'close_code', 'nature',
+            'url', 'call_id', 'city', 'zip_code', 'sector', 'district', 'beat',
+            'street_num', 'street_name',  'crossroad1', 'crossroad2', 'geox', 'geoy',
+            'call_source', 'primary_unit', 'first_dispatched', 'close_code', 'nature',
             'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id',
-            'street_num', 'street_name', 'zip_code', 'crossroad1', 'crossroad2', 'geox', 'geoy', 'beat', 'district',
-            'sector', 'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed',
+            'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed',
             'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport',
-            'last_unit_clear', 'time_closed', 'close_comments')
+            'last_unit_clear', 'time_closed', 'response_time')
 
 
 class CallOverviewSerializer(serializers.HyperlinkedModelSerializer):
