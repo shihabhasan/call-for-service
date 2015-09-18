@@ -148,6 +148,7 @@ class Call(models.Model):
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
     incident = models.ForeignKey('Incident', blank=True, null=True)
+    response_time = models.DurationField(blank=True, null=True)
 
     class Meta:
         managed = False
