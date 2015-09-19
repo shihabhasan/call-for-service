@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
-    CallSummary
+    CallSummary, CallOverview
 from ..filters import SummaryFilter, CallFilter
 from .. import serializers
 
@@ -122,3 +122,13 @@ class SummaryView(APIView):
         filter = SummaryFilter(request.GET, queryset=Call.objects.all())
         summary = CallSummary(filter.qs)
         return Response(summary.to_dict())
+
+
+class OverviewView(APIView):
+    """
+    Gives all the information needed for the overview dashboard based off
+    of user-submitted filters.
+    """
+    def get(self, request, format=None):
+        overview = CallOverview(request.GET)
+        return Response(overview.to_dict())
