@@ -10,9 +10,9 @@
 
 from __future__ import unicode_literals
 from datetime import timedelta
-from django.db import models
-from django.db.models import Count
 
+from django.db import models
+from django.db.models import Count, Aggregate, DurationField, Min, Max, IntegerField, Sum, Case, When
 from django.db.models.expressions import Func
 
 
@@ -48,6 +48,17 @@ class DateTrunc(Func):
             raise ValueError("by named argument must be specified")
         super().__init__(expression, **extra)
 
+class DurationAvg(Aggregate):
+    function = 'AVG'
+    name = 'Avg'
+
+    def __init__(self, expression, **extra):
+        super().__init__(expression, output_field=DurationField(), **extra)
+
+    def convert_value(self, value, expression, connection, context):
+        if value is not None:
+            return value.total_seconds()
+
 
 class CallOverview:
     def __init__(self, filters):
@@ -58,8 +69,14 @@ class CallOverview:
     def qs(self):
         return self.filter.qs
 
+    def volume_by_field(self, field):
+        return dict(self.qs. \
+                    values(field). \
+                    annotate(Count(field)). \
+                    values_list(field, field + '__count'))
+
     def volume_over_time(self):
-        bounds = self.qs.aggregate(min_time=models.Min('time_received'), max_time=models.Max('time_received'))
+        bounds = self.qs.aggregate(min_time=Min('time_received'), max_time=Max('time_received'))
         span = bounds['max_time'] - bounds['min_time']
         if span >= timedelta(365):
             size = 'month'
@@ -89,11 +106,24 @@ class CallOverview:
 
         return results
 
+    def response_time_by_beat(self):
+        results = self.qs \
+            .values("beat", "beat__descr") \
+            .annotate(mean=DurationAvg("response_time"),
+                      missing=Sum(Case(When(response_time=None, then=1),
+                                       default=0,
+                                       output_field=IntegerField())))
+        return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
             'volume_over_time': self.volume_over_time(),
-            'day_hour_heatmap': self.day_hour_heatmap()
+            'day_hour_heatmap': self.day_hour_heatmap(),
+            'volume_by_source': self.volume_by_field('call_source__descr'),
+            'volume_by_nature': self.volume_by_field('nature__descr'),
+            'volume_by_beat': self.volume_by_field('beat__descr'),
+            'response_time_by_beat': self.response_time_by_beat()
         }
 
 

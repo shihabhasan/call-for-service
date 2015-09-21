@@ -1,7 +1,7 @@
 from dateutil.parser import parse as dtparse
 from django.test import TestCase
-from ..models import Call, CallOverview
-
+from ..models import Call, CallOverview, Beat
+from datetime import timedelta
 
 def assert_list_equiv(this, that):
     """
@@ -11,14 +11,34 @@ def assert_list_equiv(this, that):
     for i in range(len(this)):
         assert this[i] == that[i]
 
+def create_call(**kwargs):
+    try:
+        time_received = dtparse(kwargs['time_received'])
+    except KeyError:
+        raise ValueError("You must include a time_received value.")
+
+    kwargs['dow_received'] = time_received.weekday()
+    kwargs['hour_received'] = time_received.hour
+
+    return Call.objects.create(**kwargs)
 
 class CallOverviewTest(TestCase):
     def setUp(self):
-        Call.objects.create(call_id=1, time_received='2014-01-15T09:00', dow_received=2, hour_received=9)  # W
-        Call.objects.create(call_id=2, time_received='2015-01-01T09:00', dow_received=3, hour_received=9)  # Th
-        Call.objects.create(call_id=3, time_received='2015-01-01T12:30', dow_received=3, hour_received=12)  # Th
-        Call.objects.create(call_id=4, time_received='2015-01-08T09:00', dow_received=3, hour_received=9)  # Th
-        Call.objects.create(call_id=5, time_received='2015-02-01T09:00', dow_received=6, hour_received=9)  # Su
+        b1 = Beat.objects.create(beat_id=1, descr="B1")
+        b2 = Beat.objects.create(beat_id=2, descr="B2")
+        create_call(call_id=1, time_received='2014-01-15T09:00',
+                    response_time=timedelta(0, 120),
+                    beat=b1)
+        create_call(call_id=2, time_received='2015-01-01T09:00',
+                    response_time=timedelta(0, 600),
+                    beat=b1)
+        create_call(call_id=3, time_received='2015-01-01T12:30',
+                    response_time=timedelta(0, 900),
+                    beat=b2)
+        create_call(call_id=4, time_received='2015-01-08T09:00',
+                    beat=b1)
+        create_call(call_id=5, time_received='2015-02-01T09:00',
+                    beat=b2)
 
     def test_call_volume_for_day(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-01-01"})
@@ -70,11 +90,18 @@ class CallOverviewTest(TestCase):
         overview = CallOverview({"time_received_0": "2014-01-01", "time_received_1": "2015-02-01"})
         results = overview.to_dict()['day_hour_heatmap']
 
-        print(repr(results))
-
         assert_list_equiv(results, [
             {'dow_received': 2, 'hour_received': 9, 'volume': 1},
             {'dow_received': 3, 'hour_received': 9, 'volume': 2},
             {'dow_received': 3, 'hour_received': 12, 'volume': 1},
             {'dow_received': 6, 'hour_received': 9, 'volume': 1},
+        ])
+
+    def test_response_time_by_beat(self):
+        overview = CallOverview({"time_received_0": "2014-01-01", "time_received_1": "2015-02-01"})
+        results = overview.to_dict()['response_time_by_beat']
+
+        assert_list_equiv(results, [
+            {'beat': 1, 'beat__descr': 'B1', 'mean': 360, 'missing': 1},
+            {'beat': 2, 'beat__descr': 'B2', 'mean': 900, 'missing': 1}
         ])
