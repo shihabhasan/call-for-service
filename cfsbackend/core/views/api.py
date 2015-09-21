@@ -1,13 +1,12 @@
 from django.db.models import Count
-
 from rest_framework import viewsets, filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
-    CallSummary, CallOverview
-from ..filters import SummaryFilter, CallFilter
+    CallOverview
+from ..filters import CallFilter
 from .. import serializers
 
 
@@ -112,23 +111,12 @@ class CloseCodeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.CloseCodeSerializer
 
 
-class SummaryView(APIView):
-    """
-    Gives summary statistics about calls for service based off of user-
-    submitted filters.
-    """
-
-    def get(self, request, format=None):
-        filter = SummaryFilter(request.GET, queryset=Call.objects.all())
-        summary = CallSummary(filter.qs)
-        return Response(summary.to_dict())
-
-
 class OverviewView(APIView):
     """
     Gives all the information needed for the overview dashboard based off
     of user-submitted filters.
     """
+
     def get(self, request, format=None):
         overview = CallOverview(request.GET)
         return Response(overview.to_dict())
