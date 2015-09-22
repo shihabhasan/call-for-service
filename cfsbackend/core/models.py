@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from django.db import models
-from django.db.models import Count, Aggregate, DurationField, Min, Max, IntegerField, Sum, Case, When
+from django.db.models import Count, Aggregate, DurationField, Min, Max, IntegerField, Sum, Case, When, Avg
 from django.db.models.expressions import Func
 
 
@@ -64,6 +64,8 @@ class CallOverview:
     def __init__(self, filters):
         from .filters import CallFilter
         self.filter = CallFilter(filters, queryset=Call.objects.all())
+        self.bounds = self.qs.aggregate(min_time=Min('time_received'), max_time=Max('time_received'))
+        self.span = self.bounds['max_time'] - self.bounds['min_time']
 
     @property
     def qs(self):
@@ -76,13 +78,11 @@ class CallOverview:
                     values_list(field, field + '__count'))
 
     def volume_over_time(self):
-        bounds = self.qs.aggregate(min_time=Min('time_received'), max_time=Max('time_received'))
-        span = bounds['max_time'] - bounds['min_time']
-        if span >= timedelta(365):
+        if self.span >= timedelta(365):
             size = 'month'
-        elif span > timedelta(28):
+        elif self.span > timedelta(60):
             size = 'week'
-        elif span > timedelta(1):
+        elif self.span > timedelta(3):
             size = 'day'
         else:
             size = 'hour'
@@ -93,7 +93,7 @@ class CallOverview:
             .order_by('period_start')
 
         return {
-            'bounds': bounds,
+            'bounds': self.bounds,
             'period_size': size,
             'results': results
         }

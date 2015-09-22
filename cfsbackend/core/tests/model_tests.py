@@ -3,6 +3,7 @@ from django.test import TestCase
 from ..models import Call, CallOverview, Beat
 from datetime import timedelta
 
+
 def assert_list_equiv(this, that):
     """
     Lists are having difficulty with equivalence, so let's try this.
@@ -10,6 +11,7 @@ def assert_list_equiv(this, that):
     assert len(this) == len(that)
     for i in range(len(this)):
         assert this[i] == that[i]
+
 
 def create_call(**kwargs):
     try:
@@ -21,6 +23,7 @@ def create_call(**kwargs):
     kwargs['hour_received'] = time_received.hour
 
     return Call.objects.create(**kwargs)
+
 
 class CallOverviewTest(TestCase):
     def setUp(self):
@@ -39,6 +42,8 @@ class CallOverviewTest(TestCase):
                     beat=b1)
         create_call(call_id=5, time_received='2015-02-01T09:00',
                     beat=b2)
+        create_call(call_id=6, time_received='2014-11-01T12:00',
+                    beat=b1)
 
     def test_call_volume_for_day(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-01-01"})
@@ -65,14 +70,27 @@ class CallOverviewTest(TestCase):
     def test_call_volume_for_month(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-02-01"})
         results = overview.to_dict()['volume_over_time']
-        assert results['period_size'] == 'week'
+        assert results['period_size'] == 'day'
         assert results['bounds'] == {"min_time": dtparse("2015-01-01T09:00"),
                                      "max_time": dtparse('2015-02-01T09:00')}
 
         assert_list_equiv(results['results'],
-                          [{"period_start": dtparse("2014-12-29T00:00"), "period_volume": 2},
-                           {"period_start": dtparse("2015-01-05T00:00"), "period_volume": 1},
-                           {"period_start": dtparse("2015-01-26T00:00"), "period_volume": 1}])
+                          [{"period_start": dtparse("2015-01-01T00:00"), "period_volume": 2},
+                           {"period_start": dtparse("2015-01-08T00:00"), "period_volume": 1},
+                           {"period_start": dtparse("2015-02-01T00:00"), "period_volume": 1}])
+
+    def test_call_volume_for_multiple_months(self):
+        overview = CallOverview({"time_received_0": "2014-11-01", "time_received_1": "2015-02-01"})
+        results = overview.to_dict()['volume_over_time']
+        assert results['period_size'] == 'week'
+        assert results['bounds'] == {"min_time": dtparse("2014-11-01T12:00"),
+                                     "max_time": dtparse('2015-02-01T09:00')}
+
+        assert_list_equiv(results['results'],
+                          [{"period_start": dtparse("2014-10-27"), "period_volume": 1},
+                           {"period_start": dtparse("2014-12-29"), "period_volume": 2},
+                           {"period_start": dtparse("2015-01-05"), "period_volume": 1},
+                           {"period_start": dtparse("2015-01-26"), "period_volume": 1}])
 
     def test_call_volume_for_year(self):
         overview = CallOverview({"time_received_0": "2014-01-01", "time_received_1": "2015-02-01"})
@@ -83,6 +101,7 @@ class CallOverviewTest(TestCase):
 
         assert_list_equiv(results['results'],
                           [{"period_start": dtparse("2014-01-01T00:00"), "period_volume": 1},
+                           {"period_start": dtparse("2014-11-01T00:00"), "period_volume": 1},
                            {"period_start": dtparse("2015-01-01T00:00"), "period_volume": 3},
                            {"period_start": dtparse("2015-02-01T00:00"), "period_volume": 1}])
 
@@ -94,6 +113,7 @@ class CallOverviewTest(TestCase):
             {'dow_received': 2, 'hour_received': 9, 'volume': 1},
             {'dow_received': 3, 'hour_received': 9, 'volume': 2},
             {'dow_received': 3, 'hour_received': 12, 'volume': 1},
+            {'dow_received': 5, 'hour_received': 12, 'volume': 1},
             {'dow_received': 6, 'hour_received': 9, 'volume': 1},
         ])
 
@@ -102,6 +122,6 @@ class CallOverviewTest(TestCase):
         results = overview.to_dict()['response_time_by_beat']
 
         assert_list_equiv(results, [
-            {'beat': 1, 'beat__descr': 'B1', 'mean': 360, 'missing': 1},
+            {'beat': 1, 'beat__descr': 'B1', 'mean': 360, 'missing': 2},
             {'beat': 2, 'beat__descr': 'B2', 'mean': 900, 'missing': 1}
         ])

@@ -151,6 +151,7 @@ BOWER_INSTALLED_APPS = (
     'moment#2.10.6',
     'underscore#1.8.3',
     'foundation#5.5.2',
+    'dimple#2.1.6',
 )
 
 COMPRESS_PRECOMPILERS = (

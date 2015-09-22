@@ -9,8 +9,9 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% compress css %}
-    <link type="text/sass" rel="stylesheet" href="{% static 'dashboard/app.scss' %}">
+        <link type="text/sass" rel="stylesheet" href="{% static 'dashboard/app.scss' %}">
     {% endcompress %}
+    {% block head %}{% endblock %}
 </head>
 <body>
 {% block content %}
@@ -20,10 +21,6 @@
     <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
     <script src="{% static 'foundation/js/foundation.min.js' %}"></script>
     {% block javascript %}{% endblock %}
-    <script src="{% static 'd3/d3.js' %}"></script>
-    <script src="{% static 'moment/moment.js' %}"></script>
-    <script src="{% static 'underscore/underscore.js' %}"></script>
-    <script src="{% static 'dashboard/dashboard.js' %}"></script>
 {% endcompress %}
 </body>
 </html>
