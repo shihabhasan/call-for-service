@@ -46,6 +46,8 @@
       npm: name=bower global=yes
     - name: Install sass
       npm: name=node-sass global=yes
+    - name: Install babel
+      npm: name=babel global=yes
     - name: Check if packages need to be autoremoved
       command: apt-get --dry-run autoremove
       register: check_autoremove

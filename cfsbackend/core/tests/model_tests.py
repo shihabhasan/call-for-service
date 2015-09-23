@@ -106,15 +106,13 @@ class CallOverviewTest(TestCase):
                            {"period_start": dtparse("2015-02-01T00:00"), "period_volume": 1}])
 
     def test_day_hour_heatmap(self):
-        overview = CallOverview({"time_received_0": "2014-01-01", "time_received_1": "2015-02-01"})
+        overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-02-01"})
         results = overview.to_dict()['day_hour_heatmap']
 
         assert_list_equiv(results, [
-            {'dow_received': 2, 'hour_received': 9, 'volume': 1},
-            {'dow_received': 3, 'hour_received': 9, 'volume': 2},
-            {'dow_received': 3, 'hour_received': 12, 'volume': 1},
-            {'dow_received': 5, 'hour_received': 12, 'volume': 1},
-            {'dow_received': 6, 'hour_received': 9, 'volume': 1},
+            {'dow_received': 3, 'hour_received': 9, 'volume': 0.4, 'freq': 5, 'total': 2},
+            {'dow_received': 3, 'hour_received': 12, 'volume': 0.2, 'freq': 5, 'total': 1},
+            {'dow_received': 6, 'hour_received': 9, 'volume': 0.2, 'freq': 5, 'total': 1},
         ])
 
     def test_response_time_by_beat(self):

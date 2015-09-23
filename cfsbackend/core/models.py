@@ -9,10 +9,12 @@
 # into your database.
 
 from __future__ import unicode_literals
+from collections import Counter
 from datetime import timedelta
 
 from django.db import models
-from django.db.models import Count, Aggregate, DurationField, Min, Max, IntegerField, Sum, Case, When, Avg
+from django.db.models import Count, Aggregate, DurationField, Min, Max, \
+    IntegerField, Sum, Case, When
 from django.db.models.expressions import Func
 
 
@@ -48,6 +50,7 @@ class DateTrunc(Func):
             raise ValueError("by named argument must be specified")
         super().__init__(expression, **extra)
 
+
 class DurationAvg(Aggregate):
     function = 'AVG'
     name = 'Avg'
@@ -64,8 +67,12 @@ class CallOverview:
     def __init__(self, filters):
         from .filters import CallFilter
         self.filter = CallFilter(filters, queryset=Call.objects.all())
-        self.bounds = self.qs.aggregate(min_time=Min('time_received'), max_time=Max('time_received'))
-        self.span = self.bounds['max_time'] - self.bounds['min_time']
+        self.bounds = self.qs.aggregate(min_time=Min('time_received'),
+                                        max_time=Max('time_received'))
+        if self.bounds['max_time'] and self.bounds['min_time']:
+            self.span = self.bounds['max_time'] - self.bounds['min_time']
+        else:
+            self.span = timedelta(0, 0)
 
     @property
     def qs(self):
@@ -78,7 +85,7 @@ class CallOverview:
                     values_list(field, field + '__count'))
 
     def volume_over_time(self):
-        if self.span >= timedelta(365):
+        if self.span >= timedelta(360):
             size = 'month'
         elif self.span > timedelta(60):
             size = 'week'
@@ -87,7 +94,8 @@ class CallOverview:
         else:
             size = 'hour'
 
-        results = self.qs.annotate(period_start=DateTrunc('time_received', by=size)) \
+        results = self.qs.annotate(
+            period_start=DateTrunc('time_received', by=size)) \
             .values('period_start') \
             .annotate(period_volume=Count('period_start')) \
             .order_by('period_start')
@@ -99,10 +107,25 @@ class CallOverview:
         }
 
     def day_hour_heatmap(self):
+        if self.span == timedelta(0, 0):
+            return {}
+
+        # In order for this to show average volume, we need to know the number 
+        # of times each day of the week occurs.
+        start = self.bounds['min_time'].date()
+        end = self.bounds['max_time'].date()
+        weekdays = Counter((start + timedelta(days=x)).weekday() for x in
+                           range(0, (end - start).days + 1))
+
         results = self.qs \
             .values('dow_received', 'hour_received') \
             .annotate(volume=Count('dow_received')) \
             .order_by('dow_received', 'hour_received')
+
+        for result in results:
+            result['freq'] = weekdays[result['dow_received']]
+            result['total'] = result['volume']
+            result['volume'] /= result['freq']
 
         return results
 
@@ -215,9 +238,13 @@ class OOSCode(models.Model):
 
 class OutOfServicePeriods(models.Model):
     oos_id = models.IntegerField(primary_key=True)
-    call_unit = models.ForeignKey(CallUnit, blank=True, null=True, db_column="call_unit_id", related_name="call_unit")
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="call_unit")
     shift_unit_id = models.BigIntegerField(blank=True, null=True)
-    oos_code = models.ForeignKey(OOSCode, blank=True, null=True, db_column="oos_code_id", related_name="oos_code")
+    oos_code = models.ForeignKey(OOSCode, blank=True, null=True,
+                                 db_column="oos_code_id",
+                                 related_name="oos_code")
     location = models.TextField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
@@ -240,9 +267,12 @@ class Call(models.Model):
     hour_received = models.IntegerField(blank=True, null=True)
     case_id = models.BigIntegerField(blank=True, null=True)
     call_source = models.ForeignKey('CallSource', blank=True, null=True)
-    primary_unit = models.ForeignKey(CallUnit, blank=True, null=True, related_name="primary_unit")
-    first_dispatched = models.ForeignKey(CallUnit, blank=True, null=True, related_name="first_dispatched")
-    reporting_unit = models.ForeignKey(CallUnit, blank=True, null=True, related_name="reporting_unit")
+    primary_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                     related_name="primary_unit")
+    first_dispatched = models.ForeignKey(CallUnit, blank=True, null=True,
+                                         related_name="first_dispatched")
+    reporting_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                       related_name="reporting_unit")
     street_num = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
     city = models.ForeignKey('City', blank=True, null=True)

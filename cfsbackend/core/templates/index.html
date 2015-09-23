@@ -12,7 +12,6 @@
 
         text.mono {
             font-size: 9pt;
-            font-family: Consolas, courier;
             fill: #aaa;
         }
 
@@ -27,6 +26,25 @@
 {% endblock %}
 
 {% block content %}
+
+    <div class="row filter-header">
+        <div class="small-12 columns filter-summary">
+            <div class="row">
+                <div class="small-11 columns">
+                    <div id="filter-description"></div>
+                </div>
+
+                <div class="small-1 columns filter-edit">
+                    <i class="fa fa-pencil-square-o"></i>
+                </div>
+            </div>
+        </div>
+        <div class="small-12 columns">
+            <div id="filter-form" style="display: none;"></div>
+        </div>
+    </div>
+
+
     <div class="container">
         <div class="row">
             <div class="small-12 columns">
