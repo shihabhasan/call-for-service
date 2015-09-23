@@ -1,9 +1,79 @@
 "use strict";
 
-var filter = {};
 var url = "/api/overview/";
+var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap;
+var outFormats = {
+    "month": "%b %y",
+    "week": "%m/%d/%y",
+    "day": "%a %m/%d",
+    "hour": "%m/%d %H:%M"
+};
 
-function describeFilter() {
+var dashboard = new Ractive({
+    data: {
+        loading: false,
+        filter: {},
+        data: {
+            'volume_over_time': {
+                'period_size': 'day',
+                'results': []
+            },
+            'day_hour_heatmap': []
+        }
+    }
+});
+
+updateFilter();
+
+dashboard.observe('filter', function (filter) {
+    displayFilter(filter);
+
+    d3.json(buildURL(filter), function (error, newData) {
+        if (error) throw error;
+        dashboard.set('loading', false);
+        dashboard.set('data', newData);
+    });
+});
+
+dashboard.observe('loading', function (loading) {
+    if (loading) {
+        showLoading();
+    } else {
+        hideLoading();
+    }
+});
+
+dashboard.observe('data', function (data) {
+    if (!dashboard.get('loading')) {
+        if (!volumeByTimeChart) {
+            var retval = buildVolumeByTimeChart(data.volume_over_time);
+            volumeByTimeChart = retval[0];
+            volumeByTimeXAxis = retval[1];
+        } else {
+            volumeByTimeXAxis.tickFormat = outFormats[data.volume_over_time.period_size];
+            volumeByTimeChart.data = data.volume_over_time.results;
+            volumeByTimeChart.draw(200);
+        }
+        dayHourHeatmap = buildDayHourHeatmap(data.day_hour_heatmap);
+    }
+});
+
+d3.select(window).on("hashchange", updateFilter);
+
+// ========================================================================
+// Functions
+// ========================================================================
+
+function showLoading() {
+    d3.selectAll(".loading").style("display", "block");
+}
+
+function hideLoading() {
+    console.log("hidden");
+    d3.selectAll(".loading").style("display", "none");
+}
+
+function describeFilter(filter) {
     var components = [];
     var keys = _.keys(filter).sort();
 
@@ -21,8 +91,8 @@ function describeFilter() {
 }
 
 // TODO: make a mapping of column names to human-readable versions
-function displayFilter() {
-    var components = describeFilter();
+function displayFilter(filter) {
+    var components = describeFilter(filter);
     components = components.map(function (c) {
         var s = c[0],
             v = c[1],
@@ -34,7 +104,7 @@ function displayFilter() {
     d3.select("#filter-description").html(components.join("\n"));
 }
 
-function makeParams(obj) {
+function buildQueryParams(obj) {
     var str = "";
     for (var key in obj) {
         if (str != "") {
@@ -45,11 +115,11 @@ function makeParams(obj) {
     return str;
 }
 
-function buildURL() {
-    return url + "?" + makeParams(filter);
+function buildURL(filter) {
+    return url + "?" + buildQueryParams(filter);
 }
 
-function parseQuery(str) {
+function parseQueryParams(str) {
     if (typeof str != "string" || str.length == 0) return {};
     var s = str.split("&");
     var s_length = s.length;
@@ -62,22 +132,15 @@ function parseQuery(str) {
         first = decodeURIComponent(bit[0]);
         if (first.length == 0) continue;
         second = decodeURIComponent(bit[1]);
-        if (typeof query[first] == "undefined") query[first] = second;else if (query[first] instanceof Array) query[first].push(second);else query[first] = [query[first], second];
+        if (typeof query[first] == "undefined") query[first] = second; else if (query[first] instanceof Array) query[first].push(second); else query[first] = [query[first], second];
     }
     return query;
 }
 
-var outFormats = {
-    "month": "%b %y",
-    "week": "%m/%d/%y",
-    "day": "%a %m/%d",
-    "hour": "%m/%d %H:%M"
-};
-
 function buildVolumeByTimeChart(data) {
     var parentWidth = d3.select("#volume-over-time").node().clientWidth;
 
-    var margin = { top: 20, right: 20, bottom: 50, left: 50 },
+    var margin = {top: 20, right: 20, bottom: 50, left: 50},
         width = parentWidth,
         height = 500;
 
@@ -99,15 +162,15 @@ function buildVolumeByTimeChart(data) {
 function buildDayHourHeatmap(data) {
     var parentWidth = d3.select("#day-hour-heatmap").node().clientWidth;
 
-    var margin = { top: 50, right: 0, bottom: 100, left: 30 },
+    var margin = {top: 50, right: 0, bottom: 100, left: 30},
         width = parentWidth - margin.left - margin.right,
         height = 430 - margin.top - margin.bottom,
         gridSize = Math.floor(width / 24),
         legendElementWidth = gridSize * 2,
         buckets = 9,
         colors = ["#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"],
-        // alternatively colorbrewer.YlGnBu[9]
-    days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+    // alternatively colorbrewer.YlGnBu[9]
+        days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
         times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
 
     data.forEach(function (d) {
@@ -120,9 +183,9 @@ function buildDayHourHeatmap(data) {
         for (var i = 0; i < 7; i++) {
             for (var j = 0; j < 24; j++) {
                 if (!_.find(data, function (d) {
-                    return d.day === i && d.hour === j;
-                })) {
-                    data.push({ day: i, hour: j, value: 0 });
+                        return d.day === i && d.hour === j;
+                    })) {
+                    data.push({day: i, hour: j, value: 0});
                 }
             }
         }
@@ -197,42 +260,14 @@ function buildDayHourHeatmap(data) {
     }).attr("x", function (d, i) {
         return legendElementWidth * i;
     }).attr("y", height + gridSize);
-};
-
-var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap;
-
-if (window.location.hash) {
-    filter = parseQuery(window.location.hash.slice(1));
 }
 
-displayFilter();
-
-d3.json(buildURL(), function (error, data) {
-    if (error) throw error;
-    var retval = buildVolumeByTimeChart(data.volume_over_time);
-    volumeByTimeChart = retval[0];
-    volumeByTimeXAxis = retval[1];
-    dayHourHeatmap = buildDayHourHeatmap(data.day_hour_heatmap);
-});
-
-function update() {
+function updateFilter() {
     if (window.location.hash) {
-        filter = parseQuery(window.location.hash.slice(1));
+        dashboard.set('filter', parseQueryParams(window.location.hash.slice(1)));
     } else {
-        filter = {};
+        dashboard.set('filter', {});
     }
-
-    displayFilter();
-
-    d3.json(buildURL(), function (error, data) {
-        if (error) throw error;
-
-        volumeByTimeXAxis.tickFormat = outFormats[data.volume_over_time.period_size];
-        volumeByTimeChart.data = data.volume_over_time.results;
-        volumeByTimeChart.draw(200);
-        dayHourHeatmap = buildDayHourHeatmap(data.day_hour_heatmap);
-    });
 }
 
-d3.select(window).on("hashchange", update);
 

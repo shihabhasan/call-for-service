@@ -152,7 +152,8 @@ BOWER_INSTALLED_APPS = (
     'underscore#1.8.3',
     'foundation#5.5.2',
     'dimple#2.1.6',
-    'font-awesome#4.4.0'
+    'font-awesome#4.4.0',
+    'ractive#0.7.3'
 )
 
 COMPRESS_PRECOMPILERS = (
