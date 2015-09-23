@@ -26,45 +26,53 @@
 {% endblock %}
 
 {% block content %}
+    <script id="dashboard-template" type="text/html">
+        <div class="row filter-header">
+            <div class="small-12 columns filter-summary">
+                <div class="row">
+                    <div class="small-11 columns">
+                        <div id="filter-description">
+                            [[ #each describeFilter(filter) ]]
+                                <span class="filter radius label">
+                                    [[ s ]] [[ v ]] [[ o ]]
+                                </span>
+                            [[ /each ]]
+                        </div>
+                    </div>
 
-    <div class="row filter-header">
-        <div class="small-12 columns filter-summary">
+                    <div class="small-1 columns filter-edit">
+                        <i class="fa fa-pencil-square-o"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="small-12 columns">
+                <div id="filter-form" style="display: none;"></div>
+            </div>
+        </div>
+
+
+        <div class="container">
             <div class="row">
-                <div class="small-11 columns">
-                    <div id="filter-description"></div>
-                </div>
-
-                <div class="small-1 columns filter-edit">
-                    <i class="fa fa-pencil-square-o"></i>
+                <div class="small-12 columns">
+                    <div id="volume-over-time">
+                        <h3>Call Volume Over Time</h3>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="small-12 columns">
-            <div id="filter-form" style="display: none;"></div>
-        </div>
-    </div>
-
-
-    <div class="container">
-        <div class="row">
-            <div class="small-12 columns">
-                <div id="volume-over-time">
-                    <h3>Call Volume Over Time</h3>
+            <div class="row">
+                <div class="small-12 columns">
+                    <div id="day-hour-heatmap">
+                        <h3>Day/Hour Heatmap</h3>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="small-12 columns">
-                <div id="day-hour-heatmap">
-                    <h3>Day/Hour Heatmap</h3>
-                </div>
+            <div class="row">
+                <footer class="small-12 columns">RTI 2015</footer>
             </div>
-        </div>
-        <div class="row">
-            <footer class="small-12 columns">RTI 2015</footer>
-        </div>
 
-    </div>
+        </div>
+    </script>
+    <div id="dashboard"></div>
 {% endblock %}
 
 <!-- Latest compiled and minified JavaScript -->

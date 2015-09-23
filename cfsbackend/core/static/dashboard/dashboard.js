@@ -10,8 +10,10 @@ var outFormats = {
 };
 
 var dashboard = new Ractive({
+    el: document.getElementById("dashboard"),
+    template: "#dashboard-template",
     data: {
-        loading: false,
+        loading: true,
         filter: {},
         data: {
             'volume_over_time': {
@@ -19,15 +21,31 @@ var dashboard = new Ractive({
                 'results': []
             },
             'day_hour_heatmap': []
+        },
+        describeFilter: function (filter) {
+            var components = [];
+            var keys = _.keys(filter).sort();
+
+            keys.forEach(function (key) {
+                if (key.endsWith("_0")) {
+                    components.push({s: key.slice(0, -2),  v: ">=", o: filter[key]});
+                } else if (key.endsWith("_1")) {
+                    components.push({s: key.slice(0, -2),  v: "<=", o: filter[key]});
+                } else {
+                    components.push({s: key,  v: "=", o: filter[key]});
+                }
+            });
+
+            return components;
         }
-    }
+    },
+    delimiters: [ '[[', ']]' ],
+    tripleDelimiters: [ '[[[', ']]]' ]
 });
 
 updateFilter();
 
 dashboard.observe('filter', function (filter) {
-    displayFilter(filter);
-
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
@@ -71,37 +89,6 @@ function showLoading() {
 function hideLoading() {
     console.log("hidden");
     d3.selectAll(".loading").style("display", "none");
-}
-
-function describeFilter(filter) {
-    var components = [];
-    var keys = _.keys(filter).sort();
-
-    keys.forEach(function (key) {
-        if (key.endsWith("_0")) {
-            components.push([key.slice(0, -2), ">=", filter[key]]);
-        } else if (key.endsWith("_1")) {
-            components.push([key.slice(0, -2), "<=", filter[key]]);
-        } else {
-            components.push([key, "=", filter[key]]);
-        }
-    });
-
-    return components;
-}
-
-// TODO: make a mapping of column names to human-readable versions
-function displayFilter(filter) {
-    var components = describeFilter(filter);
-    components = components.map(function (c) {
-        var s = c[0],
-            v = c[1],
-            o = c[2];
-
-        return "<span class=\"filter radius label\">" + s + " " + v + " " + o + "</span>";
-    });
-
-    d3.select("#filter-description").html(components.join("\n"));
 }
 
 function buildQueryParams(obj) {
