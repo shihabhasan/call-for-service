@@ -61,18 +61,23 @@ dashboard.observe('loading', function (loading) {
     }
 });
 
-dashboard.observe('data', function (data) {
+dashboard.observe('data.volume_over_time', function (newData) {
     if (!dashboard.get('loading')) {
         if (!volumeByTimeChart) {
-            var retval = buildVolumeByTimeChart(data.volume_over_time);
+            var retval = buildVolumeByTimeChart(newData);
             volumeByTimeChart = retval[0];
             volumeByTimeXAxis = retval[1];
         } else {
-            volumeByTimeXAxis.tickFormat = outFormats[data.volume_over_time.period_size];
-            volumeByTimeChart.data = data.volume_over_time.results;
+            volumeByTimeXAxis.tickFormat = outFormats[newData.period_size];
+            volumeByTimeChart.data = newData.results;
             volumeByTimeChart.draw(200);
         }
-        dayHourHeatmap = buildDayHourHeatmap(data.day_hour_heatmap);
+    }
+});
+
+dashboard.observe('data.day_hour_heatmap', function (newData) {
+    if (!dashboard.get('loading')) {
+        dayHourHeatmap = buildDayHourHeatmap(newData);
     }
 });
 
