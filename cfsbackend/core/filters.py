@@ -2,6 +2,7 @@ from django_filters import FilterSet, DateFromToRangeFilter, MethodFilter, Range
 from django_filters.fields import RangeField
 from django.db.models import Q
 from django import forms
+from django_filters.filterset import STRICTNESS
 
 from .models import Call
 
@@ -32,6 +33,8 @@ class DurationRangeFilter(RangeFilter):
 
 
 class CallFilter(FilterSet):
+    strict = STRICTNESS.RAISE_VALIDATION_ERROR
+
     time_received = DateFromToRangeFilter()
     time_routed = DateFromToRangeFilter()
     time_finished = DateFromToRangeFilter()
@@ -44,12 +47,14 @@ class CallFilter(FilterSet):
         fields = ['zip_code', 'district', 'sector', 'beat',
                   'call_source', 'nature', 'priority', 'close_code',
                   'primary_unit', 'first_dispatched', 'reporting_unit',
+                  'cancelled'
                   ]
+
+
 
     def filter_unit(self, queryset, value):
         query = Q(primary_unit_id=value) | Q(first_dispatched_id=value) | Q(reporting_unit_id=value)
         return queryset.filter(query)
-
 
 
 class SummaryFilter(FilterSet):
