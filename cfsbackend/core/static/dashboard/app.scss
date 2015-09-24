@@ -3,29 +3,44 @@
 @import "foundation/scss/foundation.scss";
 
 body {
-    margin-top: 0px;
+  margin-top: 0px;
 }
 
 .filter-header {
-    background-color: $jet;
-    color: $ghost;
-    @include radius(0 0 5px 5px);
-    margin-bottom: 20px;
-    padding: 10px;
+  background-color: $jet;
+  color: $ghost;
+  @include radius(0 0 5px 5px);
+  margin-bottom: 20px;
+  padding: 10px;
 }
 
 .filter-edit {
-    text-align: right;
+  text-align: right;
+}
+
+.filter-form {
+  background-color: $ghost;
+  color: $jet;
+  margin-top: 10px;
+  padding: 10px 5px;
+  border: 5px solid $ghost;
 }
 
 .filter.label {
-    background-color: $smoke;
-    color: $jet;
-    font-size: 0.9rem;
-    margin-right: 5px;
+  background-color: $smoke;
+  color: $jet;
+  font-size: 0.9rem;
+  margin-right: 5px;
 }
 
 .loading {
-    text-align: center;
+  text-align: center;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
+.filter-close {
+  text-align: right;
+}

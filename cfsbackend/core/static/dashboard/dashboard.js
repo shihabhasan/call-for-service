@@ -9,12 +9,37 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
+var filterTypes = {
+    "ModelChoiceField": {
+        options: [{id: "=", name: "is equal to"}],
+        valueType: 'select'
+    },
+    "NullBooleanField": {
+        options: [{id: "=", name: "is equal to"}],
+        valueType: 'truth'
+    },
+    "DateRangeField": {
+        options: [
+            {id: ">=", name: "is greater than or equal to"},
+            {id: ">=", name: "is less than or equal to"}
+        ],
+        valueType: 'date'
+    },
+    "DurationRangeField": {
+        options: [
+            {id: ">=", name: "is greater than or equal to"},
+            {id: "<=", name: "is less than or equal to"}
+        ],
+        valueType: 'duration'
+    }
+};
 
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
     data: {
         loading: true,
+        editing: false,
         filter: {},
         data: {
             'volume_over_time': {
@@ -23,8 +48,20 @@ var dashboard = new Ractive({
             },
             'day_hour_heatmap': []
         },
-        humanize: humanize,
-        describeFilter: describeFilter
+        displayName: displayName,
+        displayValue: displayValue,
+        describeFilter: describeFilter,
+        getOptions: function (fieldName) {
+            return findField(fieldName).choices;
+        },
+        getFieldType: function (fieldName) {
+            return filterTypes[findField(fieldName).type];
+        }
+    },
+    computed: {
+        fields: function () {
+            return filterForm.fields;
+        }
     },
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]']
@@ -32,20 +69,46 @@ var dashboard = new Ractive({
 
 updateFilter();
 
+dashboard.on('editfilter', function (event, action) {
+    if (action === "start") {
+        dashboard.set('editing', true);
+    } else if (action === "stop") {
+        dashboard.set('editing', false);
+    }
+});
+
+dashboard.on('removefilter', function (event, key) {
+    window.location.hash = buildQueryParams(_.omit(dashboard.get("filter"), key));
+});
+
+dashboard.on('addfilter', function (event) {
+    var field = dashboard.get("addFilter.field");
+    var verb = dashboard.get("addFilter.verb");
+    var value = dashboard.get("addFilter.value");
+    var filter = dashboard.get("filter");
+
+    var key = field;
+    if (verb === ">=") {
+        key += "_0";
+    } else if (verb === "<=") {
+        key += "_1";
+    }
+
+    filter = _.clone(filter);
+    filter[key] = value;
+
+    window.location.hash = buildQueryParams(filter);
+
+    // prevent default
+    return false;
+});
+
 dashboard.observe('filter', function (filter) {
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
         dashboard.set('data', newData);
     });
-});
-
-dashboard.observe('loading', function (loading) {
-    if (loading) {
-        showLoading();
-    } else {
-        hideLoading();
-    }
 });
 
 dashboard.observe('data.volume_over_time', function (newData) {
@@ -74,17 +137,47 @@ d3.select(window).on("hashchange", updateFilter);
 // Functions
 // ========================================================================
 
-function humanize(property) {
-    var humanNames = {};
+function findField(fieldName) {
+    return _(filterForm.fields).find(function (field) {
+        return field.name == fieldName;
+    })
+}
 
-    if (property in humanNames) {
-        return humanNames[property];
-    } else if (property) {
-        return property.replace(/_/g, ' ')
+function humanize(property) {
+    return property.replace(/_/g, ' ')
             .replace(/(\w+)/g, function (match) {
                 return match.charAt(0).toUpperCase() + match.slice(1);
             });
+}
+
+function displayName(fieldName) {
+    return findField(fieldName).label || humanize(fieldName);
+}
+
+function arrayToObj(arr) {
+    // Given an array of two-element arrays, turn it into an object.
+    var obj = {};
+    arr.forEach(function (x) {
+        obj[x[0]] = x[1];
+    });
+
+    return obj;
+}
+
+function displayValue(fieldName, value) {
+    var field = findField(fieldName);
+    var dValue;
+
+    if (field.choices) {
+        var choiceMap = arrayToObj(field.choices)
+        dValue = choiceMap[value];
     }
+
+    if (!dValue) {
+        dValue = value;
+    }
+
+    return dValue;
 }
 
 function describeFilter(filter) {
@@ -96,28 +189,22 @@ function describeFilter(filter) {
             components.push({
                 s: key.slice(0, -2),
                 v: ">=",
-                o: filter[key]
+                o: filter[key],
+                k: key
             });
         } else if (key.endsWith("_1")) {
             components.push({
                 s: key.slice(0, -2),
                 v: "<=",
-                o: filter[key]
+                o: filter[key],
+                k: key
             });
         } else {
-            components.push({s: key, v: "=", o: filter[key]});
+            components.push({s: key, v: "=", o: filter[key], k: key});
         }
     });
 
     return components;
-}
-
-function showLoading() {
-    d3.selectAll(".loading").style("display", "block");
-}
-
-function hideLoading() {
-    d3.selectAll(".loading").style("display", "none");
 }
 
 function buildQueryParams(obj) {

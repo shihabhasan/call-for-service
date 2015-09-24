@@ -34,22 +34,63 @@
                         <div id="filter-description">
                             [[ #each describeFilter(filter) ]]
                                 <span class="filter radius label">
-                                    [[ humanize(s) ]] [[ v ]] [[ o ]]
+                                    [[ displayName(s) ]] [[ v ]] [[ displayValue(s, o) ]]
+                                    <i class="fa fa-close clickable" on-click="removefilter:[[ k ]]"></i>
                                 </span>
                             [[ /each ]]
                         </div>
                     </div>
 
                     <div class="small-1 columns filter-edit">
-                        <i class="fa fa-pencil-square-o"></i>
+                        <i class="fa fa-plus clickable" on-click="editfilter:start"></i>
                     </div>
                 </div>
             </div>
-            <div class="small-12 columns">
-                <div id="filter-form" style="display: none;"></div>
-            </div>
-        </div>
+            [[ #if editing ]]
+            <div class="small-12 columns filter-form">
+                <div class="row">
+                    <div class="small-11 columns">
+                        <form>
+                            <select name="filter_subject" value="[[ addFilter.field ]]">
+                                [[ #each fields ]]
+                                <option value="[[ name ]]">[[ label ]]</option>
+                                [[ /each ]]
+                            </select>
 
+                            <select name="filter_verb" value="[[ addFilter.verb ]]">
+                                [[ #each getFieldType(addFilter.field).options ]]
+                                <option value="[[ id ]]">[[ name ]]</option>
+                                [[ /each ]]
+                            </select>
+
+                            [[ #getFieldType(addFilter.field) ]]
+                                [[ #if valueType == 'select' ]]
+                                    <select name="filter_object" value="[[ addFilter.value ]]">
+                                        [[ #each getOptions(addFilter.field) ]]
+                                            <option value="[[ 0 ]]">[[ 1 ]]</option>
+                                        [[ /each ]]
+                                    </select>
+                                [[ elseif valueType == 'truth' ]]
+                                    <select name="filter_object" value="[[ addFilter.value ]]">
+                                        <option value="True">True</option>
+                                        <option value="False">False</option>
+                                    </select>
+                                [[ elseif valueType == 'date' ]]
+                                    <input name="filter_object" type="date" value="[[ addFilter.value ]]">
+                                [[ else ]]
+                                    <input name="filter_object" type="text" value="[[ addFilter.value ]]">
+                                [[ /if ]]
+                            [[ /each ]]
+                            <button class="button radius small" on-click="addfilter">Add filter</button>
+                        </form>
+                    </div>
+                    <div class="small-1 columns filter-close">
+                        <i class="fa fa-close close clickable" on-click="editfilter:stop"></i>
+                    </div>
+                </div>
+            </div>
+            [[ /if ]]
+        </div>
 
         <div class="container">
             <div class="row">
@@ -57,9 +98,11 @@
                     <div id="volume-over-time">
                         <h3>Call Volume Over Time</h3>
 
+                        [[ #if loading ]]
                         <div class="loading">
                             <img src="{% static "ellipsis.svg" %}">
                         </div>
+                        [[ /if ]]
                     </div>
                 </div>
             </div>
@@ -68,9 +111,11 @@
                     <div id="day-hour-heatmap">
                         <h3>Day/Hour Heatmap</h3>
 
+                        [[ #if loading ]]
                         <div class="loading">
                             <img src="{% static "ellipsis.svg" %}">
                         </div>
+                        [[ /if ]]
                     </div>
                 </div>
             </div>
@@ -81,13 +126,14 @@
         </div>
     </script>
     <div id="dashboard"></div>
-    <script>
-        var filterForm = {{ form.as_json|safe }};
-    </script>
+
 {% endblock %}
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
+    <script>
+        var filterForm = {{ form.as_json|safe }};
+    </script>
     <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'dimple/dist/dimple.v2.1.6.js' %}"></script>
