@@ -9,6 +9,7 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
+
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
@@ -22,25 +23,11 @@ var dashboard = new Ractive({
             },
             'day_hour_heatmap': []
         },
-        describeFilter: function (filter) {
-            var components = [];
-            var keys = _.keys(filter).sort();
-
-            keys.forEach(function (key) {
-                if (key.endsWith("_0")) {
-                    components.push({s: key.slice(0, -2),  v: ">=", o: filter[key]});
-                } else if (key.endsWith("_1")) {
-                    components.push({s: key.slice(0, -2),  v: "<=", o: filter[key]});
-                } else {
-                    components.push({s: key,  v: "=", o: filter[key]});
-                }
-            });
-
-            return components;
-        }
+        humanize: humanize,
+        describeFilter: describeFilter
     },
-    delimiters: [ '[[', ']]' ],
-    tripleDelimiters: [ '[[[', ']]]' ]
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]']
 });
 
 updateFilter();
@@ -86,6 +73,44 @@ d3.select(window).on("hashchange", updateFilter);
 // ========================================================================
 // Functions
 // ========================================================================
+
+function humanize(property) {
+    var humanNames = {};
+
+    if (property in humanNames) {
+        return humanNames[property];
+    } else {
+        return property.replace(/_/g, ' ')
+            .replace(/(\w+)/g, function (match) {
+                return match.charAt(0).toUpperCase() + match.slice(1);
+            });
+    }
+}
+
+function describeFilter(filter) {
+    var components = [];
+    var keys = _.keys(filter).sort();
+
+    keys.forEach(function (key) {
+        if (key.endsWith("_0")) {
+            components.push({
+                s: key.slice(0, -2),
+                v: ">=",
+                o: filter[key]
+            });
+        } else if (key.endsWith("_1")) {
+            components.push({
+                s: key.slice(0, -2),
+                v: "<=",
+                o: filter[key]
+            });
+        } else {
+            components.push({s: key, v: "=", o: filter[key]});
+        }
+    });
+
+    return components;
+}
 
 function showLoading() {
     d3.selectAll(".loading").style("display", "block");
