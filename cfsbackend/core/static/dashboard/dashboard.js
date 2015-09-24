@@ -79,7 +79,7 @@ function humanize(property) {
 
     if (property in humanNames) {
         return humanNames[property];
-    } else {
+    } else if (property) {
         return property.replace(/_/g, ' ')
             .replace(/(\w+)/g, function (match) {
                 return match.charAt(0).toUpperCase() + match.slice(1);
@@ -117,7 +117,6 @@ function showLoading() {
 }
 
 function hideLoading() {
-    console.log("hidden");
     d3.selectAll(".loading").style("display", "none");
 }
 
