@@ -1,9 +1,0 @@
--- Add the year component of time_received and time_filed to call and incident, respectively.
-
-ALTER TABLE call ADD COLUMN year_received integer;
-
-UPDATE call SET year_received = EXTRACT (year FROM time_received);
-
-ALTER TABLE incident ADD COLUMN year_filed integer;
-
-UPDATE incident SET year_filed = EXTRACT (year FROM time_filed);
