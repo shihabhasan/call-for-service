@@ -1,16 +1,31 @@
 @import "settings";
+@import "mixins";
 @import "foundation/scss/foundation.scss";
 
 body {
-    margin-top: 20px;
+    margin-top: 0px;
 }
 
-.axis {
-    font-size: 80%;
+.filter-header {
+    background-color: $jet;
+    color: $ghost;
+    @include radius(0 0 5px 5px);
+    margin-bottom: 20px;
+    padding: 10px;
 }
 
-.chart {
-    border: 1px #CCC solid;
-    padding: 10px 20px;
-    margin: 10px 0;
+.filter-edit {
+    text-align: right;
 }
+
+.filter.label {
+    background-color: $smoke;
+    color: $jet;
+    font-size: 0.9rem;
+    margin-right: 5px;
+}
+
+.loading {
+    text-align: center;
+}
+

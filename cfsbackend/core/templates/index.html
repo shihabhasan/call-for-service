@@ -1,59 +1,96 @@
+{% extends "base.html" %}
+
 {% load staticfiles %}
 {% load compress %}
-<!DOCTYPE html>
-<html lang="en" class="no-js">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>CFS</title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% compress css %}
-    <link type="text/sass" rel="stylesheet" href="{% static 'dashboard/app.scss' %}">
-{#    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">#}
-    {% endcompress %}
-</head>
-<body>
-<div class="container-fluid">
-    <main>
-        <div class="row">
-            <div class="small-6 columns">
-                <div id="dc-call-dow-chart" class="chart">
-                    <h3>Number of Calls by Day of Week</h3>
-                </div>
 
-                <div id="dc-call-hour-chart" class="chart">
-                    <h3>Number of Calls by Hour of Day</h3>
-                </div>
+{% block head %}
+    <style>
+        rect.bordered {
+            stroke: #E6E6E6;
+            stroke-width: 2px;
+        }
 
-                <div id="dc-call-month-chart" class="chart">
-                    <h3>Number of Calls by Month</h3>
+        text.mono {
+            font-size: 9pt;
+            fill: #aaa;
+        }
+
+        text.axis-workweek {
+            fill: #000;
+        }
+
+        text.axis-worktime {
+            fill: #000;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <script id="dashboard-template" type="text/html">
+        <div class="row filter-header">
+            <div class="small-12 columns filter-summary">
+                <div class="row">
+                    <div class="small-11 columns">
+                        <div id="filter-description">
+                            [[ #each describeFilter(filter) ]]
+                                <span class="filter radius label">
+                                    [[ humanize(s) ]] [[ v ]] [[ o ]]
+                                </span>
+                            [[ /each ]]
+                        </div>
+                    </div>
+
+                    <div class="small-1 columns filter-edit">
+                        <i class="fa fa-pencil-square-o"></i>
+                    </div>
                 </div>
             </div>
-
-            <div class="small-6 columns">
-                <div id="dc-call-source-chart" class="chart">
-                    <h3>Calls by Source</h3>
-                </div>
-
-                <div id="dc-call-nature-chart" class="chart">
-                    <h3>Call Nature</h3>
-                </div>
+            <div class="small-12 columns">
+                <div id="filter-form" style="display: none;"></div>
             </div>
         </div>
 
 
-    </main>
-    <footer>RTI 2015</footer>
-</div>
+        <div class="container">
+            <div class="row">
+                <div class="small-12 columns">
+                    <div id="volume-over-time">
+                        <h3>Call Volume Over Time</h3>
+
+                        <div class="loading">
+                            <img src="{% static "ellipsis.svg" %}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="small-12 columns">
+                    <div id="day-hour-heatmap">
+                        <h3>Day/Hour Heatmap</h3>
+
+                        <div class="loading">
+                            <img src="{% static "ellipsis.svg" %}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <footer class="small-12 columns">RTI 2015</footer>
+            </div>
+
+        </div>
+    </script>
+    <div id="dashboard"></div>
+{% endblock %}
+
 <!-- Latest compiled and minified JavaScript -->
-{% compress js %}
-    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-    <script src="{% static 'foundation/js/foundation.min.js' %}"></script>
+{% block javascript %}
+    <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'dimple/dist/dimple.v2.1.6.js' %}"></script>
     <script src="{% static 'moment/moment.js' %}"></script>
     <script src="{% static 'underscore/underscore.js' %}"></script>
     <script src="{% static 'dashboard/dashboard.js' %}"></script>
-{% endcompress %}
+{% endblock %}
 </body>
 </html>
