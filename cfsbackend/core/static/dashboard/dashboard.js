@@ -41,9 +41,6 @@ var filterTypes = {
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
-    partials: {
-
-    },
     data: {
         loading: true,
         editing: false,
@@ -66,6 +63,9 @@ var dashboard = new Ractive({
         }
     },
     computed: {
+        filterHash: function () {
+            return "#" + buildQueryParams(this.get('filter'));
+        },
         fields: function () {
             return filterForm.fields;
         }
