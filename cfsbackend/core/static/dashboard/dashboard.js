@@ -1,7 +1,7 @@
 "use strict";
 
 var url = "/api/overview/";
-var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap, volumeBySourceChart;
+var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap, volumeBySourceChart, volumeByBeatChart;
 var outFormats = {
     "month": "%b %y",
     "week": "%m/%d/%y",
@@ -62,6 +62,17 @@ dashboard.observe('data.volume_by_source', function (newData) {
     }
 });
 
+dashboard.observe('data.volume_by_beat', function (newData) {
+    if (!dashboard.get('loading')) {
+        if (!volumeByBeatChart) {
+            volumeByBeatChart = buildVolumeByBeatChart(newData);
+        } else {
+            volumeByBeatChart.data = newData;
+            volumeByBeatChart.draw(200);
+        }
+    }
+});
+
 dashboard.observe('data.day_hour_heatmap', function (newData) {
     if (!dashboard.get('loading')) {
         dayHourHeatmap = buildDayHourHeatmap(newData);
@@ -115,6 +126,26 @@ function buildVolumeBySourceChart(data) {
     var ring = myChart.addSeries("name", dimple.plot.pie);
     ring.innerRadius = "50%";
     myChart.addLegend(10, 10, 90, 90, "left");
+    myChart.draw();
+
+    return myChart;
+}
+
+function buildVolumeByBeatChart(data) {
+    var parentWidth = d3.select("#volume-by-beat").node().clientWidth;
+
+    var margin = {top: 20, right: 20, bottom: 20, left: 50},
+        width = parentWidth,
+        height = parentWidth * 1.1;
+
+    var svg = dimple.newSvg("#volume-by-beat", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    myChart.addMeasureAxis("x", "volume");
+    var y = myChart.addCategoryAxis("y", "name");
+    myChart.addSeries(null, dimple.plot.bar);
     myChart.draw();
 
     return myChart;
