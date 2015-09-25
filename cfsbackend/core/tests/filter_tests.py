@@ -38,6 +38,9 @@ class CallFilterTest(TestCase):
 
 
     def test_unit_filter(self):
+        filter = CallFilter({"primary_unit": 1})
+        assert filter.qs.count() == 1
+
         filter = CallFilter({"unit": 1})
         assert filter.qs.count() == 3
 
