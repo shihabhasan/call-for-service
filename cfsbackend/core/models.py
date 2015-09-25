@@ -14,7 +14,7 @@ from datetime import timedelta
 
 from django.db import models
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
-    IntegerField, Sum, Case, When
+    IntegerField, Sum, Case, When, F
 from django.db.models.expressions import Func
 
 
@@ -78,11 +78,14 @@ class CallOverview:
     def qs(self):
         return self.filter.qs
 
-    def volume_by_field(self, field):
-        return dict(self.qs. \
-                    values(field). \
-                    annotate(Count(field)). \
-                    values_list(field, field + '__count'))
+    def volume_by_field(self, field, alias=None):
+        if alias:
+            qs = self.qs.annotate(**{alias: F(field)}).values(alias)
+            field = alias
+        else:
+            qs = self.qs.values(field)
+
+        return qs.annotate(volume=Count(field))
 
     def volume_over_time(self):
         if self.span >= timedelta(360):
@@ -143,7 +146,8 @@ class CallOverview:
             'filter': self.filter.data,
             'volume_over_time': self.volume_over_time(),
             'day_hour_heatmap': self.day_hour_heatmap(),
-            'volume_by_source': self.volume_by_field('call_source__descr'),
+            'volume_by_source': self.volume_by_field('call_source__descr',
+                                                     alias="name"),
             'volume_by_nature': self.volume_by_field('nature__descr'),
             'volume_by_beat': self.volume_by_field('beat__descr'),
             'response_time_by_beat': self.response_time_by_beat()

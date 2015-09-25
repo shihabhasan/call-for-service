@@ -1,7 +1,7 @@
 "use strict";
 
 var url = "/api/overview/";
-var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap;
+var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap, volumeBySourceChart;
 var outFormats = {
     "month": "%b %y",
     "week": "%m/%d/%y",
@@ -20,7 +20,8 @@ var dashboard = new Ractive({
                 'period_size': 'day',
                 'results': []
             },
-            'day_hour_heatmap': []
+            'day_hour_heatmap': [],
+            'volume_by_source': {}
         }
     },
     delimiters: ['[[', ']]'],
@@ -50,6 +51,17 @@ dashboard.observe('data.volume_over_time', function (newData) {
     }
 });
 
+dashboard.observe('data.volume_by_source', function (newData) {
+    if (!dashboard.get('loading')) {
+        if (!volumeBySourceChart) {
+            volumeBySourceChart = buildVolumeBySourceChart(newData);
+        } else {
+            volumeBySourceChart.data = newData;
+            volumeBySourceChart.draw(200);
+        }
+    }
+});
+
 dashboard.observe('data.day_hour_heatmap', function (newData) {
     if (!dashboard.get('loading')) {
         dayHourHeatmap = buildDayHourHeatmap(newData);
@@ -68,9 +80,9 @@ function buildURL(filter) {
 function buildVolumeByTimeChart(data) {
     var parentWidth = d3.select("#volume-over-time").node().clientWidth;
 
-    var margin = {top: 20, right: 20, bottom: 50, left: 50},
+    var margin = {top: 20, right: 20, bottom: 70, left: 50},
         width = parentWidth,
-        height = 500;
+        height = parentWidth * 0.5;
 
     var svg = dimple.newSvg("#volume-over-time", width, height);
 
@@ -85,6 +97,27 @@ function buildVolumeByTimeChart(data) {
     var t = myChart.addSeries(null, dimple.plot.bubble);
     myChart.draw();
     return [myChart, x];
+}
+
+function buildVolumeBySourceChart(data) {
+    var parentWidth = d3.select("#volume-by-source").node().clientWidth;
+
+    var margin = {top: 50, right: 20, bottom: 20, left: 100},
+        width = parentWidth,
+        height = parentWidth * 1.1;
+
+    var svg = dimple.newSvg("#volume-by-source", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    myChart.addMeasureAxis("p", "volume");
+    var ring = myChart.addSeries("name", dimple.plot.pie);
+    ring.innerRadius = "50%";
+    myChart.addLegend(10, 10, 90, 90, "left");
+    myChart.draw();
+
+    return myChart;
 }
 
 function buildDayHourHeatmap(data) {

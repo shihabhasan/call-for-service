@@ -1,10 +1,11 @@
+from django.forms import ModelChoiceField
 from django_filters import FilterSet, DateFromToRangeFilter, MethodFilter, \
-    RangeFilter
+    RangeFilter, ModelChoiceFilter
 from django_filters.fields import RangeField
 from django.db.models import Q
 from django import forms
 
-from .models import Call, CallUnit
+from .models import Call, CallUnit, ZipCode
 
 
 class DurationRangeField(RangeField):

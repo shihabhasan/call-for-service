@@ -10,12 +10,7 @@
                 <div class="small-12 columns">
                     <div id="volume-over-time">
                         <h3>Call Volume Over Time</h3>
-
-                        [[ #if loading ]]
-                        <div class="loading">
-                            <img src="{% static "ellipsis.svg" %}">
-                        </div>
-                        [[ /if ]]
+                        {% include "_loading.html" %}
                     </div>
                 </div>
             </div>
@@ -23,13 +18,17 @@
                 <div class="small-12 columns">
                     <div id="day-hour-heatmap">
                         <h3>Day/Hour Heatmap</h3>
-
-                        [[ #if loading ]]
-                        <div class="loading">
-                            <img src="{% static "ellipsis.svg" %}">
-                        </div>
-                        [[ /if ]]
+                        {% include "_loading.html" %}
                     </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="small-6 columns">
+                    <div id="volume-by-source">
+                        <h3>Call Volume By Source</h3>
+                        {% include "_loading.html" %}
+                    </div>
+
                 </div>
             </div>
             <div class="row">
