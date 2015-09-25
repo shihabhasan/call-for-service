@@ -14,6 +14,10 @@ var filterTypes = {
         options: [{id: "=", name: "is equal to"}],
         valueType: 'select'
     },
+    "ChoiceField": {
+        options: [{id: "=", name: "is equal to"}],
+        valueType: 'select'
+    },
     "NullBooleanField": {
         options: [{id: "=", name: "is equal to"}],
         valueType: 'truth'
@@ -37,6 +41,9 @@ var filterTypes = {
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
+    partials: {
+
+    },
     data: {
         loading: true,
         editing: false,

@@ -108,7 +108,7 @@ class CallOverview:
 
     def day_hour_heatmap(self):
         if self.span == timedelta(0, 0):
-            return {}
+            return []
 
         # In order for this to show average volume, we need to know the number 
         # of times each day of the week occurs.
@@ -270,11 +270,11 @@ class Call(models.Model):
     case_id = models.BigIntegerField(blank=True, null=True)
     call_source = models.ForeignKey('CallSource', blank=True, null=True)
     primary_unit = models.ForeignKey(CallUnit, blank=True, null=True,
-                                     related_name="primary_unit")
+                                     related_name="+")
     first_dispatched = models.ForeignKey(CallUnit, blank=True, null=True,
-                                         related_name="first_dispatched")
+                                         related_name="+")
     reporting_unit = models.ForeignKey(CallUnit, blank=True, null=True,
-                                       related_name="reporting_unit")
+                                       related_name="+")
     street_num = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
     city = models.ForeignKey('City', blank=True, null=True)

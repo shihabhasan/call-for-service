@@ -1,11 +1,10 @@
 from django_filters import FilterSet, DateFromToRangeFilter, MethodFilter, \
-    RangeFilter, ChoiceFilter, ModelChoiceFilter
+    RangeFilter
 from django_filters.fields import RangeField
 from django.db.models import Q
 from django import forms
-from django_filters.filterset import STRICTNESS
 
-from .models import Call, ZipCode
+from .models import Call, CallUnit
 
 
 class DurationRangeField(RangeField):
@@ -14,6 +13,10 @@ class DurationRangeField(RangeField):
             forms.DurationField(),
             forms.DurationField())
         super().__init__(fields, *args, **kwargs)
+
+
+class ChoiceMethodFilter(MethodFilter):
+    field_class = forms.ChoiceField
 
 
 class DurationRangeFilter(RangeFilter):
@@ -37,14 +40,13 @@ class DurationRangeFilter(RangeFilter):
 
 
 class CallFilter(FilterSet):
-    strict = STRICTNESS.RAISE_VALIDATION_ERROR
-
     time_received = DateFromToRangeFilter()
     time_routed = DateFromToRangeFilter()
     time_finished = DateFromToRangeFilter()
     time_closed = DateFromToRangeFilter()
     response_time = DurationRangeFilter()
-    unit = MethodFilter(action='filter_unit')
+    unit = ChoiceMethodFilter(action='filter_unit',
+                              choices=CallUnit.objects.all().values_list('call_unit_id', 'descr'))
 
     class Meta:
         model = Call
@@ -55,13 +57,15 @@ class CallFilter(FilterSet):
                   ]
 
     def filter_unit(self, queryset, value):
-        query = Q(primary_unit_id=value) | Q(first_dispatched_id=value) | Q(
-            reporting_unit_id=value)
-        return queryset.filter(query)
+        if value:
+            query = Q(primary_unit_id=value) | Q(first_dispatched_id=value) | Q(
+                reporting_unit_id=value)
+            return queryset.filter(query)
+        else:
+            return queryset
 
 
 class SummaryFilter(FilterSet):
     class Meta:
         model = Call
         fields = ['month_received', 'dow_received', 'hour_received']
-
