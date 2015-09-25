@@ -35,6 +35,7 @@ var Filter = Ractive.extend({
     data: function () {
         return {
             filter: {},
+            addFilter: {},
             editing: false,
             displayName: displayName,
             displayValue: displayValue,
@@ -54,9 +55,61 @@ var Filter = Ractive.extend({
         fields: function () {
             return filterForm.fields;
         }
+    },
+    oninit: function () {
+        var component = this;
+
+        this.on('editfilter', function (event, action) {
+            if (action === "start") {
+                this.set('editing', true);
+            } else if (action === "stop") {
+                this.set('editing', false);
+            }
+        });
+
+        this.on('removefilter', function (event, key) {
+            window.location.hash = buildQueryParams(_.omit(this.get("filter"), key));
+        });
+
+        this.on('addfilter', function (event) {
+            var field = this.get("addFilter.field");
+            var verb = this.get("addFilter.verb");
+            var value = this.get("addFilter.value");
+            var filter = this.get("filter");
+
+            var key = field;
+            if (verb === ">=") {
+                key += "_0";
+            } else if (verb === "<=") {
+                key += "_1";
+            }
+
+            filter = _.clone(filter);
+            filter[key] = value;
+
+            window.location.hash = buildQueryParams(filter);
+
+            // prevent default
+            return false;
+        });
+
+        function updateFilter() {
+            if (window.location.hash) {
+                component.set('filter', parseQueryParams(window.location.hash.slice(1)));
+            } else {
+                component.set('filter', {});
+            }
+        }
+
+        updateFilter();
+        $(window).on("hashchange", updateFilter);
+    },
+    oncomplete: function () {
+        this.observe('filter', function (filter) {
+            this.fire("filterUpdated", filter);
+        });
     }
 });
-
 
 // ========================================================================
 // Functions
@@ -70,9 +123,9 @@ function findField(fieldName) {
 
 function humanize(property) {
     return property.replace(/_/g, ' ')
-            .replace(/(\w+)/g, function (match) {
-                return match.charAt(0).toUpperCase() + match.slice(1);
-            });
+        .replace(/(\w+)/g, function (match) {
+            return match.charAt(0).toUpperCase() + match.slice(1);
+        });
 }
 
 function displayName(fieldName) {
@@ -143,10 +196,6 @@ function buildQueryParams(obj) {
     return str;
 }
 
-function buildURL(filter) {
-    return url + "?" + buildQueryParams(filter);
-}
-
 function parseQueryParams(str) {
     if (typeof str != "string" || str.length == 0) return {};
     var s = str.split("&");
@@ -165,11 +214,4 @@ function parseQueryParams(str) {
     return query;
 }
 
-function updateFilter() {
-    if (window.location.hash) {
-        dashboard.set('filter', parseQueryParams(window.location.hash.slice(1)));
-    } else {
-        dashboard.set('filter', {});
-    }
-}
 

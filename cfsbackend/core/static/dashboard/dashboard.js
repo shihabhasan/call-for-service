@@ -12,7 +12,7 @@ var outFormats = {
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
-    components: { 'filter-form': Filter },
+    components: {'Filter': Filter},
     data: {
         loading: true,
         data: {
@@ -28,41 +28,7 @@ var dashboard = new Ractive({
 });
 
 
-dashboard.on('editfilter', function (event, action) {
-    if (action === "start") {
-        dashboard.set('editing', true);
-    } else if (action === "stop") {
-        dashboard.set('editing', false);
-    }
-});
-
-dashboard.on('removefilter', function (event, key) {
-    window.location.hash = buildQueryParams(_.omit(dashboard.get("filter"), key));
-});
-
-dashboard.on('addfilter', function (event) {
-    var field = dashboard.get("addFilter.field");
-    var verb = dashboard.get("addFilter.verb");
-    var value = dashboard.get("addFilter.value");
-    var filter = dashboard.get("filter");
-
-    var key = field;
-    if (verb === ">=") {
-        key += "_0";
-    } else if (verb === "<=") {
-        key += "_1";
-    }
-
-    filter = _.clone(filter);
-    filter[key] = value;
-
-    window.location.hash = buildQueryParams(filter);
-
-    // prevent default
-    return false;
-});
-
-dashboard.observe('filter', function (filter) {
+dashboard.on('Filter.filterUpdated', function (filter) {
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
@@ -91,13 +57,13 @@ dashboard.observe('data.day_hour_heatmap', function (newData) {
 });
 
 
-updateFilter();
-d3.select(window).on("hashchange", updateFilter);
-
-
 // ========================================================================
 // Functions
 // ========================================================================
+
+function buildURL(filter) {
+    return url + "?" + buildQueryParams(filter);
+}
 
 function buildVolumeByTimeChart(data) {
     var parentWidth = d3.select("#volume-over-time").node().clientWidth;
