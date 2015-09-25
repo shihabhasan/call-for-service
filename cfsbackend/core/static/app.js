@@ -1,3 +1,5 @@
+Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
+
 var filterTypes = {
     "ModelChoiceField": {
         options: [{id: "=", name: "is equal to"}],
@@ -41,7 +43,7 @@ var Filter = Ractive.extend({
             displayValue: displayValue,
             describeFilter: describeFilter,
             getOptions: function (fieldName) {
-                return findField(fieldName).choices;
+                return _.sortBy(findField(fieldName).choices, function (n) { return n[1]; });
             },
             getFieldType: function (fieldName) {
                 return filterTypes[findField(fieldName).type];

@@ -46,7 +46,9 @@ class CallFilter(FilterSet):
     time_closed = DateFromToRangeFilter()
     response_time = DurationRangeFilter()
     unit = ChoiceMethodFilter(action='filter_unit',
-                              choices=CallUnit.objects.all().values_list('call_unit_id', 'descr'))
+                              choices=['', '---------'] + list(
+                                  CallUnit.objects.all().values_list(
+                                      'call_unit_id', 'descr')))
 
     class Meta:
         model = Call

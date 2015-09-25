@@ -161,6 +161,7 @@ class ModelWithDescr(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ['descr']
 
 
 class Sector(ModelWithDescr):
