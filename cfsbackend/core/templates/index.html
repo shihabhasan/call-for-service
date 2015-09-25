@@ -3,9 +3,8 @@
 {% load staticfiles %}
 
 {% block content %}
-    {% include "_filter.html" %}
     <script id="dashboard-template" type="text/html">
-        [[ > filter-template ]]
+        <filter-form />
         <div class="container">
             <div class="row">
                 <div class="small-12 columns">
@@ -44,14 +43,8 @@
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
-    <script>
-        var filterForm = {{ form.as_json|safe }};
-    </script>
-    <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'dimple/dist/dimple.v2.1.6.js' %}"></script>
-    <script src="{% static 'moment/moment.js' %}"></script>
-    <script src="{% static 'underscore/underscore.js' %}"></script>
     <script src="{% static 'dashboard/dashboard.js' %}"></script>
 {% endblock %}
 </body>
