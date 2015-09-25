@@ -15,13 +15,21 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+{% include "_filter.html" %}
 {% block content %}
 {% endblock %}
 <!-- Latest compiled and minified JavaScript -->
 {% compress js %}
+    <script>
+        var filterForm = {{ form.as_json|safe }};
+    </script>
     <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
     <script src="{% static 'foundation/js/foundation.min.js' %}"></script>
+    <script src="{% static 'ractive/ractive.js' %}"></script>
+    <script src="{% static 'moment/moment.js' %}"></script>
+    <script src="{% static 'underscore/underscore.js' %}"></script>
     <script src="{% static 'polyfills.js' %}"></script>
+    <script src="{% static 'app.js' %}"></script>
     {% block javascript %}{% endblock %}
 {% endcompress %}
 </body>
