@@ -6,7 +6,9 @@ from ..forms import JSONForm
 
 
 class CallListView(TemplateView):
-    template_name = "calls.html"
+  def get(self, request, *args, **kwargs):
+        return render_to_response("calls.html",
+                                  dict(form=JSONForm(CallFilter().form)))
 
 class DashboardView(View):
     def get(self, request, *args, **kwargs):

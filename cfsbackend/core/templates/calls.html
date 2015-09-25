@@ -1,88 +1,38 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
-{% load compress %}
-{% load i18n %}
-
-{% block head %}
-    <style>
-       
-    </style>
-{% endblock %}
 
 {% block content %}
-<div class="row filter-header">
-            <div class="small-12 columns filter-summary">
-                <div class="row">
-                    <div class="small-11 columns">
-                        <div id="filter-description">
-                           
-                        </div>
-                    </div>
+    <script id="calls-template" type="text/html">
+        <Filter />
+        <div class="container">
+            <div class="row">
+                <div class="small-12 columns">
+                    <div id="call-list">
+                        <h3>List View</h3>
 
-                    <div class="small-1 columns filter-edit">
-                        <i class="fa fa-pencil-square-o"></i>
+                        [[ #if loading ]]
+                        <div class="loading">
+                            <img src="{% static "ellipsis.svg" %}">
+                        </div>
+                        [[ /if ]]
                     </div>
                 </div>
             </div>
-            <div class="small-12 columns">
-                <div id="filter-form" style="display: none;"></div>
+            
+            <div class="row">
+                <footer class="small-12 columns">RTI 2015</footer>
             </div>
+
         </div>
-
-<div class="row">
-  <div class="small-3 columns">
-  	<h2>{% trans "Call List" %}</h2>
-  	</div>
-</div>
-
-<div class="row">
-  <div class="small-8 large-4 columns">
-
-  </div>
-  <div class="small-4 large-4 columns">
-  	<div class="panel">
-	  	<h5>{% trans "Calls for" %}</h5>
-	  	<form>
-	  	<div class="row">
-			<div class="large-12 columns">
-		      <label>Date
-		        <select>
-		          <option value="lastweek">Last Week</option>
-		          <option value="lastmonth">Last Month</option>
-		          <option value="last3months">Last 3 Months</option>
-		          <option value="lastyear">Last Year</option>
-		        </select>
-		      </label>
-		    </div>
-		    </div>
-		    <div class="row">
-			<div class="large-12 columns">
-		      <label>Nature
-		        <select>
-		          <option value="assult">Assult</option>
-		          <option value="theft">Theft</option>
-		          <option value="litering">Littering</option>
-		          <option value="jaywalking">Jaywalking</option>
-		        </select>
-		      </label>
-		    </div>
-		    </div>
-
-		    <a href="#" class="button">Go</a>
-
-		 </form>
-  </div>
-	</div>
-  </div>
-  
-</div>
-
+    </script>
+    <div id="calls"></div>
 {% endblock %}
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
-
+    <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'calls/calls.js' %}"></script>
 {% endblock %}
 </body>
 </html>
