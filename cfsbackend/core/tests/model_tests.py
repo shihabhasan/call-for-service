@@ -1,16 +1,9 @@
 from dateutil.parser import parse as dtparse
 from django.test import TestCase
+from .test_helpers import assert_list_equiv
 from ..models import Call, CallOverview, Beat
 from datetime import timedelta
 
-
-def assert_list_equiv(this, that):
-    """
-    Lists are having difficulty with equivalence, so let's try this.
-    """
-    assert len(this) == len(that)
-    for i in range(len(this)):
-        assert this[i] == that[i]
 
 
 def create_call(**kwargs):

@@ -108,7 +108,7 @@ class CallOverview:
 
     def day_hour_heatmap(self):
         if self.span == timedelta(0, 0):
-            return {}
+            return []
 
         # In order for this to show average volume, we need to know the number 
         # of times each day of the week occurs.
@@ -150,86 +150,88 @@ class CallOverview:
         }
 
 
-class Sector(models.Model):
-    sector_id = models.IntegerField(primary_key=True)
+class ModelWithDescr(models.Model):
     descr = models.TextField(blank=False, null=False)
+
+    def __str__(self):
+        if self.descr:
+            return self.descr
+        else:
+            return super().__str__()
+
+    class Meta:
+        abstract = True
+
+
+class Sector(ModelWithDescr):
+    sector_id = models.IntegerField(primary_key=True)
 
     class Meta:
         managed = False
         db_table = 'sector'
 
 
-class District(models.Model):
+class District(ModelWithDescr):
     district_id = models.IntegerField(primary_key=True)
     sector = models.ForeignKey(Sector, blank=True, null=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'district'
 
 
-class Beat(models.Model):
+class Beat(ModelWithDescr):
     beat_id = models.IntegerField(primary_key=True)
     district = models.ForeignKey(District, blank=True, null=True)
     sector = models.ForeignKey(Sector, blank=True, null=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'beat'
 
 
-# Support Classes
-
-class CallSource(models.Model):
+class CallSource(ModelWithDescr):
     call_source_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'call_source'
 
 
-class City(models.Model):
+class City(ModelWithDescr):
     city_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'city'
 
 
-class CallUnit(models.Model):
+class CallUnit(ModelWithDescr):
     call_unit_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'call_unit'
 
 
-class Nature(models.Model):
+class Nature(ModelWithDescr):
     nature_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'nature'
 
 
-class CloseCode(models.Model):
+class CloseCode(ModelWithDescr):
     close_code_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'close_code'
 
 
-class OOSCode(models.Model):
+class OOSCode(ModelWithDescr):
     oos_code_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=False, null=False)
 
     class Meta:
         managed = False
@@ -268,11 +270,11 @@ class Call(models.Model):
     case_id = models.BigIntegerField(blank=True, null=True)
     call_source = models.ForeignKey('CallSource', blank=True, null=True)
     primary_unit = models.ForeignKey(CallUnit, blank=True, null=True,
-                                     related_name="primary_unit")
+                                     related_name="+")
     first_dispatched = models.ForeignKey(CallUnit, blank=True, null=True,
-                                         related_name="first_dispatched")
+                                         related_name="+")
     reporting_unit = models.ForeignKey(CallUnit, blank=True, null=True,
-                                       related_name="reporting_unit")
+                                       related_name="+")
     street_num = models.IntegerField(blank=True, null=True)
     street_name = models.TextField(blank=True, null=True)
     city = models.ForeignKey('City', blank=True, null=True)
@@ -306,9 +308,6 @@ class Call(models.Model):
     class Meta:
         managed = False
         db_table = 'call'
-
-    def __str__(self):
-        return str(self.time_received)
 
 
 class Incident(models.Model):
@@ -349,18 +348,16 @@ class Incident(models.Model):
         db_table = 'incident'
 
 
-class Priority(models.Model):
+class Priority(ModelWithDescr):
     priority_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'priority'
 
 
-class ZipCode(models.Model):
+class ZipCode(ModelWithDescr):
     zip_code_id = models.IntegerField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False
