@@ -1,65 +1,22 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
-{% load compress %}
-
-{% block head %}
-    <style>
-        rect.bordered {
-            stroke: #E6E6E6;
-            stroke-width: 2px;
-        }
-
-        text.mono {
-            font-size: 9pt;
-            fill: #aaa;
-        }
-
-        text.axis-workweek {
-            fill: #000;
-        }
-
-        text.axis-worktime {
-            fill: #000;
-        }
-    </style>
-{% endblock %}
 
 {% block content %}
+    {% include "_filter.html" %}
     <script id="dashboard-template" type="text/html">
-        <div class="row filter-header">
-            <div class="small-12 columns filter-summary">
-                <div class="row">
-                    <div class="small-11 columns">
-                        <div id="filter-description">
-                            [[ #each describeFilter(filter) ]]
-                                <span class="filter radius label">
-                                    [[ humanize(s) ]] [[ v ]] [[ o ]]
-                                </span>
-                            [[ /each ]]
-                        </div>
-                    </div>
-
-                    <div class="small-1 columns filter-edit">
-                        <i class="fa fa-pencil-square-o"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="small-12 columns">
-                <div id="filter-form" style="display: none;"></div>
-            </div>
-        </div>
-
-
+        [[ > filter-template ]]
         <div class="container">
             <div class="row">
                 <div class="small-12 columns">
                     <div id="volume-over-time">
                         <h3>Call Volume Over Time</h3>
 
+                        [[ #if loading ]]
                         <div class="loading">
                             <img src="{% static "ellipsis.svg" %}">
                         </div>
+                        [[ /if ]]
                     </div>
                 </div>
             </div>
@@ -68,9 +25,11 @@
                     <div id="day-hour-heatmap">
                         <h3>Day/Hour Heatmap</h3>
 
+                        [[ #if loading ]]
                         <div class="loading">
                             <img src="{% static "ellipsis.svg" %}">
                         </div>
+                        [[ /if ]]
                     </div>
                 </div>
             </div>
@@ -85,6 +44,9 @@
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
+    <script>
+        var filterForm = {{ form.as_json|safe }};
+    </script>
     <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'dimple/dist/dimple.v2.1.6.js' %}"></script>
