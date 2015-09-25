@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response
-from django.views.generic import View
+from django.views.generic import View, TemplateView
 
 from ..filters import CallFilter
 from ..forms import JSONForm
