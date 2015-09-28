@@ -148,7 +148,8 @@ class CallOverview:
             'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_field('call_source__descr',
                                                      alias="name"),
-            'volume_by_nature': self.volume_by_field('nature__descr'),
+            'volume_by_nature': self.volume_by_field('nature__descr',
+                                                     alias="name"),
             'volume_by_beat': self.volume_by_field('beat__descr', alias="name"),
             'response_time_by_beat': self.response_time_by_beat()
         }

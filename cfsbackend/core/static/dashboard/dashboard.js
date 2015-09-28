@@ -1,7 +1,7 @@
 "use strict";
 
 var url = "/api/overview/";
-var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap, volumeBySourceChart, volumeByBeatChart;
+var charts = {};
 var outFormats = {
     "month": "%b %y",
     "week": "%m/%d/%y",
@@ -28,56 +28,73 @@ var dashboard = new Ractive({
     tripleDelimiters: ['[[[', ']]]']
 });
 
-
 dashboard.on('Filter.filterUpdated', function (filter) {
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
+        newData = cleanupData(newData);
         dashboard.set('data', newData);
     });
 });
 
+function cleanupData(data) {
+    var volumeByNature = _.chain(data.volume_by_nature)
+        .sortBy('volume')
+        .last(20)
+        .value()
+        .reverse();
+
+    volumeByNature = _.first(volumeByNature, 19).concat(
+        _.chain(volumeByNature)
+            .rest(19)
+            .reduce(function (total, cur) {
+                return {name: "ALL OTHER", volume: total.volume + cur.volume}
+            }, {name: "ALL OTHER", volume: 0})
+            .value()
+    );
+
+    console.log(volumeByNature)
+
+    data.volume_by_nature = volumeByNature;
+    return data;
+}
+
 dashboard.observe('data.volume_over_time', function (newData) {
     if (!dashboard.get('loading')) {
-        if (!volumeByTimeChart) {
+        if (!charts.volumeByTime) {
             var retval = buildVolumeByTimeChart(newData);
-            volumeByTimeChart = retval[0];
-            volumeByTimeXAxis = retval[1];
+            charts.volumeByTime = retval[0];
+            charts.volumeByTimeXAxis = retval[1];
         } else {
-            volumeByTimeXAxis.tickFormat = outFormats[newData.period_size];
-            volumeByTimeChart.data = newData.results;
-            volumeByTimeChart.draw(200);
-        }
-    }
-});
-
-dashboard.observe('data.volume_by_source', function (newData) {
-    if (!dashboard.get('loading')) {
-        if (!volumeBySourceChart) {
-            volumeBySourceChart = buildVolumeBySourceChart(newData);
-        } else {
-            volumeBySourceChart.data = newData;
-            volumeBySourceChart.draw(200);
-        }
-    }
-});
-
-dashboard.observe('data.volume_by_beat', function (newData) {
-    if (!dashboard.get('loading')) {
-        if (!volumeByBeatChart) {
-            volumeByBeatChart = buildVolumeByBeatChart(newData);
-        } else {
-            volumeByBeatChart.data = newData;
-            volumeByBeatChart.draw(200);
+            charts.volumeByTimeXAxis.tickFormat = outFormats[newData.period_size];
+            charts.volumeByTime.data = newData.results;
+            charts.volumeByTime.draw(200);
         }
     }
 });
 
 dashboard.observe('data.day_hour_heatmap', function (newData) {
     if (!dashboard.get('loading')) {
-        dayHourHeatmap = buildDayHourHeatmap(newData);
+        charts.dayHourHeatmap = buildDayHourHeatmap(newData);
     }
 });
+
+function monitorChart(keypath, chartName, buildFn) {
+    dashboard.observe(keypath, function (newData) {
+        if (!dashboard.get('loading')) {
+            if (!charts[chartName]) {
+                charts[chartName] = buildFn(newData);
+            } else {
+                charts[chartName].data = newData;
+                charts[chartName].draw(200);
+            }
+        }
+    })
+}
+
+monitorChart('data.volume_by_source', 'volumeBySource', buildVolumeBySourceChart);
+monitorChart('data.volume_by_beat', 'volumeByBeat', buildVolumeByBeatChart);
+monitorChart('data.volume_by_nature', 'volumeByNature', buildVolumeByNatureChart);
 
 
 // ========================================================================
@@ -145,9 +162,30 @@ function buildVolumeByBeatChart(data) {
 
     myChart.addMeasureAxis("x", "volume");
     var y = myChart.addCategoryAxis("y", "name");
+    y.addOrderRule("volume", true);
     myChart.addSeries(null, dimple.plot.bar);
     myChart.draw();
 
+    return myChart;
+}
+
+function buildVolumeByNatureChart(data) {
+    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
+
+    var margin = {top: 20, right: 50, bottom: 200, left: 50},
+        width = parentWidth,
+        height = parentWidth * 0.5;
+
+    var svg = dimple.newSvg("#volume-by-nature", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addCategoryAxis("x", "name");
+    x.addOrderRule("volume", true);
+    myChart.addMeasureAxis("y", "volume");
+    myChart.addSeries(null, dimple.plot.bar);
+    myChart.draw();
     return myChart;
 }
 
@@ -253,7 +291,4 @@ function buildDayHourHeatmap(data) {
         return legendElementWidth * i;
     }).attr("y", height + gridSize);
 }
-
-
-
 
