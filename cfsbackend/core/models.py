@@ -129,11 +129,11 @@ class CallOverview:
 
         return results
 
-    def response_time_by_beat(self):
+    def officer_response_time_by_beat(self):
         results = self.qs \
             .values("beat", "beat__descr") \
-            .annotate(mean=DurationAvg("response_time"),
-                      missing=Sum(Case(When(response_time=None, then=1),
+            .annotate(mean=DurationAvg("officer_response_time"),
+                      missing=Sum(Case(When(officer_response_time=None, then=1),
                                        default=0,
                                        output_field=IntegerField())))
         return results
@@ -146,7 +146,7 @@ class CallOverview:
             'volume_by_source': self.volume_by_field('call_source__descr'),
             'volume_by_nature': self.volume_by_field('nature__descr'),
             'volume_by_beat': self.volume_by_field('beat__descr'),
-            'response_time_by_beat': self.response_time_by_beat()
+            'officer_response_time_by_beat': self.officer_response_time_by_beat()
         }
 
 
@@ -303,7 +303,8 @@ class Call(models.Model):
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
     incident = models.ForeignKey('Incident', blank=True, null=True)
-    response_time = models.DurationField(blank=True, null=True)
+    officer_response_time = models.DurationField(blank=True, null=True)
+    overall_response_time = models.DurationField(blank=True, null=True)
 
     class Meta:
         managed = False

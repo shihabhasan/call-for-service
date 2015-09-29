@@ -44,7 +44,8 @@ class CallFilter(FilterSet):
     time_routed = DateFromToRangeFilter()
     time_finished = DateFromToRangeFilter()
     time_closed = DateFromToRangeFilter()
-    response_time = DurationRangeFilter()
+    officer_response_time = DurationRangeFilter()
+    overal_response_time = DurationRangeFilter()
     unit = ChoiceMethodFilter(action='filter_unit',
                               choices=CallUnit.objects.all().values_list('call_unit_id', 'descr'))
 
