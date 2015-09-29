@@ -18,6 +18,15 @@ from django.db.models import Count, Aggregate, DurationField, Min, Max, \
 from django.db.models.expressions import Func
 
 
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+        ]
+
+
 class DateTrunc(Func):
     """
     Truncates a timestamp. Useful for investigating time series.
@@ -88,10 +97,8 @@ class CallOverview:
         return qs.annotate(volume=Count(field))
 
     def volume_over_time(self):
-        if self.span >= timedelta(360):
+        if self.span >= timedelta(180):
             size = 'month'
-        elif self.span > timedelta(60):
-            size = 'week'
         elif self.span > timedelta(3):
             size = 'day'
         else:
@@ -108,6 +115,33 @@ class CallOverview:
             'period_size': size,
             'results': results
         }
+
+    def rolling_average(self):
+        from django.db import connection
+        cursor = connection.cursor()
+
+        cte_sql = str(
+            self.qs.annotate(date_received=DateTrunc('time_received', by='day')).values('date_received').annotate(
+                call_volume=Count('date_received')).query)
+        sql = """
+        WITH daily_stats AS (
+            {cte_sql}
+        )
+        SELECT
+            ds1.date_received AS date_received,
+            ds1.call_volume AS call_volume,
+            CAST(AVG(ds2.call_volume) AS INTEGER) AS call_volume_moving_average
+        FROM daily_stats AS ds1
+        JOIN daily_stats AS ds2
+            ON ds2.date_received BETWEEN ds1.date_received - INTERVAL '15 days' AND
+            ds1.date_received + INTERVAL '15 days'
+        GROUP BY ds1.date_received, ds1.call_volume;
+        """.format(cte_sql=cte_sql)
+
+        cursor.execute(sql)
+        results = dictfetchall(cursor)
+
+        return results
 
     def day_hour_heatmap(self):
         if self.span == timedelta(0, 0):
