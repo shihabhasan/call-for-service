@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from collections import Counter
 from datetime import timedelta
 
-from django.db import models
+from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
     IntegerField, Sum, Case, When, F
 from django.db.models.expressions import Func
@@ -117,12 +117,12 @@ class CallOverview:
         }
 
     def rolling_average(self):
-        from django.db import connection
         cursor = connection.cursor()
 
-        cte_sql = str(
-            self.qs.annotate(date_received=DateTrunc('time_received', by='day')).values('date_received').annotate(
-                call_volume=Count('date_received')).query)
+        cte_sql, params = self.qs. \
+            annotate(date_received=DateTrunc('time_received', by='day')). \
+            values('date_received'). \
+            annotate(call_volume=Count('date_received')).query.sql_with_params()
         sql = """
         WITH daily_stats AS (
             {cte_sql}
@@ -138,9 +138,8 @@ class CallOverview:
         GROUP BY ds1.date_received, ds1.call_volume;
         """.format(cte_sql=cte_sql)
 
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         results = dictfetchall(cursor)
-
         return results
 
     def day_hour_heatmap(self):
@@ -179,6 +178,7 @@ class CallOverview:
         return {
             'filter': self.filter.data,
             'volume_over_time': self.volume_over_time(),
+            'volume_rolling_average': self.rolling_average(),
             'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_field('call_source__descr',
                                                      alias="name"),
