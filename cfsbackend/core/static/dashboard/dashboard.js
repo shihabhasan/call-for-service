@@ -110,7 +110,7 @@ function buildVolumeByTimeChart(data) {
 
     var margin = {top: 20, right: 20, bottom: 70, left: 50},
         width = parentWidth,
-        height = parentWidth * 0.5;
+        height = parentWidth * 0.3;
 
     var svg = dimple.newSvg("#volume-over-time", width, height);
 
@@ -121,6 +121,7 @@ function buildVolumeByTimeChart(data) {
     x.title = "Date";
     var y = myChart.addMeasureAxis("y", "period_volume");
     y.title = "Call Volume";
+    y.ticks = 5;
     var s = myChart.addSeries(null, dimple.plot.line);
     var t = myChart.addSeries(null, dimple.plot.bubble);
     myChart.draw();
