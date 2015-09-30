@@ -129,13 +129,12 @@ class CallOverview:
         )
         SELECT
             ds1.date_received AS date_received,
-            ds1.call_volume AS call_volume,
             CAST(AVG(ds2.call_volume) AS INTEGER) AS call_volume_moving_average
         FROM daily_stats AS ds1
         JOIN daily_stats AS ds2
             ON ds2.date_received BETWEEN ds1.date_received - INTERVAL '15 days' AND
             ds1.date_received + INTERVAL '15 days'
-        GROUP BY ds1.date_received, ds1.call_volume;
+        GROUP BY ds1.date_received;
         """.format(cte_sql=cte_sql)
 
         cursor.execute(sql, params)

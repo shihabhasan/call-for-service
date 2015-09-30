@@ -92,6 +92,7 @@ function monitorChart(keypath, chartName, buildFn) {
     })
 }
 
+monitorChart('data.volume_rolling_average', 'volumeRollingAverage', buildVolumeRollingAverageChart);
 monitorChart('data.volume_by_source', 'volumeBySource', buildVolumeBySourceChart);
 monitorChart('data.volume_by_beat', 'volumeByBeat', buildVolumeByBeatChart);
 monitorChart('data.volume_by_nature', 'volumeByNature', buildVolumeByNatureChart);
@@ -126,6 +127,29 @@ function buildVolumeByTimeChart(data) {
     var t = myChart.addSeries(null, dimple.plot.bubble);
     myChart.draw();
     return [myChart, x];
+}
+
+function buildVolumeRollingAverageChart(data) {
+    var parentWidth = d3.select("#volume-rolling-average").node().clientWidth;
+
+    var margin = {top: 20, right: 20, bottom: 70, left: 50},
+        width = parentWidth,
+        height = parentWidth * 0.3;
+
+    var svg = dimple.newSvg("#volume-rolling-average", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addTimeAxis("x", "date_received", "%Y-%m-%dT%H:%M:%S", outFormats['week']);
+    x.title = "Date";
+    var y = myChart.addMeasureAxis("y", "call_volume_moving_average");
+    y.title = "Call Volume";
+    y.ticks = 5;
+    var s = myChart.addSeries(null, dimple.plot.line);
+    s.interpolation = "cardinal";
+    myChart.draw();
+    return myChart;
 }
 
 function buildVolumeBySourceChart(data) {
