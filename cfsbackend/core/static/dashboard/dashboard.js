@@ -184,7 +184,8 @@ function buildVolumeByNatureChart(data) {
 
     var x = myChart.addCategoryAxis("x", "name");
     x.addOrderRule("volume", true);
-    myChart.addMeasureAxis("y", "volume");
+    var y = myChart.addMeasureAxis("y", "volume");
+    y.ticks = 5;
     myChart.addSeries(null, dimple.plot.bar);
     myChart.draw();
     return myChart;

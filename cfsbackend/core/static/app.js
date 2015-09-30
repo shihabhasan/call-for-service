@@ -16,7 +16,7 @@ var filterTypes = {
     "DateRangeField": {
         options: [
             {id: ">=", name: "is greater than or equal to"},
-            {id: ">=", name: "is less than or equal to"}
+            {id: "<=", name: "is less than or equal to"}
         ],
         valueType: 'date'
     },
