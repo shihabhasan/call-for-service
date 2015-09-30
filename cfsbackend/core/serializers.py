@@ -76,6 +76,8 @@ class CallSourceSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CallUnitSerializer(serializers.HyperlinkedModelSerializer):
+    squad = CharField(source="squad.descr", read_only=True)
+
     class Meta:
         model = CallUnit
         fields = ('call_unit_id', 'descr')
