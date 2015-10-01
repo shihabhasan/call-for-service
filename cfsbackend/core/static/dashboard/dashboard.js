@@ -14,6 +14,9 @@ var dashboard = new Ractive({
     template: "#dashboard-template",
     components: {'Filter': Filter},
     data: {
+        'capitalize': function (string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        },
         loading: true,
         data: {
             'volume_over_time': {
@@ -53,25 +56,27 @@ function cleanupData(data) {
             .value()
     );
 
-    console.log(volumeByNature)
-
     data.volume_by_nature = volumeByNature;
+
+    var volumeByDate = _.chain(data.volume_by_date)
+        .sortBy('date')
+        .map(function (d) {
+            return [
+                {date: d.date, volume: d.volume, type: "Daily Volume"},
+                {date: d.date, volume: d.average, type: "30-Day Moving Average"}
+            ]
+        })
+        .flatten()
+        .value();
+
+    data.volume_by_date = volumeByDate;
+
+    _(data.volume_by_source).each(function (d) {
+        d.source = d.self_initiated ? "Self Initiated" : "Citizen Initiated";
+    });
+
     return data;
 }
-
-dashboard.observe('data.volume_over_time', function (newData) {
-    if (!dashboard.get('loading')) {
-        if (!charts.volumeByTime) {
-            var retval = buildVolumeByTimeChart(newData);
-            charts.volumeByTime = retval[0];
-            charts.volumeByTimeXAxis = retval[1];
-        } else {
-            charts.volumeByTimeXAxis.tickFormat = outFormats[newData.period_size];
-            charts.volumeByTime.data = newData.results;
-            charts.volumeByTime.draw(200);
-        }
-    }
-});
 
 dashboard.observe('data.day_hour_heatmap', function (newData) {
     if (!dashboard.get('loading')) {
@@ -92,7 +97,7 @@ function monitorChart(keypath, chartName, buildFn) {
     })
 }
 
-monitorChart('data.volume_rolling_average', 'volumeRollingAverage', buildVolumeRollingAverageChart);
+monitorChart('data.volume_by_date', 'volumeByDate', buildVolumeByDateChart);
 monitorChart('data.volume_by_source', 'volumeBySource', buildVolumeBySourceChart);
 monitorChart('data.volume_by_beat', 'volumeByBeat', buildVolumeByBeatChart);
 monitorChart('data.volume_by_nature', 'volumeByNature', buildVolumeByNatureChart);
@@ -106,68 +111,60 @@ function buildURL(filter) {
     return url + "?" + buildQueryParams(filter);
 }
 
-function buildVolumeByTimeChart(data) {
+function buildVolumeByDateChart(data) {
     var parentWidth = d3.select("#volume-over-time").node().clientWidth;
 
-    var margin = {top: 20, right: 20, bottom: 70, left: 50},
+    var margin = {top: 40, right: 50, bottom: 70, left: 50},
         width = parentWidth,
         height = parentWidth * 0.3;
 
     var svg = dimple.newSvg("#volume-over-time", width, height);
 
-    var myChart = new dimple.chart(svg, data.results);
-    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
-
-    var x = myChart.addTimeAxis("x", "period_start", "%Y-%m-%dT%H:%M:%S", outFormats[data.period_size]);
-    x.title = "Date";
-    var y = myChart.addMeasureAxis("y", "period_volume");
-    y.title = "Call Volume";
-    y.ticks = 5;
-    var s = myChart.addSeries(null, dimple.plot.line);
-    var t = myChart.addSeries(null, dimple.plot.bubble);
-    myChart.draw();
-    return [myChart, x];
-}
-
-function buildVolumeRollingAverageChart(data) {
-    var parentWidth = d3.select("#volume-rolling-average").node().clientWidth;
-
-    var margin = {top: 20, right: 20, bottom: 70, left: 50},
-        width = parentWidth,
-        height = parentWidth * 0.3;
-
-    var svg = dimple.newSvg("#volume-rolling-average", width, height);
-
     var myChart = new dimple.chart(svg, data);
     myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+    myChart.assignColor("red", "red");
+    myChart.assignColor("blue", "blue");
 
-    var x = myChart.addTimeAxis("x", "date_received", "%Y-%m-%dT%H:%M:%S", outFormats['week']);
+    var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
     x.title = "Date";
-    var y = myChart.addMeasureAxis("y", "call_volume_moving_average");
-    y.title = "Call Volume";
-    y.ticks = 5;
-    var s = myChart.addSeries(null, dimple.plot.line);
-    s.interpolation = "cardinal";
+    var y1 = myChart.addMeasureAxis("y", "volume");
+    y1.title = "Call Volume";
+    y1.ticks = 5;
+
+    var s1 = myChart.addSeries("type", dimple.plot.line);
+
+    myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
     myChart.draw();
+
     return myChart;
 }
 
 function buildVolumeBySourceChart(data) {
     var parentWidth = d3.select("#volume-by-source").node().clientWidth;
 
-    var margin = {top: 50, right: 20, bottom: 20, left: 100},
+    var margin = {top: 50, right: 10, bottom: 80, left: 20},
         width = parentWidth,
-        height = parentWidth * 1.1;
+        height = parentWidth * 0.5;
 
     var svg = dimple.newSvg("#volume-by-source", width, height);
 
     var myChart = new dimple.chart(svg, data);
     myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
 
-    myChart.addMeasureAxis("p", "volume");
-    var ring = myChart.addSeries("name", dimple.plot.pie);
-    ring.innerRadius = "50%";
-    myChart.addLegend(10, 10, 90, 90, "left");
+    var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
+    x.title = "Date";
+    var y = myChart.addPctAxis("y", "volume");
+    y.hidden = true;
+    var area = myChart.addSeries("source", dimple.plot.area);
+    area.interpolation = 'cardinal';
+    var ttDate = d3.time.format(outFormats["day"]);
+    var pct = d3.format("%p");
+    area.getTooltipText = function (e) {
+        return ["Date: " + ttDate(e.cx),
+                "Self Initiated: " + pct(e.cy),
+                "Citizen Initiated: " + pct(1 - e.cy)];
+    }
+    myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
     myChart.draw();
 
     return myChart;
@@ -185,9 +182,11 @@ function buildVolumeByBeatChart(data) {
     var myChart = new dimple.chart(svg, data);
     myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
 
-    myChart.addMeasureAxis("x", "volume");
+    var x = myChart.addMeasureAxis("x", "volume");
+    x.title = null;
     var y = myChart.addCategoryAxis("y", "name");
     y.addOrderRule("volume", true);
+    y.title = null;
     myChart.addSeries(null, dimple.plot.bar);
     myChart.draw();
 
@@ -208,8 +207,10 @@ function buildVolumeByNatureChart(data) {
 
     var x = myChart.addCategoryAxis("x", "name");
     x.addOrderRule("volume", true);
+    x.title = null;
     var y = myChart.addMeasureAxis("y", "volume");
     y.ticks = 5;
+    y.title = null;
     myChart.addSeries(null, dimple.plot.bar);
     myChart.draw();
     return myChart;

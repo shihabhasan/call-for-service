@@ -96,45 +96,26 @@ class CallOverview:
 
         return qs.annotate(volume=Count(field))
 
-    def volume_over_time(self):
-        if self.span >= timedelta(180):
-            size = 'month'
-        elif self.span > timedelta(3):
-            size = 'day'
-        else:
-            size = 'hour'
-
-        results = self.qs.annotate(
-            period_start=DateTrunc('time_received', by=size)) \
-            .values('period_start') \
-            .annotate(period_volume=Count('period_start')) \
-            .order_by('period_start')
-
-        return {
-            'bounds': self.bounds,
-            'period_size': size,
-            'results': results
-        }
-
-    def rolling_average(self):
+    def volume_by_date(self):
         cursor = connection.cursor()
 
         cte_sql, params = self.qs. \
-            annotate(date_received=DateTrunc('time_received', by='day')). \
-            values('date_received'). \
-            annotate(call_volume=Count('date_received')).query.sql_with_params()
+            annotate(date=DateTrunc('time_received', by='day')). \
+            values('date'). \
+            annotate(volume=Count('date')).query.sql_with_params()
         sql = """
         WITH daily_stats AS (
             {cte_sql}
         )
         SELECT
-            ds1.date_received AS date_received,
-            CAST(AVG(ds2.call_volume) AS INTEGER) AS call_volume_moving_average
+            ds1.date AS date,
+            ds1.volume AS volume,
+            CAST(AVG(ds2.volume) AS INTEGER) AS average
         FROM daily_stats AS ds1
         JOIN daily_stats AS ds2
-            ON ds2.date_received BETWEEN ds1.date_received - INTERVAL '15 days' AND
-            ds1.date_received + INTERVAL '15 days'
-        GROUP BY ds1.date_received;
+            ON ds2.date BETWEEN ds1.date - INTERVAL '15 days' AND
+            ds1.date + INTERVAL '15 days'
+        GROUP BY ds1.date, ds1.volume;
         """.format(cte_sql=cte_sql)
 
         cursor.execute(sql, params)
@@ -164,6 +145,16 @@ class CallOverview:
 
         return results
 
+    def volume_by_source(self):
+        results = self.qs \
+            .annotate(date=DateTrunc('time_received', by='day'),
+                      self_initiated=Case(When(call_source=CallSource.objects.get(descr="Self Initiated"), then=True),
+                                          default=False,
+                                          output_field=IntegerField())) \
+            .values("date", "self_initiated") \
+            .annotate(volume=Count("self_initiated"))
+        return results
+
     def response_time_by_beat(self):
         results = self.qs \
             .values("beat", "beat__descr") \
@@ -176,11 +167,9 @@ class CallOverview:
     def to_dict(self):
         return {
             'filter': self.filter.data,
-            'volume_over_time': self.volume_over_time(),
-            'volume_rolling_average': self.rolling_average(),
+            'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
-            'volume_by_source': self.volume_by_field('call_source__descr',
-                                                     alias="name"),
+            'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature__descr',
                                                      alias="name"),
             'volume_by_beat': self.volume_by_field('beat__descr', alias="name"),
