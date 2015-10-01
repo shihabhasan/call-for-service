@@ -145,6 +145,7 @@ class CallOverview:
 
         return results
 
+<<<<<<< HEAD
     def volume_by_source(self):
         results = self.qs \
             .annotate(date=DateTrunc('time_received', by='day'),
@@ -155,7 +156,10 @@ class CallOverview:
             .annotate(volume=Count("self_initiated"))
         return results
 
+    def response_time_by_beat(self):
+=======
     def officer_response_time_by_beat(self):
+>>>>>>> master
         results = self.qs \
             .values("beat", "beat__descr") \
             .annotate(mean=DurationAvg("officer_response_time"),
@@ -169,10 +173,18 @@ class CallOverview:
             'filter': self.filter.data,
             'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
+<<<<<<< HEAD
             'volume_by_source': self.volume_by_source(),
-            'volume_by_nature': self.volume_by_field('nature__descr', alias="name"),
+            'volume_by_nature': self.volume_by_field('nature__descr',
+                                                     alias="name"),
             'volume_by_beat': self.volume_by_field('beat__descr', alias="name"),
+            'response_time_by_beat': self.response_time_by_beat()
+=======
+            'volume_by_source': self.volume_by_field('call_source__descr'),
+            'volume_by_nature': self.volume_by_field('nature__descr'),
+            'volume_by_beat': self.volume_by_field('beat__descr'),
             'officer_response_time_by_beat': self.officer_response_time_by_beat()
+>>>>>>> master
         }
 
 
