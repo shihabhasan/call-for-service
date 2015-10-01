@@ -49,14 +49,9 @@ class CallFilterTest(TestCase):
         filter = CallFilter({"unit": 3})
         assert filter.qs.count() == 1
 
-    # TODO
     def test_squad_filter(self):
-        """
         filter = CallFilter({"squad": 1})
-        for i in filter.qs:
-            print(i.primary_unit.squad)
-        assert filter.qs.count() == 2
+        assert filter.qs.count() == 3
 
         filter = CallFilter({"squad": 2})
         assert filter.qs.count() == 1
-        """

@@ -80,7 +80,7 @@ class CallUnitSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = CallUnit
-        fields = ('call_unit_id', 'descr')
+        fields = ('call_unit_id', 'squad', 'descr')
 
 
 class NatureSerializer(serializers.HyperlinkedModelSerializer):
