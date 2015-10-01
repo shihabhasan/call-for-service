@@ -129,11 +129,11 @@ class CallOverview:
 
         return results
 
-    def response_time_by_beat(self):
+    def officer_response_time_by_beat(self):
         results = self.qs \
             .values("beat", "beat__descr") \
-            .annotate(mean=DurationAvg("response_time"),
-                      missing=Sum(Case(When(response_time=None, then=1),
+            .annotate(mean=DurationAvg("officer_response_time"),
+                      missing=Sum(Case(When(officer_response_time=None, then=1),
                                        default=0,
                                        output_field=IntegerField())))
         return results
@@ -146,7 +146,7 @@ class CallOverview:
             'volume_by_source': self.volume_by_field('call_source__descr'),
             'volume_by_nature': self.volume_by_field('nature__descr'),
             'volume_by_beat': self.volume_by_field('beat__descr'),
-            'response_time_by_beat': self.response_time_by_beat()
+            'officer_response_time_by_beat': self.officer_response_time_by_beat()
         }
 
 
@@ -205,9 +205,19 @@ class City(ModelWithDescr):
         managed = False
         db_table = 'city'
 
+class Squad(ModelWithDescr):
+    squad_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'squad'
+
 
 class CallUnit(ModelWithDescr):
     call_unit_id = models.IntegerField(primary_key=True)
+    squad = models.ForeignKey(Squad, blank=True, null=True,
+                              db_column="squad_id",
+                              related_name="squad")
 
     class Meta:
         managed = False
@@ -303,7 +313,8 @@ class Call(models.Model):
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
     incident = models.ForeignKey('Incident', blank=True, null=True)
-    response_time = models.DurationField(blank=True, null=True)
+    officer_response_time = models.DurationField(blank=True, null=True)
+    overall_response_time = models.DurationField(blank=True, null=True)
 
     class Meta:
         managed = False

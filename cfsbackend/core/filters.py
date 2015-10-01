@@ -1,10 +1,10 @@
 from django_filters import FilterSet, DateFromToRangeFilter, MethodFilter, \
-    RangeFilter
+    RangeFilter, ModelChoiceFilter
 from django_filters.fields import RangeField
 from django.db.models import Q
 from django import forms
 
-from .models import Call, CallUnit
+from .models import Call, CallUnit, Squad
 
 
 class DurationRangeField(RangeField):
@@ -44,9 +44,21 @@ class CallFilter(FilterSet):
     time_routed = DateFromToRangeFilter()
     time_finished = DateFromToRangeFilter()
     time_closed = DateFromToRangeFilter()
-    response_time = DurationRangeFilter()
+    officer_response_time = DurationRangeFilter()
+    overall_response_time = DurationRangeFilter()
     unit = ChoiceMethodFilter(action='filter_unit',
                               choices=CallUnit.objects.all().values_list('call_unit_id', 'descr'))
+    squad = ChoiceMethodFilter(action='filter_squad',
+                              choices=Squad.objects.all().values_list('squad_id', 'descr'))
+
+    # These need to be explicitly instantiated because we need to set the label on them.
+    # Their labels all default to "Squad" otherwise.
+    first_dispatched__squad = ModelChoiceFilter(label='First dispatched squad',
+                                              queryset=Squad.objects.all())
+    primary_unit__squad = ModelChoiceFilter(label='Primary unit squad',
+                                              queryset=Squad.objects.all())
+    reporting_unit__squad = ModelChoiceFilter(label='Reporting unit squad',
+                                              queryset=Squad.objects.all())
 
     class Meta:
         model = Call
@@ -64,6 +76,13 @@ class CallFilter(FilterSet):
         else:
             return queryset
 
+    def filter_squad(self, queryset, value):
+        if value:
+            query = Q(primary_unit__squad_id=value) | Q(first_dispatched__squad_id=value) | Q(
+                reporting_unit__squad_id=value)
+            return queryset.filter(query)
+        else:
+            return queryset
 
 class SummaryFilter(FilterSet):
     class Meta:

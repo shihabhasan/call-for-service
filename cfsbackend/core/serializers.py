@@ -76,9 +76,11 @@ class CallSourceSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class CallUnitSerializer(serializers.HyperlinkedModelSerializer):
+    squad = CharField(source="squad.descr", read_only=True)
+
     class Meta:
         model = CallUnit
-        fields = ('call_unit_id', 'descr')
+        fields = ('call_unit_id', 'squad', 'descr')
 
 
 class NatureSerializer(serializers.HyperlinkedModelSerializer):
@@ -120,7 +122,7 @@ class CallSerializer(NonNullSerializer):
             'reporting_unit', 'month_received', 'week_received', 'dow_received', 'hour_received', 'case_id',
             'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed',
             'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport',
-            'last_unit_clear', 'time_closed', 'response_time')
+            'last_unit_clear', 'time_closed', 'officer_response_time', 'overall_response_time')
 
 
 class CallOverviewSerializer(serializers.HyperlinkedModelSerializer):
