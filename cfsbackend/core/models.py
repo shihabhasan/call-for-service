@@ -172,6 +172,7 @@ class CallOverview:
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature__descr', alias="name"),
             'volume_by_beat': self.volume_by_field('beat__descr', alias="name"),
+            'volume_by_close_code': self.volume_by_field('close_code__descr', alias="name"),
             'officer_response_time_by_beat': self.officer_response_time_by_beat()
         }
 

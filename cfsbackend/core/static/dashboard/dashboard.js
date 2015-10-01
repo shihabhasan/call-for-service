@@ -41,15 +41,12 @@ dashboard.on('Filter.filterUpdated', function (filter) {
 });
 
 function cleanupData(data) {
-    var volumeByNature = _.chain(data.volume_by_nature)
-        .sortBy('volume')
-        .last(20)
-        .value()
-        .reverse();
+    var natureCols = 30;
+    var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
 
-    volumeByNature = _.first(volumeByNature, 19).concat(
+    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
         _.chain(volumeByNature)
-            .rest(19)
+            .rest(natureCols - 1)
             .reduce(function (total, cur) {
                 return {name: "ALL OTHER", volume: total.volume + cur.volume}
             }, {name: "ALL OTHER", volume: 0})
@@ -101,6 +98,7 @@ monitorChart('data.volume_by_date', 'volumeByDate', buildVolumeByDateChart);
 monitorChart('data.volume_by_source', 'volumeBySource', buildVolumeBySourceChart);
 monitorChart('data.volume_by_beat', 'volumeByBeat', buildVolumeByBeatChart);
 monitorChart('data.volume_by_nature', 'volumeByNature', buildVolumeByNatureChart);
+monitorChart('data.volume_by_close_code', 'volumeByCloseCode', buildVolumeByCloseCodeChart);
 
 
 // ========================================================================
@@ -122,8 +120,6 @@ function buildVolumeByDateChart(data) {
 
     var myChart = new dimple.chart(svg, data);
     myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
-    myChart.assignColor("red", "red");
-    myChart.assignColor("blue", "blue");
 
     var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
     x.title = "Date";
@@ -132,6 +128,12 @@ function buildVolumeByDateChart(data) {
     y1.ticks = 5;
 
     var s1 = myChart.addSeries("type", dimple.plot.line);
+    var ttDate = d3.time.format(outFormats["day"]);
+    s1.getTooltipText = function (e) {
+        console.log(e);
+        return ["Date: " + ttDate(e.cx),
+                "Volume: " + e.cy];
+    }
 
     myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
     myChart.draw();
@@ -206,7 +208,28 @@ function buildVolumeByNatureChart(data) {
     myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
 
     var x = myChart.addCategoryAxis("x", "name");
-    x.addOrderRule("volume", true);
+    x.title = null;
+    var y = myChart.addMeasureAxis("y", "volume");
+    y.ticks = 5;
+    y.title = null;
+    var s = myChart.addSeries(null, dimple.plot.bar);
+    myChart.draw();
+    return myChart;
+}
+
+function buildVolumeByCloseCodeChart(data) {
+    var parentWidth = d3.select("#volume-by-close-code").node().clientWidth;
+
+    var margin = {top: 20, right: 50, bottom: 200, left: 50},
+        width = parentWidth,
+        height = parentWidth * 0.5;
+
+    var svg = dimple.newSvg("#volume-by-close-code", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addCategoryAxis("x", "name");
     x.title = null;
     var y = myChart.addMeasureAxis("y", "volume");
     y.ticks = 5;
