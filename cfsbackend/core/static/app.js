@@ -1,5 +1,3 @@
-Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
-
 var filterTypes = {
     "ModelChoiceField": {
         options: [{id: "=", name: "is equal to"}],
@@ -16,7 +14,7 @@ var filterTypes = {
     "DateRangeField": {
         options: [
             {id: ">=", name: "is greater than or equal to"},
-            {id: "<=", name: "is less than or equal to"}
+            {id: ">=", name: "is less than or equal to"}
         ],
         valueType: 'date'
     },

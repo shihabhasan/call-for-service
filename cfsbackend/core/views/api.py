@@ -32,7 +32,7 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
     * `time_closed_0` for closed start date
       and `time_closed_1` for closed end date.
     """
-    queryset = Call.objects.all()
+    queryset = Call.objects.order_by('time_received')
     serializer_class = serializers.CallSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = CallFilter
