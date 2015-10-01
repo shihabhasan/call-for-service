@@ -205,9 +205,19 @@ class City(ModelWithDescr):
         managed = False
         db_table = 'city'
 
+class Squad(ModelWithDescr):
+    squad_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'squad'
+
 
 class CallUnit(ModelWithDescr):
     call_unit_id = models.IntegerField(primary_key=True)
+    squad = models.ForeignKey(Squad, blank=True, null=True,
+                              db_column="squad_id",
+                              related_name="squad")
 
     class Meta:
         managed = False
