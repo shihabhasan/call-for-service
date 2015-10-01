@@ -349,6 +349,8 @@ function buildDayHourHeatmap(data) {
         return colorScale(d.value);
     });
 
+    heatMap.select("title").remove();
+
     heatMap.append("title").text(function (d) {
         return d.value;
     });
