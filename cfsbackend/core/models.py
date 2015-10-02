@@ -148,7 +148,7 @@ class CallOverview:
     def volume_by_source(self):
         results = self.qs \
             .annotate(date=DateTrunc('time_received', by='day'),
-                      self_initiated=Case(When(call_source=CallSource.objects.get(descr="Self Initiated"), then=True),
+                      self_initiated=Case(When(call_source__descr="Self Initiated", then=True),
                                           default=False,
                                           output_field=IntegerField())) \
             .values("date", "self_initiated") \
