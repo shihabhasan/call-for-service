@@ -31,4 +31,5 @@ urlpatterns = [
     url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^$', views.DashboardView.as_view()),
     url(r'^calls', views.CallListView.as_view()),
+    url(r'^predictive', views.PredictiveView.as_view()),
 ]

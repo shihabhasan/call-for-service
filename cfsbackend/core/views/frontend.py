@@ -12,3 +12,5 @@ class DashboardView(View):
 class CallListView(TemplateView):
     template_name = "calls.html"
 
+class PredictiveView(TemplateView):
+    template_name = "predictive.html"
