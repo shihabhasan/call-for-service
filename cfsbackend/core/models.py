@@ -115,7 +115,8 @@ class CallOverview:
         JOIN daily_stats AS ds2
             ON ds2.date BETWEEN ds1.date - INTERVAL '15 days' AND
             ds1.date + INTERVAL '15 days'
-        GROUP BY ds1.date, ds1.volume;
+        GROUP BY ds1.date, ds1.volume
+        ORDER BY ds1.date;
         """.format(cte_sql=cte_sql)
 
         cursor.execute(sql, params)
@@ -167,6 +168,7 @@ class CallOverview:
     def to_dict(self):
         return {
             'filter': self.filter.data,
+            'bounds': self.bounds,
             'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_source(),

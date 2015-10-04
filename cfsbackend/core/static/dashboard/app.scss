@@ -70,6 +70,18 @@ h3.chart-title {
   padding: 1rem 0;
   margin: 1rem 0;
 
+  dt, dd { display: inline; margin: 0; }
+
+  dt {
+    width: 100px;
+    text-align: right;
+  }
+
+  dd:after {
+	content: '\A';
+	white-space: pre;
+  }
+
   //dt {
   //  float: left;
   //  width: 50%;
@@ -81,5 +93,20 @@ h3.chart-title {
   //  width: 50%;
   //  clear: right;
   //  margin-bottom: 0.3rem;
+  //}
+
+  //dt {
+  //  float: left;
+  //  clear: left;
+  //  width: 100px;
+  //  text-align: right;
+  //  font-weight: bold;
+  //}
+  //dt:after {
+  //  content: ":";
+  //}
+  //dd {
+  //  margin: 0 0 0 110px;
+  //  padding: 0 0 0.5em 0;
   //}
 }
