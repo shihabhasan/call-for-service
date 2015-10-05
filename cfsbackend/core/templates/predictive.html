@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
-{% load compress %}
 
 {% block head %}
-    {% compress css %}
+    {% block stylesheets %}
         <link type="text/sass" rel="stylesheet" href="{% static 'dashboard/predictive.scss' %}">
-    {% endcompress %}
+    {% endblock %}
 {% endblock %}
 
 
