@@ -1,0 +1,8 @@
+---
+- name: Configure server
+  hosts: all
+  sudo: yes
+  remote_user: root
+  roles:
+    - { role: common }
+    - { role: postgres }
