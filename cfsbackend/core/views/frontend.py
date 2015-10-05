@@ -7,6 +7,11 @@ from ..forms import JSONForm
 class CallListView(TemplateView):
     template_name = "calls.html"
 
+    def get_context_data(self, **kwargs):
+        context = super(CallListView, self).get_context_data(**kwargs)
+        context['form'] = JSONForm(CallFilter().form)
+        return context
+
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("index.html",
@@ -14,3 +19,8 @@ class DashboardView(View):
 
 class PredictiveView(TemplateView):
     template_name = "predictive.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(PredictiveView, self).get_context_data(**kwargs)
+        context['form'] = JSONForm(CallFilter().form)
+        return context
