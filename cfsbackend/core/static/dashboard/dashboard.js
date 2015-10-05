@@ -1,7 +1,7 @@
 "use strict";
 
 var url = "/api/overview/";
-var volumeByTimeChart, volumeByTimeXAxis, dayHourHeatmap;
+var charts = {};
 var outFormats = {
     "month": "%b %y",
     "week": "%m/%d/%y",
@@ -9,264 +9,234 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
-var filterTypes = {
-    "ModelChoiceField": {
-        options: [{id: "=", name: "is equal to"}],
-        valueType: 'select'
-    },
-    "ChoiceField": {
-        options: [{id: "=", name: "is equal to"}],
-        valueType: 'select'
-    },
-    "NullBooleanField": {
-        options: [{id: "=", name: "is equal to"}],
-        valueType: 'truth'
-    },
-    "DateRangeField": {
-        options: [
-            {id: ">=", name: "is greater than or equal to"},
-            {id: ">=", name: "is less than or equal to"}
-        ],
-        valueType: 'date'
-    },
-    "DurationRangeField": {
-        options: [
-            {id: ">=", name: "is greater than or equal to"},
-            {id: "<=", name: "is less than or equal to"}
-        ],
-        valueType: 'duration'
-    }
-};
-
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
-    partials: {
-
-    },
+    components: {'Filter': Filter},
     data: {
+        'capitalize': function (string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        },
         loading: true,
-        editing: false,
-        filter: {},
         data: {
             'volume_over_time': {
                 'period_size': 'day',
                 'results': []
             },
-            'day_hour_heatmap': []
-        },
-        displayName: displayName,
-        displayValue: displayValue,
-        describeFilter: describeFilter,
-        getOptions: function (fieldName) {
-            return findField(fieldName).choices;
-        },
-        getFieldType: function (fieldName) {
-            return filterTypes[findField(fieldName).type];
-        }
-    },
-    computed: {
-        fields: function () {
-            return filterForm.fields;
+            'day_hour_heatmap': [],
+            'volume_by_source': {}
         }
     },
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]']
 });
 
-updateFilter();
-
-dashboard.on('editfilter', function (event, action) {
-    if (action === "start") {
-        dashboard.set('editing', true);
-    } else if (action === "stop") {
-        dashboard.set('editing', false);
-    }
-});
-
-dashboard.on('removefilter', function (event, key) {
-    window.location.hash = buildQueryParams(_.omit(dashboard.get("filter"), key));
-});
-
-dashboard.on('addfilter', function (event) {
-    var field = dashboard.get("addFilter.field");
-    var verb = dashboard.get("addFilter.verb");
-    var value = dashboard.get("addFilter.value");
-    var filter = dashboard.get("filter");
-
-    var key = field;
-    if (verb === ">=") {
-        key += "_0";
-    } else if (verb === "<=") {
-        key += "_1";
-    }
-
-    filter = _.clone(filter);
-    filter[key] = value;
-
-    window.location.hash = buildQueryParams(filter);
-
-    // prevent default
-    return false;
-});
-
-dashboard.observe('filter', function (filter) {
+dashboard.on('Filter.filterUpdated', function (filter) {
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
+        newData = cleanupData(newData);
         dashboard.set('data', newData);
     });
 });
 
-dashboard.observe('data.volume_over_time', function (newData) {
-    if (!dashboard.get('loading')) {
-        if (!volumeByTimeChart) {
-            var retval = buildVolumeByTimeChart(newData);
-            volumeByTimeChart = retval[0];
-            volumeByTimeXAxis = retval[1];
-        } else {
-            volumeByTimeXAxis.tickFormat = outFormats[newData.period_size];
-            volumeByTimeChart.data = newData.results;
-            volumeByTimeChart.draw(200);
-        }
-    }
-});
+function cleanupData(data) {
+    var natureCols = 30;
+    var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
+
+    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
+        _.chain(volumeByNature)
+            .rest(natureCols - 1)
+            .reduce(function (total, cur) {
+                return {name: "ALL OTHER", volume: total.volume + cur.volume}
+            }, {name: "ALL OTHER", volume: 0})
+            .value()
+    );
+
+    data.volume_by_nature = volumeByNature;
+
+    var volumeByDate = _.chain(data.volume_by_date)
+        .sortBy('date')
+        .map(function (d) {
+            return [
+                {date: d.date, volume: d.volume, type: "Daily Volume"},
+                {date: d.date, volume: d.average, type: "30-Day Moving Average"}
+            ]
+        })
+        .flatten()
+        .value();
+
+    data.volume_by_date = volumeByDate;
+
+    _(data.volume_by_source).each(function (d) {
+        d.source = d.self_initiated ? "Self Initiated" : "Citizen Initiated";
+    });
+
+    return data;
+}
 
 dashboard.observe('data.day_hour_heatmap', function (newData) {
     if (!dashboard.get('loading')) {
-        dayHourHeatmap = buildDayHourHeatmap(newData);
+        charts.dayHourHeatmap = buildDayHourHeatmap(newData);
     }
 });
 
-d3.select(window).on("hashchange", updateFilter);
+function monitorChart(keypath, chartName, buildFn) {
+    dashboard.observe(keypath, function (newData) {
+        if (!dashboard.get('loading')) {
+            if (!charts[chartName]) {
+                charts[chartName] = buildFn(newData);
+            } else {
+                charts[chartName].data = newData;
+                charts[chartName].draw(200);
+            }
+        }
+    })
+}
+
+monitorChart('data.volume_by_date', 'volumeByDate', buildVolumeByDateChart);
+monitorChart('data.volume_by_source', 'volumeBySource', buildVolumeBySourceChart);
+monitorChart('data.volume_by_beat', 'volumeByBeat', buildVolumeByBeatChart);
+monitorChart('data.volume_by_nature', 'volumeByNature', buildVolumeByNatureChart);
+monitorChart('data.volume_by_close_code', 'volumeByCloseCode', buildVolumeByCloseCodeChart);
+
 
 // ========================================================================
 // Functions
 // ========================================================================
 
-function findField(fieldName) {
-    return _(filterForm.fields).find(function (field) {
-        return field.name == fieldName;
-    })
-}
-
-function humanize(property) {
-    return property.replace(/_/g, ' ')
-            .replace(/(\w+)/g, function (match) {
-                return match.charAt(0).toUpperCase() + match.slice(1);
-            });
-}
-
-function displayName(fieldName) {
-    return findField(fieldName).label || humanize(fieldName);
-}
-
-function arrayToObj(arr) {
-    // Given an array of two-element arrays, turn it into an object.
-    var obj = {};
-    arr.forEach(function (x) {
-        obj[x[0]] = x[1];
-    });
-
-    return obj;
-}
-
-function displayValue(fieldName, value) {
-    var field = findField(fieldName);
-    var dValue;
-
-    if (field.choices) {
-        var choiceMap = arrayToObj(field.choices)
-        dValue = choiceMap[value];
-    }
-
-    if (!dValue) {
-        dValue = value;
-    }
-
-    return dValue;
-}
-
-function describeFilter(filter) {
-    var components = [];
-    var keys = _.keys(filter).sort();
-
-    keys.forEach(function (key) {
-        if (key.endsWith("_0")) {
-            components.push({
-                s: key.slice(0, -2),
-                v: ">=",
-                o: filter[key],
-                k: key
-            });
-        } else if (key.endsWith("_1")) {
-            components.push({
-                s: key.slice(0, -2),
-                v: "<=",
-                o: filter[key],
-                k: key
-            });
-        } else {
-            components.push({s: key, v: "=", o: filter[key], k: key});
-        }
-    });
-
-    return components;
-}
-
-function buildQueryParams(obj) {
-    var str = "";
-    for (var key in obj) {
-        if (str != "") {
-            str += "&";
-        }
-        str += key + "=" + encodeURIComponent(obj[key]);
-    }
-    return str;
-}
-
 function buildURL(filter) {
     return url + "?" + buildQueryParams(filter);
 }
 
-function parseQueryParams(str) {
-    if (typeof str != "string" || str.length == 0) return {};
-    var s = str.split("&");
-    var s_length = s.length;
-    var bit,
-        query = {},
-        first,
-        second;
-    for (var i = 0; i < s_length; i++) {
-        bit = s[i].split("=");
-        first = decodeURIComponent(bit[0]);
-        if (first.length == 0) continue;
-        second = decodeURIComponent(bit[1]);
-        if (typeof query[first] == "undefined") query[first] = second; else if (query[first] instanceof Array) query[first].push(second); else query[first] = [query[first], second];
-    }
-    return query;
-}
-
-function buildVolumeByTimeChart(data) {
+function buildVolumeByDateChart(data) {
     var parentWidth = d3.select("#volume-over-time").node().clientWidth;
 
-    var margin = {top: 20, right: 20, bottom: 50, left: 50},
+    var margin = {top: 40, right: 50, bottom: 70, left: 50},
         width = parentWidth,
-        height = 500;
+        height = parentWidth * 0.3;
 
     var svg = dimple.newSvg("#volume-over-time", width, height);
 
-    var myChart = new dimple.chart(svg, data.results);
+    var myChart = new dimple.chart(svg, data);
     myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
 
-    var x = myChart.addTimeAxis("x", "period_start", "%Y-%m-%dT%H:%M:%S", outFormats[data.period_size]);
+    var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
     x.title = "Date";
-    var y = myChart.addMeasureAxis("y", "period_volume");
-    y.title = "Call Volume";
-    var s = myChart.addSeries(null, dimple.plot.line);
-    var t = myChart.addSeries(null, dimple.plot.bubble);
+    var y1 = myChart.addMeasureAxis("y", "volume");
+    y1.title = "Call Volume";
+    y1.ticks = 5;
+
+    var s1 = myChart.addSeries("type", dimple.plot.line);
+    var ttDate = d3.time.format(outFormats["day"]);
+    s1.getTooltipText = function (e) {
+        console.log(e);
+        return ["Date: " + ttDate(e.cx),
+                "Volume: " + e.cy];
+    }
+
+    myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
     myChart.draw();
-    return [myChart, x];
+
+    return myChart;
+}
+
+function buildVolumeBySourceChart(data) {
+    var parentWidth = d3.select("#volume-by-source").node().clientWidth;
+
+    var margin = {top: 50, right: 10, bottom: 80, left: 20},
+        width = parentWidth,
+        height = parentWidth * 0.5;
+
+    var svg = dimple.newSvg("#volume-by-source", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
+    x.title = "Date";
+    var y = myChart.addPctAxis("y", "volume");
+    y.hidden = true;
+    var area = myChart.addSeries("source", dimple.plot.area);
+    area.interpolation = 'cardinal';
+    var ttDate = d3.time.format(outFormats["day"]);
+    var pct = d3.format("%p");
+    area.getTooltipText = function (e) {
+        return ["Date: " + ttDate(e.cx),
+                "Self Initiated: " + pct(e.cy),
+                "Citizen Initiated: " + pct(1 - e.cy)];
+    }
+    myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
+    myChart.draw();
+
+    return myChart;
+}
+
+function buildVolumeByBeatChart(data) {
+    var parentWidth = d3.select("#volume-by-beat").node().clientWidth;
+
+    var margin = {top: 20, right: 20, bottom: 20, left: 50},
+        width = parentWidth,
+        height = parentWidth * 1.1;
+
+    var svg = dimple.newSvg("#volume-by-beat", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addMeasureAxis("x", "volume");
+    x.title = null;
+    var y = myChart.addCategoryAxis("y", "name");
+    y.addOrderRule("volume", true);
+    y.title = null;
+    myChart.addSeries(null, dimple.plot.bar);
+    myChart.draw();
+
+    return myChart;
+}
+
+function buildVolumeByNatureChart(data) {
+    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
+
+    var margin = {top: 20, right: 50, bottom: 200, left: 50},
+        width = parentWidth,
+        height = parentWidth * 0.5;
+
+    var svg = dimple.newSvg("#volume-by-nature", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addCategoryAxis("x", "name");
+    x.title = null;
+    var y = myChart.addMeasureAxis("y", "volume");
+    y.ticks = 5;
+    y.title = null;
+    var s = myChart.addSeries(null, dimple.plot.bar);
+    myChart.draw();
+    return myChart;
+}
+
+function buildVolumeByCloseCodeChart(data) {
+    var parentWidth = d3.select("#volume-by-close-code").node().clientWidth;
+
+    var margin = {top: 20, right: 50, bottom: 200, left: 50},
+        width = parentWidth,
+        height = parentWidth * 0.5;
+
+    var svg = dimple.newSvg("#volume-by-close-code", width, height);
+
+    var myChart = new dimple.chart(svg, data);
+    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+
+    var x = myChart.addCategoryAxis("x", "name");
+    x.title = null;
+    var y = myChart.addMeasureAxis("y", "volume");
+    y.ticks = 5;
+    y.title = null;
+    myChart.addSeries(null, dimple.plot.bar);
+    myChart.draw();
+    return myChart;
 }
 
 function buildDayHourHeatmap(data) {
@@ -278,8 +248,7 @@ function buildDayHourHeatmap(data) {
         gridSize = Math.floor(width / 24),
         legendElementWidth = gridSize * 2,
         buckets = 9,
-        colors = ["#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"],
-    // alternatively colorbrewer.YlGnBu[9]
+        colors = colorbrewer.OrRd[9],
         days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
         times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
 
@@ -373,13 +342,4 @@ function buildDayHourHeatmap(data) {
         return legendElementWidth * i;
     }).attr("y", height + gridSize);
 }
-
-function updateFilter() {
-    if (window.location.hash) {
-        dashboard.set('filter', parseQueryParams(window.location.hash.slice(1)));
-    } else {
-        dashboard.set('filter', {});
-    }
-}
-
 

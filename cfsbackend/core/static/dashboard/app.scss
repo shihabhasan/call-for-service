@@ -61,3 +61,52 @@ text.axis-worktime {
   fill: #000;
 }
 
+h3.chart-title {
+  font-size: 120%;
+}
+
+.call-record {
+  border-bottom: 1px solid #777788;
+  padding: 1rem 0;
+  margin: 1rem 0;
+
+  dt, dd { display: inline; margin: 0; }
+
+  dt {
+    width: 100px;
+    text-align: right;
+  }
+
+  dd:after {
+	content: '\A';
+	white-space: pre;
+  }
+
+  //dt {
+  //  float: left;
+  //  width: 50%;
+  //  clear: left;
+  //  margin-bottom: 0.3rem;
+  //}
+  //dd {
+  //  float: right;
+  //  width: 50%;
+  //  clear: right;
+  //  margin-bottom: 0.3rem;
+  //}
+
+  //dt {
+  //  float: left;
+  //  clear: left;
+  //  width: 100px;
+  //  text-align: right;
+  //  font-weight: bold;
+  //}
+  //dt:after {
+  //  content: ":";
+  //}
+  //dd {
+  //  margin: 0 0 0 110px;
+  //  padding: 0 0 0.5em 0;
+  //}
+}

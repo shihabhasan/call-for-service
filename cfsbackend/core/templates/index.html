@@ -3,55 +3,67 @@
 {% load staticfiles %}
 
 {% block content %}
-    {% include "_filter.html" %}
     <script id="dashboard-template" type="text/html">
-        [[ > filter-template ]]
-        <div class="container">
-            <div class="row">
-                <div class="small-12 columns">
-                    <div id="volume-over-time">
-                        <h3>Call Volume Over Time</h3>
-
-                        [[ #if loading ]]
-                        <div class="loading">
-                            <img src="{% static "ellipsis.svg" %}">
-                        </div>
-                        [[ /if ]]
-                    </div>
+        <Filter />
+        <div class="row">
+            <div class="small-12 columns">
+                <div id="volume-over-time">
+                    <h3 class="chart-title">Call Volume Over Time</h3>
+                    {% include "_loading.html" %}
                 </div>
             </div>
-            <div class="row">
-                <div class="small-12 columns">
-                    <div id="day-hour-heatmap">
-                        <h3>Day/Hour Heatmap</h3>
-
-                        [[ #if loading ]]
-                        <div class="loading">
-                            <img src="{% static "ellipsis.svg" %}">
-                        </div>
-                        [[ /if ]]
-                    </div>
+        </div>
+        <div class="row">
+            <div class="small-12 columns">
+                <div id="day-hour-heatmap">
+                    <h3 class="chart-title">Day/Hour Heatmap</h3>
+                    {% include "_loading.html" %}
                 </div>
             </div>
-            <div class="row">
-                <footer class="small-12 columns">RTI 2015</footer>
-            </div>
+        </div>
+        <div class="row">
+            <div class="small-7 columns">
+                <div id="volume-by-source">
+                    <h3 class="chart-title">Call Volume By Source</h3>
+                    {% include "_loading.html" %}
+                </div>
 
+            </div>
+            <div class="small-5 columns">
+                <div id="volume-by-beat">
+                    <h3 class="chart-title">Call Volume By Beat</h3>
+                    {% include "_loading.html" %}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-12 columns">
+                <div id="volume-by-nature">
+                    <h3 class="chart-title">Call Volume By Nature</h3>
+                    {% include "_loading.html" %}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="small-12 columns">
+                <div id="volume-by-close-code">
+                    <h3 class="chart-title">Call Volume By Close Code</h3>
+                    {% include "_loading.html" %}
+                </div>
+            </div>
         </div>
     </script>
-    <div id="dashboard"></div>
+    <div id="dashboard" class="dashboard"></div>
+    <div class="row">
+        <footer class="small-12 columns">RTI 2015</footer>
+    </div>
 {% endblock %}
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
-    <script>
-        var filterForm = {{ form.as_json|safe }};
-    </script>
-    <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'dimple/dist/dimple.v2.1.6.js' %}"></script>
-    <script src="{% static 'moment/moment.js' %}"></script>
-    <script src="{% static 'underscore/underscore.js' %}"></script>
+    <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
     <script src="{% static 'dashboard/dashboard.js' %}"></script>
 {% endblock %}
 </body>

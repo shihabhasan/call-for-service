@@ -30,4 +30,5 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^$', views.DashboardView.as_view()),
+    url(r'^calls', views.CallListView.as_view()),
 ]

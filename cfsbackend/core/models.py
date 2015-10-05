@@ -12,10 +12,19 @@ from __future__ import unicode_literals
 from collections import Counter
 from datetime import timedelta
 
-from django.db import models
+from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
-    IntegerField, Sum, Case, When
+    IntegerField, Sum, Case, When, F
 from django.db.models.expressions import Func
+
+
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+        ]
 
 
 class DateTrunc(Func):
@@ -78,33 +87,41 @@ class CallOverview:
     def qs(self):
         return self.filter.qs
 
-    def volume_by_field(self, field):
-        return dict(self.qs. \
-                    values(field). \
-                    annotate(Count(field)). \
-                    values_list(field, field + '__count'))
-
-    def volume_over_time(self):
-        if self.span >= timedelta(360):
-            size = 'month'
-        elif self.span > timedelta(60):
-            size = 'week'
-        elif self.span > timedelta(3):
-            size = 'day'
+    def volume_by_field(self, field, alias=None):
+        if alias:
+            qs = self.qs.annotate(**{alias: F(field)}).values(alias)
+            field = alias
         else:
-            size = 'hour'
+            qs = self.qs.values(field)
 
-        results = self.qs.annotate(
-            period_start=DateTrunc('time_received', by=size)) \
-            .values('period_start') \
-            .annotate(period_volume=Count('period_start')) \
-            .order_by('period_start')
+        return qs.annotate(volume=Count(field))
 
-        return {
-            'bounds': self.bounds,
-            'period_size': size,
-            'results': results
-        }
+    def volume_by_date(self):
+        cursor = connection.cursor()
+
+        cte_sql, params = self.qs. \
+            annotate(date=DateTrunc('time_received', by='day')). \
+            values('date'). \
+            annotate(volume=Count('date')).query.sql_with_params()
+        sql = """
+        WITH daily_stats AS (
+            {cte_sql}
+        )
+        SELECT
+            ds1.date AS date,
+            ds1.volume AS volume,
+            CAST(AVG(ds2.volume) AS INTEGER) AS average
+        FROM daily_stats AS ds1
+        JOIN daily_stats AS ds2
+            ON ds2.date BETWEEN ds1.date - INTERVAL '15 days' AND
+            ds1.date + INTERVAL '15 days'
+        GROUP BY ds1.date, ds1.volume
+        ORDER BY ds1.date;
+        """.format(cte_sql=cte_sql)
+
+        cursor.execute(sql, params)
+        results = dictfetchall(cursor)
+        return results
 
     def day_hour_heatmap(self):
         if self.span == timedelta(0, 0):
@@ -129,6 +146,16 @@ class CallOverview:
 
         return results
 
+    def volume_by_source(self):
+        results = self.qs \
+            .annotate(date=DateTrunc('time_received', by='day'),
+                      self_initiated=Case(When(call_source__descr="Self Initiated", then=True),
+                                          default=False,
+                                          output_field=IntegerField())) \
+            .values("date", "self_initiated") \
+            .annotate(volume=Count("self_initiated"))
+        return results
+
     def officer_response_time_by_beat(self):
         results = self.qs \
             .values("beat", "beat__descr") \
@@ -141,11 +168,13 @@ class CallOverview:
     def to_dict(self):
         return {
             'filter': self.filter.data,
-            'volume_over_time': self.volume_over_time(),
+            'bounds': self.bounds,
+            'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
-            'volume_by_source': self.volume_by_field('call_source__descr'),
-            'volume_by_nature': self.volume_by_field('nature__descr'),
-            'volume_by_beat': self.volume_by_field('beat__descr'),
+            'volume_by_source': self.volume_by_source(),
+            'volume_by_nature': self.volume_by_field('nature__descr', alias="name"),
+            'volume_by_beat': self.volume_by_field('beat__descr', alias="name"),
+            'volume_by_close_code': self.volume_by_field('close_code__descr', alias="name"),
             'officer_response_time_by_beat': self.officer_response_time_by_beat()
         }
 
@@ -161,6 +190,7 @@ class ModelWithDescr(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ['descr']
 
 
 class Sector(ModelWithDescr):

@@ -1,10 +1,11 @@
+from django.forms import ModelChoiceField
 from django_filters import FilterSet, DateFromToRangeFilter, MethodFilter, \
     RangeFilter, ModelChoiceFilter
 from django_filters.fields import RangeField
 from django.db.models import Q
 from django import forms
 
-from .models import Call, CallUnit, Squad
+from .models import Call, CallUnit, Squad, ZipCode, CallSource
 
 
 class DurationRangeField(RangeField):
@@ -59,6 +60,9 @@ class CallFilter(FilterSet):
                                               queryset=Squad.objects.all())
     reporting_unit__squad = ModelChoiceFilter(label='Reporting unit squad',
                                               queryset=Squad.objects.all())
+    initiated_by = ChoiceMethodFilter(label="Initiated by",
+                                      action="filter_initiated_by",
+                                      choices=[('Self', 'Self'), ('Citizen', 'Citizen')])
 
     class Meta:
         model = Call
@@ -81,6 +85,14 @@ class CallFilter(FilterSet):
             query = Q(primary_unit__squad_id=value) | Q(first_dispatched__squad_id=value) | Q(
                 reporting_unit__squad_id=value)
             return queryset.filter(query)
+        else:
+            return queryset
+
+    def filter_initiated_by(self, queryset, value):
+        if value == "Self":
+            return queryset.filter(call_source=CallSource.objects.get(descr="Self Initiated"))
+        elif value == "Citizen":
+            return queryset.exclude(call_source=CallSource.objects.get(descr="Self Initiated"))
         else:
             return queryset
 

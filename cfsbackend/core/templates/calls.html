@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+    <script id="calls-template" type="text/html">
+        <Filter />
+        <div class="container">
+            <div class="row">
+                <div class="small-12 columns">
+                    <div id="call-list">
+                        {% include "_loading.html" %}
+
+                        [[ #unless loading ]]
+                        <h3>[[ (page - 1) * perPage + 1 ]]-[[ page * perPage ]] of [[ data.count ]] calls</h3>
+                        [[ /unless ]]
+
+                        [[ #each data.results ]]
+                        <div class="call-record">
+                            <div class="row">
+                                <div class="small-6 columns">
+                                    <dl>
+                                        <dt>Call ID</dt>
+                                        <dd>[[ call_id ]]</dd>
+                                        <dt>Cancelled</dt>
+                                        <dd>[[ cancelled ]]</dd>
+                                        <dt>Source</dt>
+                                        <dd>[[ d(call_source) ]]</dd>
+                                        <dt>Nature</dt>
+                                        <dd>[[ d(nature.descr) ]]</dd>
+                                        <dt>Priority</dt>
+                                        <dd>[[ d(priority) ]]</dd>
+                                        <dt>Sector</dt>
+                                        <dd>[[ d(sector) ]]</dd>
+                                        <dt>Beat</dt>
+                                        <dd>[[ d(beat) ]]</dd>
+                                        <dt>Business</dt>
+                                        <dd>[[ d(business) ]]</dd>
+                                        <dt>Address</dt>
+                                        <dd>[[ street_num ]] [[ d(street_name) ]]</dd>
+                                        <dt>Cross streets</dt>
+                                        <dd>
+                                            [[ #if crossroad1 ]]
+                                            <ul>
+                                                <li>[[ crossroad1 ]]</li>
+                                                [[ #if crossroad2 ]]
+                                                    <li>[[ crossroad2 ]]</li>
+                                                [[ /if ]]
+                                            </ul>
+                                            [[ else ]]
+                                                -
+                                            [[ /if ]]
+                                        </dd>
+                                        <dt>ZIP Code</dt>
+                                        <dd>[[ d(zip_code) ]]</dd>
+                                        <dt>Primary Unit</dt>
+                                        <dd>[[ d(primary_unit.descr) ]]</dd>
+                                        <dt>First Dispatched</dt>
+                                        <dd>[[ d(first_dispatched.descr) ]]</dd>
+                                    </dl>
+                                </div>
+                                <div class="small-6 columns">
+                                    <dl>
+                                        <dt>Received</dt>
+                                        <dd>[[ timeFormat(time_received) ]]</dd>
+                                        <dt>Routed</dt>
+                                        <dd>[[ timeFormat(time_routed) ]]</dd>
+                                        <dt>Finished</dt>
+                                        <dd>[[ timeFormat(time_finished) ]]</dd>
+                                        <dt>First Unit Dispatch</dt>
+                                        <dd>[[ timeFormat(first_unit_dispatch) ]]</dd>
+                                        <dt>First Unit Arrive</dt>
+                                        <dd>[[ timeFormat(first_unit_arrive) ]]</dd>
+                                        <dt>Last Unit Clear</dt>
+                                        <dd>[[ timeFormat(last_unit_clear) ]]</dd>
+                                        <dt>Closed</dt>
+                                        <dd>[[ timeFormat(time_closed) ]]</dd>
+                                        <dt>Officer Response Time</dt>
+                                        <dd>[[ d(officer_response_time) ]]</dd>
+                                        <dt>Overall Response Time</dt>
+                                        <dd>[[ d(overall_response_time) ]]</dd>
+                                    </dl>
+
+                                </div>
+                            </div>
+                        </div>
+                        [[ /each ]]
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <footer class="small-12 columns">RTI 2015</footer>
+            </div>
+
+        </div>
+    </script>
+    <div id="calls"></div>
+{% endblock %}
+
+<!-- Latest compiled and minified JavaScript -->
+{% block javascript %}
+    <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'calls/calls.js' %}"></script>
+{% endblock %}
+</body>
+</html>

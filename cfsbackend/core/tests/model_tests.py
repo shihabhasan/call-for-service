@@ -38,65 +38,93 @@ class CallOverviewTest(TestCase):
         create_call(call_id=6, time_received='2014-11-01T12:00',
                     beat=b1)
 
+    def test_moving_average(self):
+        overview = CallOverview({})
+        results = overview.to_dict()['volume_by_date']
+
+        correct_items = [
+                 {"date": dtparse("2014-01-15"),
+                  "volume": 1, "average": 1},
+                 {"date": dtparse("2014-11-01"),
+                  "volume": 1, "average": 1},
+
+                 # Correct avg is 2 instead of 1.5 because
+                 # postgres' int cast rounds 1.5 up
+                 {"date": dtparse("2015-01-01"),
+                  "volume": 2, "average": 2},
+                 {"date": dtparse("2015-01-08"),
+                  "volume": 1, "average": 2},
+                 {"date": dtparse("2015-02-01"),
+                  "volume": 1, "average": 1}]
+
+        # There's probably a better way to do this,
+        # but this works; the order of the results is
+        # irrelevant, but we can't make a set out of them
+        # because dicts aren't hashable.
+
+        for res in results:
+            self.assertIn(res, correct_items)
+
+        for item in correct_items:
+            self.assertIn(item, results)
+                
+
+    # These tests aren't relevant with the replacement of volume_over_time by
+    # volume_by_date, but we may need them if we decide to scale volume_by_date
+    # automatically again
     def test_call_volume_for_day(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-01-01"})
-        results = overview.to_dict()['volume_over_time']
-        assert results['period_size'] == 'hour'
-        assert results['bounds'] == {"min_time": dtparse("2015-01-01T09:00"),
-                                     "max_time": dtparse('2015-01-01T12:30')}
+        assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
+                                   "max_time": dtparse('2015-01-01T12:30')}
 
-        assert_list_equiv(results['results'],
-                          [{"period_start": dtparse("2015-01-01T09:00"), "period_volume": 1},
-                           {"period_start": dtparse("2015-01-01T12:00"), "period_volume": 1}])
+        assert_list_equiv(overview.volume_by_date(),
+                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2, "average": 2}])
 
     def test_call_volume_for_multiple_days(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-01-08"})
-        results = overview.to_dict()['volume_over_time']
-        assert results['period_size'] == 'day'
-        assert results['bounds'] == {"min_time": dtparse("2015-01-01T09:00"),
-                                     "max_time": dtparse('2015-01-08T09:00')}
+        results = overview.volume_by_date()
+        assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
+                                   "max_time": dtparse('2015-01-08T09:00')}
 
-        assert_list_equiv(results['results'],
-                          [{"period_start": dtparse("2015-01-01T00:00"), "period_volume": 2},
-                           {"period_start": dtparse("2015-01-08T00:00"), "period_volume": 1}])
+        assert_list_equiv(results,
+                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2, "average": 2},
+                           {"date": dtparse("2015-01-08T00:00"), "volume": 1, "average": 2}])
 
     def test_call_volume_for_month(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-02-01"})
-        results = overview.to_dict()['volume_over_time']
-        assert results['period_size'] == 'day'
-        assert results['bounds'] == {"min_time": dtparse("2015-01-01T09:00"),
-                                     "max_time": dtparse('2015-02-01T09:00')}
-
-        assert_list_equiv(results['results'],
-                          [{"period_start": dtparse("2015-01-01T00:00"), "period_volume": 2},
-                           {"period_start": dtparse("2015-01-08T00:00"), "period_volume": 1},
-                           {"period_start": dtparse("2015-02-01T00:00"), "period_volume": 1}])
+        results = overview.volume_by_date()
+        assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
+                                   "max_time": dtparse('2015-02-01T09:00')}
+        assert_list_equiv(results,
+                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2, 'average': 2},
+                           {"date": dtparse("2015-01-08T00:00"), "volume": 1, 'average': 2},
+                           {"date": dtparse("2015-02-01T00:00"), "volume": 1, 'average': 1}])
 
     def test_call_volume_for_multiple_months(self):
         overview = CallOverview({"time_received_0": "2014-11-01", "time_received_1": "2015-02-01"})
-        results = overview.to_dict()['volume_over_time']
-        assert results['period_size'] == 'week'
-        assert results['bounds'] == {"min_time": dtparse("2014-11-01T12:00"),
-                                     "max_time": dtparse('2015-02-01T09:00')}
+        results = overview.volume_by_date()
+        assert overview.bounds == {"min_time": dtparse("2014-11-01T12:00"),
+                                   "max_time": dtparse('2015-02-01T09:00')}
 
-        assert_list_equiv(results['results'],
-                          [{"period_start": dtparse("2014-10-27"), "period_volume": 1},
-                           {"period_start": dtparse("2014-12-29"), "period_volume": 2},
-                           {"period_start": dtparse("2015-01-05"), "period_volume": 1},
-                           {"period_start": dtparse("2015-01-26"), "period_volume": 1}])
+        assert_list_equiv(results,
+                          [{"date": dtparse("2014-11-01"), "volume": 1, "average": 1},
+                           {"date": dtparse("2015-01-01"), "volume": 2, "average": 2},
+                           {"date": dtparse("2015-01-08"), "volume": 1, "average": 2},
+                           {"date": dtparse("2015-02-01"), "volume": 1, "average": 1}])
 
     def test_call_volume_for_year(self):
         overview = CallOverview({"time_received_0": "2014-01-01", "time_received_1": "2015-02-01"})
-        results = overview.to_dict()['volume_over_time']
-        assert results['period_size'] == 'month'
-        assert results['bounds'] == {"min_time": dtparse("2014-01-15T09:00"),
-                                     "max_time": dtparse('2015-02-01T09:00')}
+        results = overview.volume_by_date()
+        assert overview.bounds == {"min_time": dtparse("2014-01-15T09:00"),
+                                   "max_time": dtparse('2015-02-01T09:00')}
+        print(overview.volume_by_date())
 
-        assert_list_equiv(results['results'],
-                          [{"period_start": dtparse("2014-01-01T00:00"), "period_volume": 1},
-                           {"period_start": dtparse("2014-11-01T00:00"), "period_volume": 1},
-                           {"period_start": dtparse("2015-01-01T00:00"), "period_volume": 3},
-                           {"period_start": dtparse("2015-02-01T00:00"), "period_volume": 1}])
+        assert_list_equiv(results,
+                          [{"date": dtparse("2014-01-15T00:00"), "volume": 1, "average": 1},
+                           {"date": dtparse("2014-11-01T00:00"), "volume": 1, "average": 1},
+                           {"date": dtparse("2015-01-01T00:00"), "volume": 2, "average": 2},
+                           {"date": dtparse("2015-01-08T00:00"), "volume": 1, "average": 2},
+                           {"date": dtparse("2015-02-01T00:00"), "volume": 1, "average": 1}])
 
     def test_day_hour_heatmap(self):
         overview = CallOverview({"time_received_0": "2015-01-01", "time_received_1": "2015-02-01"})
