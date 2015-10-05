@@ -15,38 +15,43 @@
         <Filter />
         <div id="predictive-summary" class="row">
             <div class="small-12 columns">
-                <h1>Predicting Citizen-Initiated Call Volume</h1>
-                <p>The number of citizen-initiated calls on a given day is heavily influenced
-                by several predictable factors, such as different aspects of the weather 
+                <h1>Forecasting Citizen-Initiated Call Volume</h1>
+                <p>The number of citizen-initiated calls on a given day is strongly correlated
+                with several factors, such as different aspects of the weather 
                 (temperature, precipitation), time (day of week, month), and the previous
                 day's call volume.  Given several years of data, we can fit a model based
-                on past call volume and predict upcoming calls fairly accurately.</p>
+                on past call volume and forecast upcoming calls accurately.</p>
                 <h2>Results</h2>
                 <p>
                 We trained our model on 7 years and 11 months of data (January 2007
                 to November 2014).  We held out the last month of available data to
-                check the accuracy of our predictions.  Here are the results:
+                check the accuracy of our forecasts.  Here are the results:
                 </p>
                 <div class="row predictive-figure">
                     <img id="pred-figure" src="{% static "img/pred_vs_actual_call_volume_daily.png" %}" alt="Predicted vs Actual Call Volume (Daily)" />
                 </div>
-                <p>Our daily predictions had a mean absolute percent error (MAPE) of 6.9%,
-                meaning we can expect them to be off by less than 6.9% on an average day.
+                <p>Our daily forecasts had a mean absolute percent error (MAPE) of 7%,
+                meaning we can expect them to be off by 7% on an average day.
                 The chart confirms, showing that although our model does not always exactly
                 follow the actual call volume, it does track spikes relatively well.
                 </p>
-                <p>We could also provide even more accurate predictions on a weekly basis,
+                <p>We also provide more accurate forecasts on a weekly basis,
                 since including a larger sample of days to model call volume cancels out
-                some of the unpredictability involved in trying to predict a single day.
-                Here are the daily predictions, aggregated to provide weekly predictions:
+                some of the unpredictability involved in trying to forecast a single day.
+                Here are the daily forecasts, aggregated to provide weekly forecasts:
                 </p>
                 <div class="row predictive-figure">
                     <img id="pred-figure" src="{% static "img/pred_vs_actual_call_volume_weekly.png" %}" alt="Predicted vs Actual Call Volume (Weekly)" />
                 </div>
                 <p>
-                The MAPE for our weekly predictions was even lower at 3.0%.  We believe
-                that these predictions are accurate enough to be helpful for resource
+                The MAPE for our weekly forecasts was 3%.  We believe
+                that these forecasts could be helpful for resource
                 allocation.
+                </p>
+                <h3>Next Steps</h3>
+                <p>Given more detailed information for each call from 2007-2014,
+                we could attempt to forecast call volume
+                across other areas of interest, such as shift, beat, district, or call nature.
                 </p>
 
 
@@ -57,9 +62,8 @@
                 2007-2014.  We dropped all non-citizen-initiated calls and 
                 aggregated this data to the daily level.  We then joined it
                 to daily forecasts for the years 2007-2014 taken from
-                <a href='http://forecast.io'>forecast.io</a>.  Because of this, making
-                predictions requires only pulling weather forecasts for the desired days;
-                because our model is trained on forecasts and not actual weather data,
+                <a href='http://forecast.io'>forecast.io</a>.
+                Because our model is trained on forecasts and not actual weather data,
                 we always have the variables we're using available, without having to attempt
                 to predict their values in the future.
                 </p>
@@ -84,12 +88,11 @@
                 In our training data, these variables together accounted for 51.6% of
                 the variance in call volume.
                 </p>
-                <p>However, overall call volume is not static; it changes over time
-                in a seasonal pattern, as we observed by looking at the residuals of our
-                linear model.  We needed a way to account for these periodic changes.
-                For that reason, the second component of our model is applying
-                a (2,1) ARIMA model to the results of the linear regression.  The ARIMA
-                takes care of any periodic shifts in the response variable over time.
+                <p>In addition to these factors, previous days are also predictive
+                of future days, as we observed by looking at the residuals of our linear
+                model.  We needed a way to account for the correlation between adjacent days.
+                For that reason, we fit a (2,1) ARMA model to the results of the linear regression;
+                this serves as the final component of our model.
                 </p>
             </div>
         </div>
