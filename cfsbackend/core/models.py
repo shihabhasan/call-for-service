@@ -87,15 +87,6 @@ class CallOverview:
     def qs(self):
         return self.filter.qs
 
-    def volume_by_field(self, field, alias=None):
-        if alias:
-            qs = self.qs.annotate(**{alias: F(field)}).values(alias)
-            field = alias
-        else:
-            qs = self.qs.values(field)
-
-        return qs.annotate(volume=Count(field))
-
     def volume_by_date(self):
         cursor = connection.cursor()
 
@@ -149,11 +140,14 @@ class CallOverview:
     def volume_by_source(self):
         results = self.qs \
             .annotate(date=DateTrunc('time_received', by='day'),
-                      self_initiated=Case(When(call_source__descr="Self Initiated", then=True),
-                                          default=False,
-                                          output_field=IntegerField())) \
+                      self_initiated=Case(
+                          When(call_source__descr="Self Initiated", then=True),
+                          default=False,
+                          output_field=IntegerField())) \
             .values("date", "self_initiated") \
-            .annotate(volume=Count("self_initiated"))
+            .annotate(volume=Count("self_initiated")) \
+            .order_by("date")
+
         return results
 
     def officer_response_time_by_beat(self):
@@ -165,6 +159,16 @@ class CallOverview:
                                        output_field=IntegerField())))
         return results
 
+    def volume_by_beat(self):
+        qs = self.qs.annotate(name=F('beat__descr'), id=F('beat_id')).values(
+            'name', 'id')
+        return qs.annotate(volume=Count('name'))
+
+    def volume_by_field(self, field):
+        qs = self.qs.annotate(name=F(field + "__descr"),
+                              id=F(field + "_id")).values('name', 'id')
+        return qs.annotate(volume=Count('name'))
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
@@ -172,9 +176,9 @@ class CallOverview:
             'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_source(),
-            'volume_by_nature': self.volume_by_field('nature__descr', alias="name"),
-            'volume_by_beat': self.volume_by_field('beat__descr', alias="name"),
-            'volume_by_close_code': self.volume_by_field('close_code__descr', alias="name"),
+            'volume_by_nature': self.volume_by_field('nature'),
+            'volume_by_beat': self.volume_by_field('beat'),
+            'volume_by_close_code': self.volume_by_field('close_code'),
             'officer_response_time_by_beat': self.officer_response_time_by_beat()
         }
 
@@ -234,6 +238,7 @@ class City(ModelWithDescr):
     class Meta:
         managed = False
         db_table = 'city'
+
 
 class Squad(ModelWithDescr):
     squad_id = models.IntegerField(primary_key=True)
