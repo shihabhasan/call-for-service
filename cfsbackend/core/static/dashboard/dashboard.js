@@ -173,6 +173,10 @@ function cleanupData(data) {
 function monitorChart(keypath, fn) {
     dashboard.observe(keypath, function (newData) {
         if (!dashboard.get('loading')) {
+            // If we don't remove the tooltips before updating
+            // the chart, they'll stick around
+            d3.selectAll(".nvtooltip").remove();
+
             fn(newData);
         }
     })
