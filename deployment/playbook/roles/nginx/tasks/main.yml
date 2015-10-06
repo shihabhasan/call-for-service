@@ -3,6 +3,8 @@
   apt: name=nginx state=present
 - name: Copy Nginx configuration
   template: src=site.conf.j2 dest=/etc/nginx/sites-available/{{ project.name }}.conf force=yes
+- name: Create Nginx log location
+  file: path={{ project.root }}logs state=directory  
 - name: Remove Nginx default configuration
   file: path=/etc/nginx/sites-enabled/default state=absent
   notify:
@@ -11,3 +13,5 @@
   file: src=/etc/nginx/sites-available/{{ project.name }}.conf dest=/etc/nginx/sites-enabled/{{ project.name }}.conf state=link
   notify:
     - Restart Nginx
+- name: Make sure Nginx is running
+  service: name=nginx enabled=yes state=started

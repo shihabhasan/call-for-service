@@ -14,7 +14,9 @@
 
 - name: Manually create the initial virtualenv
   sudo_user: "{{ project.user }}"
-  command: virtualenv "{{ project.virtualenv }}" -p python3.4 creates="{{ project.virtualenv }}"
+  command: >
+    virtualenv {{ project.virtualenv }} -p python3.4 
+    creates="{{ project.virtualenv }}"
   tags:
     - deploy
     - pip
@@ -78,3 +80,10 @@
     - deploy
     - assets
 
+- name: Create gunicorn upstart service
+  template: src=gunicorn.conf.j2 dest=/etc/init/gunicorn.conf
+  tags:
+    - deploy
+
+- name: Make sure gunicorn is running
+  service: name=gunicorn enabled=yes state=restarted
