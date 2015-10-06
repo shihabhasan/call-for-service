@@ -4,6 +4,8 @@ from .base import *
 DEBUG = False
 COMPRESS_OFFLINE = True
 
+ALLOWED_HOSTS = ['159.203.84.81']
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
