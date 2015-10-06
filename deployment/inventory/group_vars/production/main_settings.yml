@@ -13,7 +13,7 @@ project:
   virtualenv_python: /usr/bin/python3.4
 
 repo:
-  branch: deployment
+  branch: master
   url: "git@bitbucket.org:rtidatascience/cfs_analytics_backend.git"
 
 database:

@@ -14,7 +14,7 @@ server {
     location = /favicon.ico { access_log off; log_not_found off; }
 
     location /static/ {
-        alias {{ project.root }}cfsbackend/staticfiles/;
+        alias {{ django.root }}staticfiles/;
         autoindex off;
     }
 
