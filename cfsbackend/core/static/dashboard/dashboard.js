@@ -57,13 +57,16 @@ function cleanupData(data) {
     var natureCols = 30;
     var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
 
-    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
-        _.chain(volumeByNature)
+    var allOther = _.chain(volumeByNature)
             .rest(natureCols - 1)
             .reduce(function (total, cur) {
                 return {name: "ALL OTHER", volume: total.volume + cur.volume}
             }, {name: "ALL OTHER", volume: 0})
             .value()
+
+
+    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
+            allOther > 0 ? allOther : []
     );
 
     data.volume_by_nature = volumeByNature;
