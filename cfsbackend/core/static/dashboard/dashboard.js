@@ -302,7 +302,59 @@ function buildVolumeBySourceChart(data) {
 
         svg.datum(data).call(chart);
 
+        /* Code to update the filter based on this chart.  We're not using this ATM
+         * because it's too complicated to put our filtering in place instead of
+         * the nvd3 filtering.
+         *
+        chart.dispatch.on('stateChange', function(e) {
+
+            // Get the name of the series that's active, if there's only one
+            // Then filter based on it
+            var disabledSeries = e.disabled.filter(function(d) { return d; })
+            if (disabledSeries.length == 1) {
+                var activeSeries = svg.datum()[e.disabled.indexOf(false)].key; 
+                console.log(activeSeries);
+                toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
+            }
+
+            // Also call the chart's listener (unnecessary)
+            //nvStateChangeListener(e);
+        });
+
+
+        */
+
+        // Disable the NV default chart filtering
+        var disableNvFiltering = function() {
+            chart.stacked.dispatch.on("areaClick", null);
+            chart.stacked.dispatch.on("areaClick.toggle", null);
+            
+            chart.stacked.scatter.dispatch.on("elementClick", null);
+            chart.stacked.scatter.dispatch.on("elementClick.area", null);
+
+            chart.legend.dispatch.on("legendClick", null);
+            chart.legend.dispatch.on("legendDblclick", null);
+            chart.legend.dispatch.on("stateChange", null);
+
+            if (chart.update) {
+
+                var originalUpdate = chart.update;
+
+                chart.update = function() {
+                    originalUpdate();
+                    disableNvFiltering();
+                }
+            }
+        }
+
+        disableNvFiltering();
+
+
         nv.utils.windowResize(chart.update);
+
+        // Since we've disabled filtering in the legend, we want to prevent
+        // it from looking clickable
+        d3.select("#volume-by-source .nv-legend").style('pointer-events', 'none');
 
         return chart;
     });
