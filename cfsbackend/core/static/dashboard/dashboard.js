@@ -259,10 +259,13 @@ function buildVolumeByNatureChart(data) {
 
         svg.datum([{key: "Call Volume", values: data}]).call(chart);
 
+        /* Click filtering; too buggy for the client to see right now
         svg.selectAll('.nv-bar').style('cursor', 'pointer');
+
         chart.discretebar.dispatch.on('elementClick', function (e) {
             toggleFilter("nature", e.data.id);
         });
+        */
 
         // Have to call this both during creation and after updating the chart
         // when the window is resized.
@@ -392,10 +395,12 @@ function buildVolumeByBeatChart(data) {
 
         svg.datum(data).call(chart);
 
+        /* More click filtering
         svg.selectAll('.nv-bar').style('cursor', 'pointer');
         chart.multibar.dispatch.on('elementClick', function (e) {
             toggleFilter("beat", e.data.id);
         });
+        */
 
         nv.utils.windowResize(chart.update);
 
