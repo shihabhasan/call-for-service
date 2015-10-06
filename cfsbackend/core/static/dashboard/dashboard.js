@@ -251,6 +251,7 @@ function buildVolumeByNatureChart(data) {
 
         svg.datum([{key: "Call Volume", values: data}]).call(chart);
 
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
         chart.discretebar.dispatch.on('elementClick', function (e) {
             toggleFilter("nature", e.data.id);
         });
@@ -384,6 +385,7 @@ function buildVolumeByBeatChart(data) {
 
         svg.datum(data).call(chart);
 
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
         chart.multibar.dispatch.on('elementClick', function (e) {
             toggleFilter("beat", e.data.id);
         });
