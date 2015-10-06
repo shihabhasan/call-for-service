@@ -9,6 +9,10 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
+// Have to keep track of this so we can reset it when the AJAX request
+// forces the scroll to the top of the page
+var curScroll = 0;
+
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
@@ -32,11 +36,14 @@ var dashboard = new Ractive({
 });
 
 dashboard.on('Filter.filterUpdated', function (filter) {
+    $(document).scrollTop(curScroll);
+
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
         newData = cleanupData(newData);
         dashboard.set('data', newData);
+
     });
 });
 
@@ -47,6 +54,7 @@ function toggleFilter(key, value) {
     } else {
         f[key] = value;
     }
+    curScroll = $(document).scrollTop();
     window.location.hash = buildQueryParams(f);
 }
 
@@ -314,7 +322,6 @@ function buildVolumeBySourceChart(data) {
             var disabledSeries = e.disabled.filter(function(d) { return d; })
             if (disabledSeries.length == 1) {
                 var activeSeries = svg.datum()[e.disabled.indexOf(false)].key; 
-                console.log(activeSeries);
                 toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
             }
 
