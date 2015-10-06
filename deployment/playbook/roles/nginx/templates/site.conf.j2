@@ -1,0 +1,30 @@
+upstream django_{{ project.name }} {
+    server                  127.0.0.1:{{ django.port }};
+}
+
+server {
+    listen                  80;
+    server_name             {{inventory_hostname}};
+    client_max_body_size 4G;
+    charset                 utf-8;
+
+    access_log              {{ project.root }}logs/nginx.access.{{ ansible_fqdn }}.log;
+    error_log               {{ project.root }}logs/nginx.error.{{ ansible_fqdn }}.log;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+
+    location /static/ {
+        alias {{ project.root }}cfsbackend/staticfiles/;
+        autoindex off;
+    }
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+
+        proxy_pass http://unix:/{{ project.root }}gunicorn.sock;
+    }
+}

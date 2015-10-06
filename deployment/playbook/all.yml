@@ -6,3 +6,5 @@
   roles:
     - { role: common }
     - { role: postgres }
+    - { role: nginx, tags: nginx }
+    - { role: django, tags: django }

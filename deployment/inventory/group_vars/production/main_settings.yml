@@ -1,4 +1,30 @@
 ---
+ansible_ssh_user: root
+
+project_name: cfs
+
+project:
+  name: "{{ project_name }}"
+  user: cfs
+  group: www-data
+  mode: live
+  root: /opt/{{ project_name }}/
+  virtualenv: /opt/{{ project_name }}/env
+  virtualenv_python: /usr/bin/python3.4
+
+repo:
+  branch: master
+  url: "git@bitbucket.org:rtidatascience/cfs_analytics_backend.git"
+
 database:
   name: cfs
   user: datascientist
+
+django:
+  settings: cfsbackend.settings.prod
+  wsgi: cfsbackend.wsgi
+  port: 8000
+  # absolute path to the root of your django project
+  # in my case this is where the manage.py lives
+  # It's also where the SCM module dumps your project
+  root: "{{ project.root }}src/cfsbackend/"
