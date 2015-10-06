@@ -242,15 +242,32 @@ function buildVolumeByNatureChart(data) {
             })
             .margin({"bottom": 200, "right": 50})
 
-        chart.xAxis.rotateLabels(45);
-
         svg.datum([{key: "Call Volume", values: data}]).call(chart);
 
         chart.discretebar.dispatch.on('elementClick', function (e) {
             toggleFilter("nature", e.data.id);
         });
 
-        nv.utils.windowResize(chart.update);
+        // Have to call this both during creation and after updating the chart
+        // when the window is resized.
+        var rotateLabels = function() {
+            var xTicks = d3.select('#volume-by-nature .nv-x.nv-axis > g').selectAll('g');
+
+            xTicks.selectAll('text')
+                .style("text-anchor", "start")
+                .attr("dx", "0.25em")
+                .attr("dy", "0.75em")
+                .attr("transform", "rotate(45 0,0)" );
+        };
+
+        rotateLabels();
+
+        nv.utils.windowResize(function () {
+            chart.update();
+            rotateLabels();
+
+        });
+
         return chart;
     })
 }
