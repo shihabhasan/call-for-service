@@ -45,10 +45,10 @@
   tags:
     - deploy
 
-- name: Compress assets
+- name: Install assets
   sudo_user: "{{ project.user }}"
   django_manage: >
-    command=compress
+    command="bower install"
     app_path={{ django.root }}
     settings={{ django.settings }}
     virtualenv={{ project.virtualenv }}
@@ -66,3 +66,15 @@
   tags:
     - deploy
     - assets
+
+- name: Compress assets
+  sudo_user: "{{ project.user }}"
+  django_manage: >
+    command=compress
+    app_path={{ django.root }}
+    settings={{ django.settings }}
+    virtualenv={{ project.virtualenv }}
+  tags:
+    - deploy
+    - assets
+
