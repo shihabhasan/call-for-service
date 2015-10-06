@@ -69,16 +69,16 @@
     - deploy
     - assets
 
-- name: Compress assets
-  sudo_user: "{{ project.user }}"
-  django_manage: >
-    command=compress
-    app_path={{ django.root }}
-    settings={{ django.settings }}
-    virtualenv={{ project.virtualenv }}
-  tags:
-    - deploy
-    - assets
+# - name: Compress assets
+#   sudo_user: "{{ project.user }}"
+#   django_manage: >
+#     command=compress
+#     app_path={{ django.root }}
+#     settings={{ django.settings }}
+#     virtualenv={{ project.virtualenv }}
+#   tags:
+#     - deploy
+#     - assets
 
 - name: Create gunicorn upstart service
   template: src=gunicorn.conf.j2 dest=/etc/init/gunicorn.conf
@@ -87,3 +87,5 @@
 
 - name: Make sure gunicorn is running
   service: name=gunicorn enabled=yes state=restarted
+  tags:
+    - deploy

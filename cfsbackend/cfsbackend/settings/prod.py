@@ -2,7 +2,7 @@ from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-COMPRESS_OFFLINE = True
+# COMPRESS_OFFLINE = True
 
 ALLOWED_HOSTS = ['159.203.84.81']
 
