@@ -2,14 +2,19 @@
 
 {% load staticfiles %}
 
+{% block head %}
+    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+{% endblock %}
+
 {% block content %}
     <script id="dashboard-template" type="text/html">
         <Filter />
         <div class="row">
             <div class="small-12 columns">
-                <div id="volume-over-time">
+                <div id="volume-by-date">
                     <h3 class="chart-title">Call Volume Over Time</h3>
                     {% include "_loading.html" %}
+                    <svg></svg>
                 </div>
             </div>
         </div>
@@ -26,6 +31,7 @@
                 <div id="volume-by-source">
                     <h3 class="chart-title">Call Volume By Source</h3>
                     {% include "_loading.html" %}
+                    <svg></svg>
                 </div>
 
             </div>
@@ -33,6 +39,7 @@
                 <div id="volume-by-beat">
                     <h3 class="chart-title">Call Volume By Beat</h3>
                     {% include "_loading.html" %}
+                    <svg></svg>
                 </div>
             </div>
         </div>
@@ -41,14 +48,7 @@
                 <div id="volume-by-nature">
                     <h3 class="chart-title">Call Volume By Nature</h3>
                     {% include "_loading.html" %}
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="small-12 columns">
-                <div id="volume-by-close-code">
-                    <h3 class="chart-title">Call Volume By Close Code</h3>
-                    {% include "_loading.html" %}
+                    <svg></svg>
                 </div>
             </div>
         </div>
@@ -61,8 +61,10 @@
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
+    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
+    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
-    <script src="{% static 'dimple/dist/dimple.v2.1.6.js' %}"></script>
+    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
     <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
     <script src="{% static 'dashboard/dashboard.js' %}"></script>
 {% endblock %}

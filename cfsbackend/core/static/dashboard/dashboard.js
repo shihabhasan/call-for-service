@@ -9,6 +9,10 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
+// Have to keep track of this so we can reset it when the AJAX request
+// forces the scroll to the top of the page
+var curScroll = 0;
+
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
@@ -32,74 +36,165 @@ var dashboard = new Ractive({
 });
 
 dashboard.on('Filter.filterUpdated', function (filter) {
+    $(document).scrollTop(curScroll);
+
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
         newData = cleanupData(newData);
         dashboard.set('data', newData);
+
     });
 });
 
+function toggleFilter(key, value) {
+    var f = _.clone(dashboard.findComponent('Filter').get('filter'));
+    if (f[key] == value) {
+        delete f[key];
+    } else {
+        f[key] = value;
+    }
+    curScroll = $(document).scrollTop();
+    window.location.hash = buildQueryParams(f);
+}
+
+
 function cleanupData(data) {
+    var indate = d3.time.format("%Y-%m-%dT%H:%M:%S");
+
     var natureCols = 30;
     var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
 
-    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
-        _.chain(volumeByNature)
+    var allOther = _.chain(volumeByNature)
             .rest(natureCols - 1)
             .reduce(function (total, cur) {
                 return {name: "ALL OTHER", volume: total.volume + cur.volume}
             }, {name: "ALL OTHER", volume: 0})
             .value()
+
+
+    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
+            allOther > 0 ? allOther : []
     );
 
     data.volume_by_nature = volumeByNature;
 
-    var volumeByDate = _.chain(data.volume_by_date)
-        .sortBy('date')
-        .map(function (d) {
-            return [
-                {date: d.date, volume: d.volume, type: "Daily Volume"},
-                {date: d.date, volume: d.average, type: "30-Day Moving Average"}
-            ]
-        })
-        .flatten()
+    data.volume_by_date = [
+        {
+            key: "Call Volume",
+            values: _.map(data.volume_by_date, function (obj) {
+                obj = _.chain(obj)
+                    .selectKeys(["date", "volume"])
+                    .renameKeys({"date": "x", "volume": "y"})
+                    .value();
+                obj.x = indate.parse(obj.x);
+                return obj;
+            })
+        },
+        {
+            key: "30-Day Average",
+            values: _.map(data.volume_by_date, function (obj) {
+                obj = _.chain(obj)
+                    .selectKeys(["date", "average"])
+                    .renameKeys({"date": "x", "average": "y"})
+                    .value();
+                obj.x = indate.parse(obj.x);
+                return obj;
+            })
+        }
+    ];
+
+    var volBySrc = data.volume_by_source;
+
+    var si = _.chain(volBySrc)
+        .filter(function (d) { return d.self_initiated; })
+        .reduce(function (obj, d) {
+            obj[d.date] = d.volume;
+            return obj;
+        }, {})
         .value();
 
-    data.volume_by_date = volumeByDate;
+    var ci = _.chain(volBySrc)
+        .filter(function (d) { return !d.self_initiated; })
+        .reduce(function (obj, d) {
+            obj[d.date] = d.volume;
+            return obj;
+        }, {})
+        .value();
 
-    _(data.volume_by_source).each(function (d) {
-        d.source = d.self_initiated ? "Self Initiated" : "Citizen Initiated";
+    _.difference(_.keys(ci), _.keys(si)).forEach(function (k) {
+        si[k] = 0;
     });
+    _.difference(_.keys(si), _.keys(ci)).forEach(function (k) {
+        ci[k] = 0;
+    });
+
+
+    data.volume_by_source = [
+        {
+            key: "Self Initiated",
+            values: _.chain(si)
+                .pairs()
+                .sortBy(function (d) { return d[0]} )
+                .map(function (d) {
+                    return {
+                        x: indate.parse(d[0]),
+                        y: d[1]
+                    }
+                })
+                .value()
+        },
+        {
+            key: "Citizen Initiated",
+            values: _.chain(ci)
+                .pairs()
+                .sortBy(function (d) { return d[0]} )
+                .map(function (d) {
+                    return {
+                        x: indate.parse(d[0]),
+                        y: d[1]
+                    }
+                })
+                .value()
+        }
+    ];
+
+
+
+    data.volume_by_beat = [
+        {
+            key: "Volume By Beat",
+            values: _.chain(data.volume_by_beat)
+                .filter(function (d) {
+                    return d.name;
+                })
+                .sortBy(function (d) {
+                    return d.volume;
+                })
+                .value()
+        }
+    ];
 
     return data;
 }
 
-dashboard.observe('data.day_hour_heatmap', function (newData) {
-    if (!dashboard.get('loading')) {
-        charts.dayHourHeatmap = buildDayHourHeatmap(newData);
-    }
-});
-
-function monitorChart(keypath, chartName, buildFn) {
+function monitorChart(keypath, fn) {
     dashboard.observe(keypath, function (newData) {
         if (!dashboard.get('loading')) {
-            if (!charts[chartName]) {
-                charts[chartName] = buildFn(newData);
-            } else {
-                charts[chartName].data = newData;
-                charts[chartName].draw(200);
-            }
+            // If we don't remove the tooltips before updating
+            // the chart, they'll stick around
+            d3.selectAll(".nvtooltip").remove();
+
+            fn(newData);
         }
     })
 }
 
-monitorChart('data.volume_by_date', 'volumeByDate', buildVolumeByDateChart);
-monitorChart('data.volume_by_source', 'volumeBySource', buildVolumeBySourceChart);
-monitorChart('data.volume_by_beat', 'volumeByBeat', buildVolumeByBeatChart);
-monitorChart('data.volume_by_nature', 'volumeByNature', buildVolumeByNatureChart);
-monitorChart('data.volume_by_close_code', 'volumeByCloseCode', buildVolumeByCloseCodeChart);
-
+monitorChart('data.day_hour_heatmap', buildDayHourHeatmap);
+monitorChart('data.volume_by_nature', buildVolumeByNatureChart);
+monitorChart('data.volume_by_date', buildVolumeByDateChart);
+monitorChart('data.volume_by_source', buildVolumeBySourceChart);
+monitorChart('data.volume_by_beat', buildVolumeByBeatChart);
 
 // ========================================================================
 // Functions
@@ -109,134 +204,208 @@ function buildURL(filter) {
     return url + "?" + buildQueryParams(filter);
 }
 
+
 function buildVolumeByDateChart(data) {
-    var parentWidth = d3.select("#volume-over-time").node().clientWidth;
+    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
+    var width = parentWidth;
+    var height = width / 2.5;
 
-    var margin = {top: 40, right: 50, bottom: 70, left: 50},
-        width = parentWidth,
-        height = parentWidth * 0.3;
+    var svg = d3.select("#volume-by-date svg");
+    svg.attr("width", width).attr("height", height);
 
-    var svg = dimple.newSvg("#volume-over-time", width, height);
+    nv.addGraph(function () {
+        var chart = nv.models.lineChart()
+            .options({
+                margin: {"right": 50},
+                transitionDuration: 300,
+                useInteractiveGuideline: true,
+                forceY: [0]
+            });
 
-    var myChart = new dimple.chart(svg, data);
-    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+        chart.xAxis
+            .axisLabel("Date")
+            .tickFormat(function (d) {
+                return d3.time.format('%x')(new Date(d));
+            });
 
-    var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
-    x.title = "Date";
-    var y1 = myChart.addMeasureAxis("y", "volume");
-    y1.title = "Call Volume";
-    y1.ticks = 5;
+        chart.yAxis
+            .axisLabel("Volume")
+            .tickFormat(d3.format(",d"));
 
-    var s1 = myChart.addSeries("type", dimple.plot.line);
-    var ttDate = d3.time.format(outFormats["day"]);
-    s1.getTooltipText = function (e) {
-        console.log(e);
-        return ["Date: " + ttDate(e.cx),
-                "Volume: " + e.cy];
-    }
-
-    myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
-    myChart.draw();
-
-    return myChart;
+        svg.datum(data).call(chart);
+        nv.utils.windowResize(chart.update);
+        return chart;
+    });
 }
+
+
+function buildVolumeByNatureChart(data) {
+    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
+    var width = parentWidth;
+    var height = width / 2;
+
+    var svg = d3.select("#volume-by-nature svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.discreteBarChart()
+            .x(function (d) {
+                return d.name
+            })
+            .y(function (d) {
+                return d.volume
+            })
+            .margin({"bottom": 200, "right": 50})
+
+        svg.datum([{key: "Call Volume", values: data}]).call(chart);
+
+        /* Click filtering; too buggy for the client to see right now
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+
+        chart.discretebar.dispatch.on('elementClick', function (e) {
+            toggleFilter("nature", e.data.id);
+        });
+        */
+
+        // Have to call this both during creation and after updating the chart
+        // when the window is resized.
+        var rotateLabels = function() {
+            var xTicks = d3.select('#volume-by-nature .nv-x.nv-axis > g').selectAll('g');
+
+            xTicks.selectAll('text')
+                .style("text-anchor", "start")
+                .attr("dx", "0.25em")
+                .attr("dy", "0.75em")
+                .attr("transform", "rotate(45 0,0)" );
+        };
+
+        rotateLabels();
+
+        nv.utils.windowResize(function () {
+            chart.update();
+            rotateLabels();
+
+        });
+
+        return chart;
+    })
+}
+
 
 function buildVolumeBySourceChart(data) {
     var parentWidth = d3.select("#volume-by-source").node().clientWidth;
+    var width = parentWidth,
+        height = width / 2;
 
-    var margin = {top: 50, right: 10, bottom: 80, left: 20},
-        width = parentWidth,
-        height = parentWidth * 0.5;
+    var svg = d3.select("#volume-by-source svg");
+    svg.attr("width", width).attr("height", height);
 
-    var svg = dimple.newSvg("#volume-by-source", width, height);
+    nv.addGraph(function () {
+        var chart = nv.models.stackedAreaChart()
+            .useInteractiveGuideline(true)
+            .duration(300)
+            .margin({"right": 50});
 
-    var myChart = new dimple.chart(svg, data);
-    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+        chart.xAxis.tickFormat(function (d) {
+            return d3.time.format('%x')(new Date(d))
+        });
+        chart.yAxis.tickFormat(d3.format(',.1f%'));
+        chart.style('expand');
 
-    var x = myChart.addTimeAxis("x", "date", "%Y-%m-%dT%H:%M:%S", outFormats["week"]);
-    x.title = "Date";
-    var y = myChart.addPctAxis("y", "volume");
-    y.hidden = true;
-    var area = myChart.addSeries("source", dimple.plot.area);
-    area.interpolation = 'cardinal';
-    var ttDate = d3.time.format(outFormats["day"]);
-    var pct = d3.format("%p");
-    area.getTooltipText = function (e) {
-        return ["Date: " + ttDate(e.cx),
-                "Self Initiated: " + pct(e.cy),
-                "Citizen Initiated: " + pct(1 - e.cy)];
-    }
-    myChart.addLegend(width - margin.right - 100, 0, 100, 40, "right");
-    myChart.draw();
+        svg.datum(data).call(chart);
 
-    return myChart;
+        /* Code to update the filter based on this chart.  We're not using this ATM
+         * because it's too complicated to put our filtering in place instead of
+         * the nvd3 filtering.
+         *
+        chart.dispatch.on('stateChange', function(e) {
+
+            // Get the name of the series that's active, if there's only one
+            // Then filter based on it
+            var disabledSeries = e.disabled.filter(function(d) { return d; })
+            if (disabledSeries.length == 1) {
+                var activeSeries = svg.datum()[e.disabled.indexOf(false)].key; 
+                toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
+            }
+
+            // Also call the chart's listener (unnecessary)
+            //nvStateChangeListener(e);
+        });
+
+
+        */
+
+        // Disable the NV default chart filtering
+        var disableNvFiltering = function() {
+            chart.stacked.dispatch.on("areaClick", null);
+            chart.stacked.dispatch.on("areaClick.toggle", null);
+            
+            chart.stacked.scatter.dispatch.on("elementClick", null);
+            chart.stacked.scatter.dispatch.on("elementClick.area", null);
+
+            chart.legend.dispatch.on("legendClick", null);
+            chart.legend.dispatch.on("legendDblclick", null);
+            chart.legend.dispatch.on("stateChange", null);
+
+            if (chart.update) {
+
+                var originalUpdate = chart.update;
+
+                chart.update = function() {
+                    originalUpdate();
+                    disableNvFiltering();
+                }
+            }
+        }
+
+        disableNvFiltering();
+
+
+        nv.utils.windowResize(chart.update);
+
+        // Since we've disabled filtering in the legend, we want to prevent
+        // it from looking clickable
+        d3.select("#volume-by-source .nv-legend").style('pointer-events', 'none');
+
+        return chart;
+    });
 }
+
 
 function buildVolumeByBeatChart(data) {
     var parentWidth = d3.select("#volume-by-beat").node().clientWidth;
 
-    var margin = {top: 20, right: 20, bottom: 20, left: 50},
-        width = parentWidth,
-        height = parentWidth * 1.1;
+    var width = parentWidth,
+        height = width * 2;
 
-    var svg = dimple.newSvg("#volume-by-beat", width, height);
+    var svg = d3.select("#volume-by-beat svg");
+    svg.attr("width", width).attr("height", height);
 
-    var myChart = new dimple.chart(svg, data);
-    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
+    nv.addGraph(function () {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(function (d) {
+                return d.name
+            })
+            .y(function (d) {
+                return d.volume
+            }).showValues(true)
+            .duration(250)
+            .showControls(false)
+            .showLegend(false);
 
-    var x = myChart.addMeasureAxis("x", "volume");
-    x.title = null;
-    var y = myChart.addCategoryAxis("y", "name");
-    y.addOrderRule("volume", true);
-    y.title = null;
-    myChart.addSeries(null, dimple.plot.bar);
-    myChart.draw();
+        svg.datum(data).call(chart);
 
-    return myChart;
-}
+        /* More click filtering
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        chart.multibar.dispatch.on('elementClick', function (e) {
+            toggleFilter("beat", e.data.id);
+        });
+        */
 
-function buildVolumeByNatureChart(data) {
-    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
+        nv.utils.windowResize(chart.update);
 
-    var margin = {top: 20, right: 50, bottom: 200, left: 50},
-        width = parentWidth,
-        height = parentWidth * 0.5;
-
-    var svg = dimple.newSvg("#volume-by-nature", width, height);
-
-    var myChart = new dimple.chart(svg, data);
-    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
-
-    var x = myChart.addCategoryAxis("x", "name");
-    x.title = null;
-    var y = myChart.addMeasureAxis("y", "volume");
-    y.ticks = 5;
-    y.title = null;
-    var s = myChart.addSeries(null, dimple.plot.bar);
-    myChart.draw();
-    return myChart;
-}
-
-function buildVolumeByCloseCodeChart(data) {
-    var parentWidth = d3.select("#volume-by-close-code").node().clientWidth;
-
-    var margin = {top: 20, right: 50, bottom: 200, left: 50},
-        width = parentWidth,
-        height = parentWidth * 0.5;
-
-    var svg = dimple.newSvg("#volume-by-close-code", width, height);
-
-    var myChart = new dimple.chart(svg, data);
-    myChart.setMargins(margin.left, margin.top, margin.right, margin.bottom);
-
-    var x = myChart.addCategoryAxis("x", "name");
-    x.title = null;
-    var y = myChart.addMeasureAxis("y", "volume");
-    y.ticks = 5;
-    y.title = null;
-    myChart.addSeries(null, dimple.plot.bar);
-    myChart.draw();
-    return myChart;
+        return chart;
+    });
 }
 
 function buildDayHourHeatmap(data) {
