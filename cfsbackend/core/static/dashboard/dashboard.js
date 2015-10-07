@@ -22,6 +22,7 @@ var dashboard = new Ractive({
             return string.charAt(0).toUpperCase() + string.slice(1);
         },
         loading: true,
+        initialload: true,
         data: {
             'volume_over_time': {
                 'period_size': 'day',
@@ -36,11 +37,11 @@ var dashboard = new Ractive({
 });
 
 dashboard.on('Filter.filterUpdated', function (filter) {
-    $(document).scrollTop(curScroll);
-
+    dashboard.set('loading', true);
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
+        dashboard.set('initialload', false);
         newData = cleanupData(newData);
         dashboard.set('data', newData);
 
@@ -54,8 +55,7 @@ function toggleFilter(key, value) {
     } else {
         f[key] = value;
     }
-    curScroll = $(document).scrollTop();
-    window.location.hash = buildQueryParams(f);
+    updateHash(buildQueryParams(f));
 }
 
 

@@ -17,7 +17,9 @@
                 </div>
 
                 <div class="small-1 columns filter-edit">
-                    [[ #if editing ]]
+                    [[ #if loading ]]
+                    <i class="fa fa-spinner fa-spin"></i>
+                    [[ elseif editing ]]
                     <i class="fa fa-close clickable"
                        on-click="editfilter:stop"></i>
                     [[ else ]]
@@ -28,7 +30,7 @@
             </div>
         </div>
         [[ #if editing ]]
-        <div class="small-12 columns filter-form" intro-outro="slide">
+        <div class="small-12 columns filter-form" intro="slide">
             <div class="row">
                 <div class="small-11 columns">
                     <form>
