@@ -9,10 +9,6 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
-// Have to keep track of this so we can reset it when the AJAX request
-// forces the scroll to the top of the page
-var curScroll = 0;
-
 var dashboard = new Ractive({
     el: document.getElementById("dashboard"),
     template: "#dashboard-template",
@@ -22,6 +18,7 @@ var dashboard = new Ractive({
             return string.charAt(0).toUpperCase() + string.slice(1);
         },
         loading: true,
+        initialload: true,
         data: {
             'volume_over_time': {
                 'period_size': 'day',
@@ -36,26 +33,48 @@ var dashboard = new Ractive({
 });
 
 dashboard.on('Filter.filterUpdated', function (filter) {
-    $(document).scrollTop(curScroll);
-
+    dashboard.set('loading', true);
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);
+        dashboard.set('initialload', false);
         newData = cleanupData(newData);
         dashboard.set('data', newData);
 
     });
 });
 
+dashboard.on('filterByDate', function (event, span) {
+    var pastSunday = moment().day("Sunday").startOf("day");
+
+    var f = cloneFilter();
+    if (span === "7days") {
+        f['time_received_0'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
+        f['time_received_1'] = pastSunday.format("YYYY-MM-DD");
+    } else if (span === "28days") {
+        f['time_received_0'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
+        f['time_received_1'] = pastSunday.format("YYYY-MM-DD");
+    } else if (span == "ytd") {
+        f['time_received_0'] = moment().clone().startOf("year").format("YYYY-MM-DD");
+        delete f['time_received_1'];
+    }
+
+    updateHash(buildQueryParams(f));
+    return false;
+});
+
+function cloneFilter() {
+    return _.clone(dashboard.findComponent('Filter').get('filter'));
+}
+
 function toggleFilter(key, value) {
-    var f = _.clone(dashboard.findComponent('Filter').get('filter'));
+    var f = cloneFilter();
     if (f[key] == value) {
         delete f[key];
     } else {
         f[key] = value;
     }
-    curScroll = $(document).scrollTop();
-    window.location.hash = buildQueryParams(f);
+    updateHash(buildQueryParams(f));
 }
 
 
@@ -66,16 +85,14 @@ function cleanupData(data) {
     var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
 
     var allOther = _.chain(volumeByNature)
-            .rest(natureCols - 1)
-            .reduce(function (total, cur) {
-                return {name: "ALL OTHER", volume: total.volume + cur.volume}
-            }, {name: "ALL OTHER", volume: 0})
-            .value()
-
+        .rest(natureCols - 1)
+        .reduce(function (total, cur) {
+            return {name: "ALL OTHER", volume: total.volume + cur.volume}
+        }, {name: "ALL OTHER", volume: 0})
+        .value();
 
     volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
-            allOther > 0 ? allOther : []
-    );
+        allOther.volume > 0 ? [allOther] : []);
 
     data.volume_by_nature = volumeByNature;
 
@@ -107,7 +124,9 @@ function cleanupData(data) {
     var volBySrc = data.volume_by_source;
 
     var si = _.chain(volBySrc)
-        .filter(function (d) { return d.self_initiated; })
+        .filter(function (d) {
+            return d.self_initiated;
+        })
         .reduce(function (obj, d) {
             obj[d.date] = d.volume;
             return obj;
@@ -115,7 +134,9 @@ function cleanupData(data) {
         .value();
 
     var ci = _.chain(volBySrc)
-        .filter(function (d) { return !d.self_initiated; })
+        .filter(function (d) {
+            return !d.self_initiated;
+        })
         .reduce(function (obj, d) {
             obj[d.date] = d.volume;
             return obj;
@@ -135,7 +156,9 @@ function cleanupData(data) {
             key: "Self Initiated",
             values: _.chain(si)
                 .pairs()
-                .sortBy(function (d) { return d[0]} )
+                .sortBy(function (d) {
+                    return d[0]
+                })
                 .map(function (d) {
                     return {
                         x: indate.parse(d[0]),
@@ -148,7 +171,9 @@ function cleanupData(data) {
             key: "Citizen Initiated",
             values: _.chain(ci)
                 .pairs()
-                .sortBy(function (d) { return d[0]} )
+                .sortBy(function (d) {
+                    return d[0]
+                })
                 .map(function (d) {
                     return {
                         x: indate.parse(d[0]),
@@ -158,7 +183,6 @@ function cleanupData(data) {
                 .value()
         }
     ];
-
 
 
     data.volume_by_beat = [
@@ -259,24 +283,24 @@ function buildVolumeByNatureChart(data) {
 
         svg.datum([{key: "Call Volume", values: data}]).call(chart);
 
-        /* Click filtering; too buggy for the client to see right now
         svg.selectAll('.nv-bar').style('cursor', 'pointer');
 
         chart.discretebar.dispatch.on('elementClick', function (e) {
-            toggleFilter("nature", e.data.id);
+            if (e.data.id) {
+                toggleFilter("nature", e.data.id);
+            }
         });
-        */
 
         // Have to call this both during creation and after updating the chart
         // when the window is resized.
-        var rotateLabels = function() {
+        var rotateLabels = function () {
             var xTicks = d3.select('#volume-by-nature .nv-x.nv-axis > g').selectAll('g');
 
             xTicks.selectAll('text')
                 .style("text-anchor", "start")
                 .attr("dx", "0.25em")
                 .attr("dy", "0.75em")
-                .attr("transform", "rotate(45 0,0)" );
+                .attr("transform", "rotate(45 0,0)");
         };
 
         rotateLabels();
@@ -318,28 +342,28 @@ function buildVolumeBySourceChart(data) {
          * because it's too complicated to put our filtering in place instead of
          * the nvd3 filtering.
          *
-        chart.dispatch.on('stateChange', function(e) {
+         chart.dispatch.on('stateChange', function(e) {
 
-            // Get the name of the series that's active, if there's only one
-            // Then filter based on it
-            var disabledSeries = e.disabled.filter(function(d) { return d; })
-            if (disabledSeries.length == 1) {
-                var activeSeries = svg.datum()[e.disabled.indexOf(false)].key; 
-                toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
-            }
+         // Get the name of the series that's active, if there's only one
+         // Then filter based on it
+         var disabledSeries = e.disabled.filter(function(d) { return d; })
+         if (disabledSeries.length == 1) {
+         var activeSeries = svg.datum()[e.disabled.indexOf(false)].key;
+         toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
+         }
 
-            // Also call the chart's listener (unnecessary)
-            //nvStateChangeListener(e);
-        });
+         // Also call the chart's listener (unnecessary)
+         //nvStateChangeListener(e);
+         });
 
 
-        */
+         */
 
         // Disable the NV default chart filtering
-        var disableNvFiltering = function() {
+        var disableNvFiltering = function () {
             chart.stacked.dispatch.on("areaClick", null);
             chart.stacked.dispatch.on("areaClick.toggle", null);
-            
+
             chart.stacked.scatter.dispatch.on("elementClick", null);
             chart.stacked.scatter.dispatch.on("elementClick.area", null);
 
@@ -351,7 +375,7 @@ function buildVolumeBySourceChart(data) {
 
                 var originalUpdate = chart.update;
 
-                chart.update = function() {
+                chart.update = function () {
                     originalUpdate();
                     disableNvFiltering();
                 }
@@ -395,12 +419,11 @@ function buildVolumeByBeatChart(data) {
 
         svg.datum(data).call(chart);
 
-        /* More click filtering
+        // More click filtering
         svg.selectAll('.nv-bar').style('cursor', 'pointer');
         chart.multibar.dispatch.on('elementClick', function (e) {
             toggleFilter("beat", e.data.id);
         });
-        */
 
         nv.utils.windowResize(chart.update);
 
