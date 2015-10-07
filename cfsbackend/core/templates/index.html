@@ -2,7 +2,7 @@
 
 {% load staticfiles %}
 
-{% block head %}
+{% block stylesheets %}
     <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
 {% endblock %}
 
@@ -15,6 +15,13 @@
                     <h3 class="chart-title">Call Volume Over Time</h3>
                     {% include "_loading.html" %}
                     <svg></svg>
+                </div>
+                <div class="chart-controls">
+                    <ul class="inline-list">
+                        <li><a href="" on-click="filterByDate:ytd">Year to Date</a></li>
+                        <li><a href="" on-click="filterByDate:28days">Past 28 Days</a></li>
+                        <li><a href="" on-click="filterByDate:7days">Past 7 Days</a></li>
+                    </ul>
                 </div>
             </div>
         </div>

@@ -68,7 +68,7 @@ var Filter = Ractive.extend({
         });
 
         this.on('removefilter', function (event, key) {
-            window.location.hash = buildQueryParams(_.omit(this.get("filter"), key));
+            updateHash(buildQueryParams(_.omit(this.get("filter"), key)));
         });
 
         this.on('addfilter', function (event) {
@@ -87,7 +87,7 @@ var Filter = Ractive.extend({
             filter = _.clone(filter);
             filter[key] = value;
 
-            window.location.hash = buildQueryParams(filter);
+            updateHash(buildQueryParams(filter));
 
             // prevent default
             return false;
@@ -197,7 +197,13 @@ function buildQueryParams(obj) {
 }
 
 function parseQueryParams(str) {
-    if (typeof str != "string" || str.length == 0) return {};
+    if (typeof str != "string") return {};
+    if (str.charAt(0) === "!") {
+        str = str.slice(1);
+    }
+
+    if (str.length == 0) return {};
+
     var s = str.split("&");
     var s_length = s.length;
     var bit,
@@ -212,4 +218,10 @@ function parseQueryParams(str) {
         if (typeof query[first] == "undefined") query[first] = second; else if (query[first] instanceof Array) query[first].push(second); else query[first] = [query[first], second];
     }
     return query;
+}
+
+function updateHash(newHash) {
+    var scr = document.body.scrollTop;
+    window.location.hash = "!" + newHash;
+    document.body.scrollTop = scr;
 }
