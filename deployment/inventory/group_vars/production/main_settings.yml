@@ -28,3 +28,8 @@ django:
   # in my case this is where the manage.py lives
   # It's also where the SCM module dumps your project
   root: "{{ project.root }}src/cfsbackend/"
+
+nginx:
+  servernames:
+    - dpdcfs.rticds.org
+    - "{{ inventory_hostname }}"

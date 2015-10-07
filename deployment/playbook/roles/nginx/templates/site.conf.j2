@@ -1,10 +1,10 @@
-upstream django_{{ project.name }} {
-    server                  127.0.0.1:{{ django.port }};
-}
-
 server {
     listen                  80;
-    server_name             {{inventory_hostname}};
+    server_name
+    {% for name in nginx.servernames %}
+        {{name}}
+    {%endfor%}
+    ;
     client_max_body_size 4G;
     charset                 utf-8;
 
