@@ -197,7 +197,13 @@ function buildQueryParams(obj) {
 }
 
 function parseQueryParams(str) {
-    if (typeof str != "string" || str.length == 0) return {};
+    if (typeof str != "string") return {};
+    if (str.charAt(0) === "!") {
+        str = str.slice(1);
+    }
+
+    if (str.length == 0) return {};
+
     var s = str.split("&");
     var s_length = s.length;
     var bit,
@@ -216,6 +222,6 @@ function parseQueryParams(str) {
 
 function updateHash(newHash) {
     var scr = document.body.scrollTop;
-    window.location.hash = newHash;
+    window.location.hash = "!" + newHash;
     document.body.scrollTop = scr;
 }
