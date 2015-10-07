@@ -338,27 +338,6 @@ function buildVolumeBySourceChart(data) {
 
         svg.datum(data).call(chart);
 
-        /* Code to update the filter based on this chart.  We're not using this ATM
-         * because it's too complicated to put our filtering in place instead of
-         * the nvd3 filtering.
-         *
-         chart.dispatch.on('stateChange', function(e) {
-
-         // Get the name of the series that's active, if there's only one
-         // Then filter based on it
-         var disabledSeries = e.disabled.filter(function(d) { return d; })
-         if (disabledSeries.length == 1) {
-         var activeSeries = svg.datum()[e.disabled.indexOf(false)].key;
-         toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
-         }
-
-         // Also call the chart's listener (unnecessary)
-         //nvStateChangeListener(e);
-         });
-
-
-         */
-
         // Disable the NV default chart filtering
         var disableNvFiltering = function () {
             chart.stacked.dispatch.on("areaClick", null);
@@ -513,7 +492,7 @@ function buildDayHourHeatmap(data) {
     heatMap.select("title").remove();
 
     heatMap.append("title").text(function (d) {
-        return d.value;
+        return Math.round(d.value);
     });
 
     svg.selectAll(".legend").remove();
