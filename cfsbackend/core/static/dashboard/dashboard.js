@@ -70,12 +70,10 @@ function cleanupData(data) {
             .reduce(function (total, cur) {
                 return {name: "ALL OTHER", volume: total.volume + cur.volume}
             }, {name: "ALL OTHER", volume: 0})
-            .value()
-
+            .value();
 
     volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
-            allOther > 0 ? allOther : []
-    );
+        allOther.volume > 0 ? [allOther] : []);
 
     data.volume_by_nature = volumeByNature;
 
