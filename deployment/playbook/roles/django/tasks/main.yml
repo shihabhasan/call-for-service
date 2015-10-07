@@ -1,0 +1,91 @@
+---
+- name: Pull sources from the repository
+  sudo: yes
+  sudo_user: "{{ project.user }}"
+  git: >
+    repo="{{ repo.url }}"
+    dest="{{ project.root }}src/"
+    version="{{ repo.branch }}"
+    force=yes
+    update=yes
+    accept_hostkey=yes
+  tags:
+    - deploy
+
+- name: Manually create the initial virtualenv
+  sudo_user: "{{ project.user }}"
+  command: >
+    virtualenv {{ project.virtualenv }} -p python3.4 
+    creates="{{ project.virtualenv }}"
+  tags:
+    - deploy
+    - pip
+
+- name: Install requirements with pip
+  pip: >
+    requirements="{{ project.root }}src/requirements.txt"
+    virtualenv="{{ project.virtualenv }}"
+  tags:
+    - deploy
+    - pip
+
+- name: Create Django database settings module
+  sudo_user: "{{ project.user }}"
+  template: >
+    src=webapp_credentials.py.j2
+    dest={{ django.root }}webapp_credentials.py
+  tags:
+    - deploy
+
+- name: Migrate Django database
+  sudo_user: "{{ project.user }}"
+  django_manage: >
+    command=migrate
+    app_path={{ django.root }}
+    settings={{ django.settings }}
+    virtualenv={{ project.virtualenv }}
+  tags:
+    - deploy
+
+- name: Install assets
+  sudo_user: "{{ project.user }}"
+  django_manage: >
+    command="bower install"
+    app_path={{ django.root }}
+    settings={{ django.settings }}
+    virtualenv={{ project.virtualenv }}
+  tags:
+    - deploy
+    - assets
+
+- name: Collect assets
+  sudo_user: "{{ project.user }}"
+  django_manage: >
+    command=collectstatic
+    app_path={{ django.root }}
+    settings={{ django.settings }}
+    virtualenv={{ project.virtualenv }}
+  tags:
+    - deploy
+    - assets
+
+# - name: Compress assets
+#   sudo_user: "{{ project.user }}"
+#   django_manage: >
+#     command=compress
+#     app_path={{ django.root }}
+#     settings={{ django.settings }}
+#     virtualenv={{ project.virtualenv }}
+#   tags:
+#     - deploy
+#     - assets
+
+- name: Create gunicorn upstart service
+  template: src=gunicorn.conf.j2 dest=/etc/init/gunicorn.conf
+  tags:
+    - deploy
+
+- name: Make sure gunicorn is running
+  service: name=gunicorn enabled=yes state=restarted
+  tags:
+    - deploy

@@ -1,0 +1,41 @@
+---
+- name: Add node apt key
+  apt_key: url={{item}}
+  with_items:
+    - https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+- name: Add Node PPA
+  apt_repository: repo="{{item}}"
+  with_items:
+    - "deb https://deb.nodesource.com/node_0.12 trusty main"
+    - "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main"
+- name: Update apt cache
+  apt: update_cache=yes
+- name: Check if packages need to be autoremoved
+  command: apt-get --dry-run autoremove
+  register: check_autoremove
+  changed_when: False
+- name: Autoremove unused packages
+  command: apt-get -y autoremove
+  when: "'packages will be REMOVED' in check_autoremove.stdout"
+- name: Install dev tools
+  apt: name={{item}} state=present
+  with_items:
+    - build-essential
+    - git
+    - python3
+    - python3-pip
+    - python-virtualenv
+    - libyaml-dev
+- name: Install build dependencies
+  apt: name={{item}} state=build-dep
+  register: deps_result
+  changed_when: "'will be installed' in deps_result.stdout"
+  with_items:
+    - python3-pandas
+    - python3-numpy
+- name: Install Node
+  apt: name=nodejs state=present
+- name: Install bower
+  npm: name=bower global=yes
+- name: Install sass
+  npm: name=node-sass global=yes

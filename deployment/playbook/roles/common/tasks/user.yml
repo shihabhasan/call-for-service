@@ -1,0 +1,38 @@
+---
+- name: Create application user and home
+  user: >
+    home={{ project.root }}
+    name={{ project.user }}
+    groups=www-data
+    state=present
+  tags:
+    - user
+
+- name: Change permissions
+  sudo: true
+  shell: chown -R {{ project.user }}:{{ project.user }} {{ project.root }} -R
+  tags:
+    - user
+
+- name: Create SSH directory
+  file: >
+    state=directory
+    path={{ project.root }}.ssh/
+  tags:
+  - user
+
+- name: Upload SSH private key
+  template: >
+    src=ssh_key.j2
+    dest={{ project.root }}.ssh/id_rsa
+    mode=0600
+  tags:
+    - user
+
+- name: Change SSH permissions
+  sudo: yes
+  sudo_user: root
+  shell: chmod 0700 {{ project.root }}.ssh/
+  shell: chown -R {{ project.user }}:{{ project.user }} {{ project.root }}.ssh/ -R
+  tags:
+    - user  
