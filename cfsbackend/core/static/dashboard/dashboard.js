@@ -256,7 +256,9 @@ function buildVolumeByNatureChart(data) {
         svg.selectAll('.nv-bar').style('cursor', 'pointer');
 
         chart.discretebar.dispatch.on('elementClick', function (e) {
-            toggleFilter("nature", e.data.id);
+            if (e.data.id) {
+                toggleFilter("nature", e.data.id);
+            }
         });
 
         // Have to call this both during creation and after updating the chart
