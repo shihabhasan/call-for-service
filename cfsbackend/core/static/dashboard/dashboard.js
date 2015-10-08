@@ -391,10 +391,12 @@ function buildVolumeByBeatChart(data) {
             })
             .y(function (d) {
                 return d.volume
-            }).showValues(true)
+            })
             .duration(250)
             .showControls(false)
             .showLegend(false);
+
+        chart.yAxis.tickFormat(d3.format(",d"));
 
         svg.datum(data).call(chart);
 
