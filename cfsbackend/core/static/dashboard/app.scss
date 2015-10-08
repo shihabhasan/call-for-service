@@ -65,6 +65,15 @@ h3.chart-title {
   font-size: 120%;
 }
 
+.explanation {
+  @extend .panel;
+  font-size: 0.8rem;
+
+  p {
+    font-size: 0.8rem;
+  }
+}
+
 .call-record {
   border-bottom: 1px solid #777788;
   padding: 1rem 0;
@@ -81,32 +90,4 @@ h3.chart-title {
 	content: '\A';
 	white-space: pre;
   }
-
-  //dt {
-  //  float: left;
-  //  width: 50%;
-  //  clear: left;
-  //  margin-bottom: 0.3rem;
-  //}
-  //dd {
-  //  float: right;
-  //  width: 50%;
-  //  clear: right;
-  //  margin-bottom: 0.3rem;
-  //}
-
-  //dt {
-  //  float: left;
-  //  clear: left;
-  //  width: 100px;
-  //  text-align: right;
-  //  font-weight: bold;
-  //}
-  //dt:after {
-  //  content: ":";
-  //}
-  //dd {
-  //  margin: 0 0 0 110px;
-  //  padding: 0 0 0.5em 0;
-  //}
 }
