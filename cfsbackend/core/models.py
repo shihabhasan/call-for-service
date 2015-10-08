@@ -175,16 +175,13 @@ class CallOverview:
         return results
 
     def officer_response_time_by_source(self):
-        # results = self.qs \
-        #     .annotate(self_initiated=Case(
-        #                   When(call_source__descr="Self Initiated", then=True),
-        #                   default=False,
-        #                   output_field=IntegerField())) \
-        #     .values("self_initiated") \
-        #     .annotate(mean=DurationAvg("officer_response_time"))
         results = self.qs \
-            .values("call_source", "call_source__descr") \
-            .annotate(mean=DurationAvg("officer_response_time"))
+            .annotate(id=F('call_source'),
+                      name=F('call_source__descr')) \
+            .values("id", "name") \
+            .exclude(id=None) \
+            .annotate(mean=DurationAvg("officer_response_time")) \
+            .order_by("-mean")
         return results
 
     def volume_by_beat(self):

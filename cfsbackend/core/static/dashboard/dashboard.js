@@ -183,25 +183,7 @@ function cleanupData(data) {
                 .value()
         }
     ];
-
-    var ortBySource = data.officer_response_time_by_source;
-    ortBySource = _.chain(ortBySource)
-        .filter(function (d) {
-            return d.call_source__descr;
-        })
-        .map(function (d) {
-            return _(d).renameKeys({
-                "call_source": "id",
-                "call_source__descr": "name"
-            });
-        })
-        .sortBy(function (d) {
-            return -d.mean;
-        })
-        .value();
-    data.officer_response_time_by_source = ortBySource;
-
-
+    
     data.volume_by_beat = [
         {
             key: "Volume By Beat",
