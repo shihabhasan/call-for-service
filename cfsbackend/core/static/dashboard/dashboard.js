@@ -184,6 +184,21 @@ function cleanupData(data) {
         }
     ];
 
+    var ortBySource = data.officer_response_time_by_source;
+    ortBySource = _.chain(ortBySource)
+        .filter(function (d) {
+            return d.call_source__descr;
+        })
+        .map(function (d) {
+            return _(d).renameKeys({"call_source": "id",
+                "call_source__descr": "name"});
+        })
+        .sortBy(function (d) {
+            return -d.mean;
+        })
+        .value();
+    data.officer_response_time_by_source = ortBySource;
+
 
     data.volume_by_beat = [
         {
@@ -219,6 +234,7 @@ monitorChart('data.volume_by_nature', buildVolumeByNatureChart);
 monitorChart('data.volume_by_date', buildVolumeByDateChart);
 monitorChart('data.volume_by_source', buildVolumeBySourceChart);
 monitorChart('data.volume_by_beat', buildVolumeByBeatChart);
+monitorChart('data.officer_response_time_by_source', buildORTBySourceChart);
 
 // ========================================================================
 // Functions
@@ -295,6 +311,61 @@ function buildVolumeByNatureChart(data) {
         // when the window is resized.
         var rotateLabels = function () {
             var xTicks = d3.select('#volume-by-nature .nv-x.nv-axis > g').selectAll('g');
+
+            xTicks.selectAll('text')
+                .style("text-anchor", "start")
+                .attr("dx", "0.25em")
+                .attr("dy", "0.75em")
+                .attr("transform", "rotate(45 0,0)");
+        };
+
+        rotateLabels();
+
+        nv.utils.windowResize(function () {
+            chart.update();
+            rotateLabels();
+
+        });
+
+        return chart;
+    })
+}
+
+function buildORTBySourceChart(data) {
+    var parentWidth = d3.select("#ort-by-source").node().clientWidth;
+    var width = parentWidth;
+    var height = width * 0.8;
+
+    var svg = d3.select("#ort-by-source svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.discreteBarChart()
+            .x(function (d) {
+                return d.name
+            })
+            .y(function (d) {
+                return Math.round(d.mean);
+            })
+            .margin({"bottom": 200, "right": 50});
+
+        chart.yAxis.tickFormat(d3.format("d"));
+        chart.yAxis.axisLabel("Response Time in Seconds");
+
+        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
+
+        //svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        //
+        //chart.discretebar.dispatch.on('elementClick', function (e) {
+        //    if (e.data.id) {
+        //        toggleFilter("nature", e.data.id);
+        //    }
+        //});
+
+        // Have to call this both during creation and after updating the chart
+        // when the window is resized.
+        var rotateLabels = function () {
+            var xTicks = d3.select('#ort-by-source .nv-x.nv-axis > g').selectAll('g');
 
             xTicks.selectAll('text')
                 .style("text-anchor", "start")

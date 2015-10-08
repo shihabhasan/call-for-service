@@ -63,13 +63,19 @@ class DateTrunc(Func):
 class DurationAvg(Aggregate):
     function = 'AVG'
     name = 'Avg'
+    template = "%(function)s(EXTRACT(EPOCH FROM %(expressions)s))"
 
     def __init__(self, expression, **extra):
         super().__init__(expression, output_field=DurationField(), **extra)
 
-    def convert_value(self, value, expression, connection, context):
-        if value is not None:
-            return value.total_seconds()
+
+class DurationStdDev(Aggregate):
+    function = 'STDDEV_POP'
+    name = 'StdDev'
+    template = "%(function)s(EXTRACT(EPOCH FROM %(expressions)s))"
+
+    def __init__(self, expression, **extra):
+        super().__init__(expression, output_field=DurationField(), **extra)
 
 
 class CallOverview:
@@ -86,6 +92,14 @@ class CallOverview:
     @property
     def qs(self):
         return self.filter.qs
+
+    def officer_response_time(self):
+        results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
+                                    stddev=DurationStdDev('officer_response_time'))
+        return {
+            'avg': results['avg'],
+            'stddev': results['stddev']
+        }
 
     def volume_by_date(self):
         cursor = connection.cursor()
@@ -154,9 +168,23 @@ class CallOverview:
         results = self.qs \
             .values("beat", "beat__descr") \
             .annotate(mean=DurationAvg("officer_response_time"),
+                      stddev=DurationStdDev("officer_response_time"),
                       missing=Sum(Case(When(officer_response_time=None, then=1),
                                        default=0,
                                        output_field=IntegerField())))
+        return results
+
+    def officer_response_time_by_source(self):
+        # results = self.qs \
+        #     .annotate(self_initiated=Case(
+        #                   When(call_source__descr="Self Initiated", then=True),
+        #                   default=False,
+        #                   output_field=IntegerField())) \
+        #     .values("self_initiated") \
+        #     .annotate(mean=DurationAvg("officer_response_time"))
+        results = self.qs \
+            .values("call_source", "call_source__descr") \
+            .annotate(mean=DurationAvg("officer_response_time"))
         return results
 
     def volume_by_beat(self):
@@ -178,8 +206,10 @@ class CallOverview:
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature'),
             'volume_by_beat': self.volume_by_field('beat'),
-            'volume_by_close_code': self.volume_by_field('close_code'),
-            'officer_response_time_by_beat': self.officer_response_time_by_beat()
+            'officer_response_time_by_source': self.officer_response_time_by_source(),
+            # 'volume_by_close_code': self.volume_by_field('close_code'),
+            # 'officer_response_time_by_beat': self.officer_response_time_by_beat()
+            # 'officer_response_time': self.officer_response_time()
         }
 
 
