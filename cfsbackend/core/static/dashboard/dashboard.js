@@ -347,7 +347,7 @@ function buildORTBySourceChart(data) {
             .y(function (d) {
                 return Math.round(d.mean);
             })
-            .margin({"bottom": 200, "right": 50});
+            .margin({"bottom": 150, "right": 50});
 
         chart.yAxis.tickFormat(d3.format("d"));
         chart.yAxis.axisLabel("Response Time in Seconds");
