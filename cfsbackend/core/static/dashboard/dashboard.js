@@ -50,10 +50,10 @@ dashboard.on('filterByDate', function (event, span) {
     var f = cloneFilter();
     if (span === "7days") {
         f['time_received_0'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.format("YYYY-MM-DD");
+        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
     } else if (span === "28days") {
         f['time_received_0'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.format("YYYY-MM-DD");
+        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
     } else if (span == "ytd") {
         f['time_received_0'] = moment().clone().startOf("year").format("YYYY-MM-DD");
         delete f['time_received_1'];
@@ -85,13 +85,13 @@ function cleanupData(data) {
     var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
 
     var allOther = _.chain(volumeByNature)
-        .rest(natureCols - 1)
+        .rest(natureCols)
         .reduce(function (total, cur) {
             return {name: "ALL OTHER", volume: total.volume + cur.volume}
         }, {name: "ALL OTHER", volume: 0})
         .value();
 
-    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
+    volumeByNature = _.first(volumeByNature, natureCols).concat(
         allOther.volume > 0 ? [allOther] : []);
 
     data.volume_by_nature = volumeByNature;
