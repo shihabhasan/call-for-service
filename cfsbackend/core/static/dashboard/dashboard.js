@@ -190,8 +190,10 @@ function cleanupData(data) {
             return d.call_source__descr;
         })
         .map(function (d) {
-            return _(d).renameKeys({"call_source": "id",
-                "call_source__descr": "name"});
+            return _(d).renameKeys({
+                "call_source": "id",
+                "call_source__descr": "name"
+            });
         })
         .sortBy(function (d) {
             return -d.mean;
@@ -349,8 +351,10 @@ function buildORTBySourceChart(data) {
             })
             .margin({"bottom": 150, "right": 50});
 
-        chart.yAxis.tickFormat(d3.format("d"));
-        chart.yAxis.axisLabel("Response Time in Seconds");
+        chart.yAxis.tickFormat(function (secs) {
+            return d3.format("d")(Math.round(secs / 60)) + ":" +
+                d3.format("02d")(Math.round(secs % 60));
+        });
 
         svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
 
