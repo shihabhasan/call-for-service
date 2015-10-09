@@ -43,6 +43,9 @@ server {
     gzip_disable        "MSIE [1-6]\.";
     gzip_vary           on;
 
+    auth_basic "Restricted";
+    auth_basic_user_file /etc/nginx/.{{ project.name }}-htpasswd;
+
     location /static/ {
         alias {{ django.root }}staticfiles/;
         autoindex off;

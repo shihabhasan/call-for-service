@@ -1,6 +1,10 @@
 ---
 - name: Install Nginx
   apt: name=nginx state=present
+- name: Install apache-utils
+  apt: name=apache2-utils state=present
+- name: Create basic auth credentials
+  command: htpasswd -bc /etc/nginx/.{{ project.name }}-htpasswd {{ secret.http_username }} {{ secret.http_password }}
 - name: Copy Nginx configuration
   template: src=site.conf.j2 dest=/etc/nginx/sites-available/{{ project.name }}.conf force=yes
   notify:

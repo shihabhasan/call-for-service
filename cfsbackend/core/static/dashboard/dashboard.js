@@ -50,10 +50,10 @@ dashboard.on('filterByDate', function (event, span) {
     var f = cloneFilter();
     if (span === "7days") {
         f['time_received_0'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.format("YYYY-MM-DD");
+        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
     } else if (span === "28days") {
         f['time_received_0'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.format("YYYY-MM-DD");
+        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
     } else if (span == "ytd") {
         f['time_received_0'] = moment().clone().startOf("year").format("YYYY-MM-DD");
         delete f['time_received_1'];
@@ -85,13 +85,13 @@ function cleanupData(data) {
     var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
 
     var allOther = _.chain(volumeByNature)
-        .rest(natureCols - 1)
+        .rest(natureCols)
         .reduce(function (total, cur) {
             return {name: "ALL OTHER", volume: total.volume + cur.volume}
         }, {name: "ALL OTHER", volume: 0})
         .value();
 
-    volumeByNature = _.first(volumeByNature, natureCols - 1).concat(
+    volumeByNature = _.first(volumeByNature, natureCols).concat(
         allOther.volume > 0 ? [allOther] : []);
 
     data.volume_by_nature = volumeByNature;
@@ -183,8 +183,7 @@ function cleanupData(data) {
                 .value()
         }
     ];
-
-
+    
     data.volume_by_beat = [
         {
             key: "Volume By Beat",
@@ -219,6 +218,7 @@ monitorChart('data.volume_by_nature', buildVolumeByNatureChart);
 monitorChart('data.volume_by_date', buildVolumeByDateChart);
 monitorChart('data.volume_by_source', buildVolumeBySourceChart);
 monitorChart('data.volume_by_beat', buildVolumeByBeatChart);
+monitorChart('data.officer_response_time_by_source', buildORTBySourceChart);
 
 // ========================================================================
 // Functions
@@ -315,6 +315,63 @@ function buildVolumeByNatureChart(data) {
     })
 }
 
+function buildORTBySourceChart(data) {
+    var parentWidth = d3.select("#ort-by-source").node().clientWidth;
+    var width = parentWidth;
+    var height = width * 0.8;
+
+    var svg = d3.select("#ort-by-source svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.discreteBarChart()
+            .x(function (d) {
+                return d.name
+            })
+            .y(function (d) {
+                return Math.round(d.mean);
+            })
+            .margin({"bottom": 150, "right": 50});
+
+        chart.yAxis.tickFormat(function (secs) {
+            return d3.format("d")(Math.round(secs / 60)) + ":" +
+                d3.format("02d")(Math.round(secs % 60));
+        });
+
+        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
+
+        //svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        //
+        //chart.discretebar.dispatch.on('elementClick', function (e) {
+        //    if (e.data.id) {
+        //        toggleFilter("nature", e.data.id);
+        //    }
+        //});
+
+        // Have to call this both during creation and after updating the chart
+        // when the window is resized.
+        var rotateLabels = function () {
+            var xTicks = d3.select('#ort-by-source .nv-x.nv-axis > g').selectAll('g');
+
+            xTicks.selectAll('text')
+                .style("text-anchor", "start")
+                .attr("dx", "0.25em")
+                .attr("dy", "0.75em")
+                .attr("transform", "rotate(45 0,0)");
+        };
+
+        rotateLabels();
+
+        nv.utils.windowResize(function () {
+            chart.update();
+            rotateLabels();
+
+        });
+
+        return chart;
+    })
+}
+
 
 function buildVolumeBySourceChart(data) {
     var parentWidth = d3.select("#volume-by-source").node().clientWidth;
@@ -337,27 +394,6 @@ function buildVolumeBySourceChart(data) {
         chart.style('expand');
 
         svg.datum(data).call(chart);
-
-        /* Code to update the filter based on this chart.  We're not using this ATM
-         * because it's too complicated to put our filtering in place instead of
-         * the nvd3 filtering.
-         *
-         chart.dispatch.on('stateChange', function(e) {
-
-         // Get the name of the series that's active, if there's only one
-         // Then filter based on it
-         var disabledSeries = e.disabled.filter(function(d) { return d; })
-         if (disabledSeries.length == 1) {
-         var activeSeries = svg.datum()[e.disabled.indexOf(false)].key;
-         toggleFilter("initiated_by", activeSeries.slice(0, activeSeries.search(/\s/)));
-         }
-
-         // Also call the chart's listener (unnecessary)
-         //nvStateChangeListener(e);
-         });
-
-
-         */
 
         // Disable the NV default chart filtering
         var disableNvFiltering = function () {
@@ -412,10 +448,12 @@ function buildVolumeByBeatChart(data) {
             })
             .y(function (d) {
                 return d.volume
-            }).showValues(true)
+            })
             .duration(250)
             .showControls(false)
             .showLegend(false);
+
+        chart.yAxis.tickFormat(d3.format(",d"));
 
         svg.datum(data).call(chart);
 
@@ -513,7 +551,7 @@ function buildDayHourHeatmap(data) {
     heatMap.select("title").remove();
 
     heatMap.append("title").text(function (d) {
-        return d.value;
+        return Math.round(d.value);
     });
 
     svg.selectAll(".legend").remove();
