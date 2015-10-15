@@ -10,9 +10,9 @@ var outFormats = {
 };
 
 var dashboard = new Ractive({
-    el: document.getElementById("dashboard"),
+    el: $('body').get(),
     template: "#dashboard-template",
-    components: {'Filter': Filter},
+    components: {'Filter': Filter, 'NavBar': NavBar},
     data: {
         'capitalize': function (string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
@@ -34,6 +34,7 @@ var dashboard = new Ractive({
 
 dashboard.on('Filter.filterUpdated', function (filter) {
     dashboard.set('loading', true);
+    dashboard.set('filterHash', dashboard.findComponent('Filter').get('filterHash'));
     d3.json(buildURL(filter), function (error, newData) {
         if (error) throw error;
         dashboard.set('loading', false);

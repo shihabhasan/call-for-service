@@ -9,16 +9,22 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% compress css %}
-        <link type="text/css" rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
-        <link type="text/sass" rel="stylesheet" href="{% static 'dashboard/app.scss' %}">
+        <link type="text/css" rel="stylesheet"
+              href="{% static 'font-awesome/css/font-awesome.css' %}">
+        <link type="text/sass" rel="stylesheet"
+              href="{% static 'dashboard/app.scss' %}">
         {% block stylesheets %}{% endblock %}
     {% endcompress %}
     {% block head %}{% endblock %}
 </head>
 <body>
+{% include "_navbar.html" %}
 {% include "_filter.html" %}
 {% block content %}
 {% endblock %}
+    <div class="row">
+        <footer class="small-12 columns">RTI 2015</footer>
+    </div>
 <!-- Latest compiled and minified JavaScript -->
 {% compress js %}
     <script>

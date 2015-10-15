@@ -15,7 +15,7 @@ var timeParser = d3.time.format("%Y-%m-%dT%H:%M:%S");
 var calls = new Ractive({
     el: document.getElementById("calls"),
     template: "#calls-template",
-    components: {'Filter': Filter},
+    components: {'Filter': Filter, 'NavBar': NavBar},
     data: {
         loading: true,
         timeFormat: function (t) {
@@ -26,7 +26,9 @@ var calls = new Ractive({
                 return "-";
             }
         },
-        d: function (x) { return x ? x : "-"; },
+        d: function (x) {
+            return x ? x : "-";
+        },
         perPage: 20,
         page: 1,
         data: {
@@ -45,6 +47,8 @@ calls.observe('page', function (newPage) {
 });
 
 function loadNewData(filter) {
+    // TODO refactor this out of here
+    calls.set('filterHash', calls.findComponent('Filter').get('filterHash'));
     var page = calls.get('page');
     var perPage = calls.get('perPage');
     var offset = (page - 1) * perPage;

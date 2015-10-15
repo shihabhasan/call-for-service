@@ -136,11 +136,3 @@ class CallOverviewTest(TestCase):
             {'dow_received': 6, 'hour_received': 9, 'volume': 0.2, 'freq': 5, 'total': 1},
         ])
 
-    def test_officer_response_time_by_beat(self):
-        overview = CallOverview({"time_received_0": "2014-01-01", "time_received_1": "2015-02-01"})
-        results = overview.to_dict()['officer_response_time_by_beat']
-
-        assert_list_equiv(results, [
-            {'beat': 1, 'beat__descr': 'B1', 'mean': 360, 'missing': 2},
-            {'beat': 2, 'beat__descr': 'B2', 'mean': 900, 'missing': 1}
-        ])

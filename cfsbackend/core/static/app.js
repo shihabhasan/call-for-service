@@ -1,3 +1,9 @@
+var NavBar = Ractive.extend({
+    template: '#navbar-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]']
+});
+
 var filterTypes = {
     "ModelChoiceField": {
         options: [{id: "=", name: "is equal to"}],
@@ -41,7 +47,9 @@ var Filter = Ractive.extend({
             displayValue: displayValue,
             describeFilter: describeFilter,
             getOptions: function (fieldName) {
-                return _.sortBy(findField(fieldName).choices, function (n) { return n[1]; });
+                return _.sortBy(findField(fieldName).choices, function (n) {
+                    return n[1];
+                });
             },
             getFieldType: function (fieldName) {
                 return filterTypes[findField(fieldName).type];
@@ -50,7 +58,7 @@ var Filter = Ractive.extend({
     },
     computed: {
         filterHash: function () {
-            return "#" + buildQueryParams(this.get('filter'));
+            return "#!" + buildQueryParams(this.get('filter'));
         },
         fields: function () {
             return filterForm.fields;
@@ -107,6 +115,57 @@ var Filter = Ractive.extend({
     oncomplete: function () {
         this.observe('filter', function (filter) {
             this.fire("filterUpdated", filter);
+        });
+
+        var stickySidebar = $('.filter-sidebar');
+        var sizer = $("#sidebar-sizer");
+
+        if (stickySidebar.length > 0) {
+            var sidebarTop = stickySidebar.offset().top,
+                sidebarLeft = stickySidebar.offset().left,
+                stickyStyles = stickySidebar.attr('style');
+        }
+
+        var resetSidebar = function () {
+            stickySidebar.attr('style', stickyStyles).css({
+                'position': '',
+                'top': '',
+                'left': ''
+            }).removeClass('fixed');
+        }
+
+        var smallScreen = function () {
+            return sizer.width() / $("body").width() > 0.25;
+        }
+
+        $(window).scroll(function () {
+            if (stickySidebar.length > 0) {
+                if (!smallScreen()) {
+                    var scrollTop = $(window).scrollTop();
+
+                    if (sidebarTop < scrollTop) {
+                        stickySidebar.css({
+                            position: 'fixed',
+                            top: 0,
+                            left: sizer.offset().left,
+                            minWidth: 0,
+                            width: sizer.outerWidth() + 'px'
+                        }).addClass('fixed');
+                    } else {
+                        resetSidebar();
+                    }
+                }
+            }
+        });
+
+        $(window).resize(function () {
+            if (smallScreen()) {
+                resetSidebar();
+            }
+            stickySidebar.css({
+                left: sizer.offset().left,
+                width: sizer.outerWidth() + 'px'
+            })
         });
     }
 });
@@ -225,3 +284,5 @@ function updateHash(newHash) {
     window.location.hash = "!" + newHash;
     document.body.scrollTop = scr;
 }
+
+

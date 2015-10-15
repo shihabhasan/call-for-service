@@ -14,7 +14,7 @@ class CallListView(TemplateView):
 
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
-        return render_to_response("index.html",
+        return render_to_response("overview.html",
                                   dict(form=JSONForm(CallFilter().form)))
 
 class PredictiveView(TemplateView):
