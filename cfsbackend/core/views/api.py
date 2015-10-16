@@ -1,12 +1,13 @@
 from django.db.models import Count
-from rest_framework import viewsets, filters
+from url_filter.integrations.drf import DjangoFilterBackend
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
     CallOverview
-from ..filters import CallFilter
+from ..filters import CallFilterSet
 from .. import serializers
 
 
@@ -34,8 +35,8 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Call.objects.order_by('time_received')
     serializer_class = serializers.CallSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = CallFilter
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = CallFilterSet
 
 
 class CallOverviewViewSet(viewsets.ReadOnlyModelViewSet):

@@ -33,6 +33,13 @@ var filterTypes = {
     }
 };
 
+var lookupMap = {
+    "exact": {id: "=", name: "is equal to"},
+    "gte": {id: ">=", name: "is greater than or equal to"},
+    "lte": {id: "<=", name: "is less than or equal to"}
+};
+
+
 var Filter = Ractive.extend({
     template: '#filter-template',
     delimiters: ['[[', ']]'],
@@ -46,13 +53,17 @@ var Filter = Ractive.extend({
             displayName: displayName,
             displayValue: displayValue,
             describeFilter: describeFilter,
-            getOptions: function (fieldName) {
-                return _.sortBy(findField(fieldName).choices, function (n) {
-                    return n[1];
-                });
-            },
+            getLookups: getLookups,
             getFieldType: function (fieldName) {
-                return filterTypes[findField(fieldName).type];
+                var field = findField(fieldName);
+                if (field.rel !== undefined) {
+                    return {type: "select", options: filterForm.refs[field.rel]};
+                } else {
+                    return {type: field.type};
+                }
+            },
+            fieldLabel: function (field) {
+                return field.label || humanize(field.name);
             }
         }
     },
@@ -87,9 +98,9 @@ var Filter = Ractive.extend({
 
             var key = field;
             if (verb === ">=") {
-                key += "_0";
+                key += "__gte";
             } else if (verb === "<=") {
-                key += "_1";
+                key += "__lte";
             }
 
             filter = _.clone(filter);
@@ -208,6 +219,7 @@ function humanize(property) {
 }
 
 function displayName(fieldName) {
+    if (fieldName === undefined) { return; }
     return findField(fieldName).label || humanize(fieldName);
 }
 
@@ -221,12 +233,22 @@ function arrayToObj(arr) {
     return obj;
 }
 
+function getLookups(fieldName) {
+    var field = findField(fieldName);
+    if (field.lookups === undefined) {
+        return [{id: "=", name: "is equal to"}]
+    } else {
+        return _(field.lookups).map(function (lookup) { return lookupMap[lookup] });
+    }
+}
+
 function displayValue(fieldName, value) {
+    if (fieldName === undefined) { return; }
     var field = findField(fieldName);
     var dValue;
 
-    if (field.choices) {
-        var choiceMap = arrayToObj(field.choices)
+    if (field.rel) {
+        var choiceMap = arrayToObj(filterForm.refs[field.rel])
         dValue = choiceMap[value];
     }
 
@@ -242,16 +264,16 @@ function describeFilter(filter) {
     var keys = _.keys(filter).sort();
 
     keys.forEach(function (key) {
-        if (key.endsWith("_0")) {
+        if (key.endsWith("__gte")) {
             components.push({
-                s: key.slice(0, -2),
+                s: key.slice(0, -5),
                 v: ">=",
                 o: filter[key],
                 k: key
             });
-        } else if (key.endsWith("_1")) {
+        } else if (key.endsWith("__lte")) {
             components.push({
-                s: key.slice(0, -2),
+                s: key.slice(0, -5),
                 v: "<=",
                 o: filter[key],
                 k: key
