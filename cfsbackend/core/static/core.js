@@ -170,6 +170,26 @@ var Filter = Ractive.extend({
     }
 });
 
+var Page = Ractive.extend({
+    components: {'Filter': Filter, 'NavBar': NavBar},
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    data: {
+        filterHash: '',
+        initialload: true,
+        loading: true
+    },
+    oninit: function () {
+        this.on('Filter.filterUpdated', _.bind(function (filter) {
+            this.set('loading', true);
+            this.set('filterHash', this.findComponent('Filter').get('filterHash'));
+            this.filterUpdated(filter);
+        }, this));
+    }
+});
+
+
+
 // ========================================================================
 // Functions
 // ========================================================================

@@ -9,16 +9,13 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
-var dashboard = new Ractive({
+var dashboard = new Page({
     el: $('body').get(),
     template: "#dashboard-template",
-    components: {'Filter': Filter, 'NavBar': NavBar},
     data: {
         'capitalize': function (string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
         },
-        loading: true,
-        initialload: true,
         data: {
             'volume_over_time': {
                 'period_size': 'day',
@@ -28,21 +25,15 @@ var dashboard = new Ractive({
             'volume_by_source': {}
         }
     },
-    delimiters: ['[[', ']]'],
-    tripleDelimiters: ['[[[', ']]]']
-});
-
-dashboard.on('Filter.filterUpdated', function (filter) {
-    dashboard.set('loading', true);
-    dashboard.set('filterHash', dashboard.findComponent('Filter').get('filterHash'));
-    d3.json(buildURL(filter), function (error, newData) {
-        if (error) throw error;
-        dashboard.set('loading', false);
-        dashboard.set('initialload', false);
-        newData = cleanupData(newData);
-        dashboard.set('data', newData);
-
-    });
+    filterUpdated: function (filter) {
+        d3.json(buildURL(filter), _.bind(function (error, newData) {
+            if (error) throw error;
+            this.set('loading', false);
+            this.set('initialload', false);
+            newData = cleanupData(newData);
+            this.set('data', newData);
+        }, this));
+    }
 });
 
 dashboard.on('filterByDate', function (event, span) {
@@ -184,7 +175,7 @@ function cleanupData(data) {
                 .value()
         }
     ];
-    
+
     data.volume_by_beat = [
         {
             key: "Volume By Beat",
