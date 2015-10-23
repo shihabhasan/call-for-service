@@ -6,6 +6,7 @@ from core import models
 
 from ..filters import CallFilterSet
 
+
 def filter_json():
     fields = CallFilterSet.definition
     out = {"fields": fields}
@@ -15,7 +16,8 @@ def filter_json():
         if field.get('rel') and not refs.get(field['rel']):
             model = getattr(models, field['rel'])
             pk_name = model._meta.pk.name
-            refs[field['rel']] = list(model.objects.all().values_list(pk_name, "descr"))
+            refs[field['rel']] = list(
+                model.objects.all().values_list(pk_name, "descr"))
 
     out["refs"] = refs
     return json.dumps(out)
@@ -29,10 +31,18 @@ class CallListView(TemplateView):
         context['form'] = filter_json()
         return context
 
+
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("overview.html",
                                   dict(form=filter_json()))
+
+
+class ResponseTimeView(View):
+    def get(self, request, *args, **kwargs):
+        return render_to_response("response_time.html",
+                                  dict(form=filter_json()))
+
 
 class PredictiveView(TemplateView):
     template_name = "predictive.html"

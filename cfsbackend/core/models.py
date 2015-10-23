@@ -216,6 +216,14 @@ class CallOverview:
         }
 
 
+class CallVolumeOverview(CallOverview):
+    pass
+
+
+class CallResponseTimeOverview(CallOverview):
+    pass
+
+
 class ModelWithDescr(models.Model):
     descr = models.TextField("Description", blank=False, null=False)
 

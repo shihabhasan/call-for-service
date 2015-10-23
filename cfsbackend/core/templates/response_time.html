@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+{% endblock %}
+
+{% block content %}
+    <script id="dashboard-template" type="text/html">
+        <NavBar filterHash="[[ filterHash ]]"/>
+        <div class="row dashboard">
+            <div class="large-3 columns">
+                <Filter/>
+            </div>
+            <div class="large-9 columns">
+                <div class="row">
+                    <div class="large-12 columns">
+                        <div id="ort-by-source">
+                            <h3 class="chart-title">Officer Response Time By
+                                Source</h3>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+{% endblock %}
+
+<!-- Latest compiled and minified JavaScript -->
+{% block javascript %}
+    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
+    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
+    <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
+    <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
+    <script src="{% static 'overview/response_time.js' %}"></script>
+{% endblock %}
+</body>
+</html>
