@@ -97,7 +97,8 @@ class CallOverview:
 
     def officer_response_time(self):
         results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
-                                    stddev=DurationStdDev('officer_response_time'))
+                                    stddev=DurationStdDev(
+                                        'officer_response_time'))
         return {
             'avg': results['avg'],
             'stddev': results['stddev']
@@ -361,8 +362,10 @@ class Call(models.Model):
     geox = models.FloatField(blank=True, null=True)
     geoy = models.FloatField(blank=True, null=True)
     beat = models.ForeignKey(Beat, blank=True, null=True, related_name='+')
-    district = models.ForeignKey('District', blank=True, null=True, related_name='+')
-    sector = models.ForeignKey('Sector', blank=True, null=True, related_name='+')
+    district = models.ForeignKey('District', blank=True, null=True,
+                                 related_name='+')
+    sector = models.ForeignKey('Sector', blank=True, null=True,
+                               related_name='+')
     business = models.TextField(blank=True, null=True)
     nature = models.ForeignKey('Nature', blank=True, null=True)
     priority = models.ForeignKey('Priority', blank=True, null=True)
