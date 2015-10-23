@@ -16,6 +16,7 @@ from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
     IntegerField, Sum, Case, When, F
 from django.db.models.expressions import Func
+from django.http import QueryDict
 
 
 def dictfetchall(cursor):

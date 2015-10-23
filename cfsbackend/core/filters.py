@@ -6,7 +6,7 @@ from url_filter.filters import Filter
 from django.db.models import Q
 
 from .models import Call, CallUnit, Squad, ZipCode, CallSource, Nature, \
-    District, Beat, Sector
+    District, Beat, Sector, Priority, CloseCode
 
 
 def get_form_field_for_type(ftype):
@@ -28,18 +28,19 @@ def create_rel_filterset(model_name):
     return rel_filterset
 
 
-def create_filterset(model, descr):
-    name = model.__name__ + "FilterSet"
+def create_filterset(model, definition, name=None):
+    if name is None:
+        name = model.__name__ + "FilterSet"
     Meta = type('Meta', (object,),
-                {"model": model, "fields": [], "descr": descr})
+                {"model": model, "fields": []})
 
     attrs = {}
-    for f in descr:
-        if f.get("ref"):
+    for f in definition:
+        if f.get("rel"):
             try:
-                filter = globals()[f["ref"] + "FilterSet"]()
+                filter = globals()[f["rel"] + "FilterSet"]()
             except KeyError:
-                filter_class = create_rel_filterset(f["ref"])
+                filter_class = create_rel_filterset(f["rel"])
                 filter = filter_class()
         else:
             ftype = f.get("type", "text")
@@ -49,10 +50,12 @@ def create_filterset(model, descr):
             default_lookup = f.get("default_lookup", "exact")
             filter = Filter(source=source, form_field=form_field,
                             lookups=lookups, default_lookup=default_lookup)
+
         attrs[f["name"]] = filter
 
+
     attrs["Meta"] = Meta
-    attrs["descr"] = descr
+    attrs["definition"] = definition
 
     return type(name, (ModelFilterSet,), attrs)
 

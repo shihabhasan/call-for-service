@@ -8,16 +8,17 @@ from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode
 
 
 def test_create_simple_filterset():
-    DistrictFilterSet = create_filterset(
+    TestDistrictFilterSet = create_filterset(
         District,
         [
             {"name": "district_id"},
             {"name": "descr", "label": "Description",
              "lookups": ["icontains", "iexact"]}
-        ]
+        ],
+        name="TestDistrictFilterSet"
     )
 
-    filter_set = DistrictFilterSet()
+    filter_set = TestDistrictFilterSet()
     filter_names = sorted(filter_set.get_filters().keys())
     assert filter_names == ["descr", "district_id"]
 
@@ -31,8 +32,8 @@ def test_create_complex_filterset():
     CallFilterSet = create_filterset(
         Call,
         [
-            {"name": "district", "ref": "District"},
-            {"name": "zip_code", "label": "ZIP Code", "ref": "ZipCode"},
+            {"name": "district", "rel": "District"},
+            {"name": "zip_code", "label": "ZIP Code", "rel": "ZipCode"},
             {"name": "time_received", "type": "date",
              "lookups": ["gte", "lte"]},
             {"name": "officer_response_time", "type": "duration",

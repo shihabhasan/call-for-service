@@ -7,7 +7,7 @@ from core import models
 from ..filters import CallFilterSet
 
 def filter_json():
-    fields = CallFilterSet.descr
+    fields = CallFilterSet.definition
     out = {"fields": fields}
     refs = {}
 
