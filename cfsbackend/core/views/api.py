@@ -28,10 +28,10 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
 
     You can filter by date/time using:
 
-    * `time_received_0` for received start date
-      and `time_received_1` for received end date.
-    * `time_closed_0` for closed start date
-      and `time_closed_1` for closed end date.
+    * `time_received__gte` for received start date
+      and `time_received__lte` for received end date.
+    * `time_closed__gte` for closed start date
+      and `time_closed__lte` for closed end date.
     """
     queryset = Call.objects.order_by('time_received')
     serializer_class = serializers.CallSerializer

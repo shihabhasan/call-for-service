@@ -41,14 +41,14 @@ dashboard.on('filterByDate', function (event, span) {
 
     var f = cloneFilter();
     if (span === "7days") {
-        f['time_received_0'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
+        f['time_received__gte'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
+        f['time_received__lte'] = pastSunday.clone().format("YYYY-MM-DD");
     } else if (span === "28days") {
-        f['time_received_0'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
+        f['time_received__gte'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
+        f['time_received__lte'] = pastSunday.clone().format("YYYY-MM-DD");
     } else if (span == "ytd") {
-        f['time_received_0'] = moment().clone().startOf("year").format("YYYY-MM-DD");
-        delete f['time_received_1'];
+        f['time_received__gte'] = moment().clone().startOf("year").format("YYYY-MM-DD");
+        delete f['time_received__lte'];
     }
 
     updateHash(buildQueryParams(f));
