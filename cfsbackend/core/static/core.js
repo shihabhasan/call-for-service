@@ -101,6 +101,8 @@ var Filter = Ractive.extend({
                 key += "__gte";
             } else if (verb === "<=") {
                 key += "__lte";
+            } else if (verb === "!=") {
+                key += "!";
             }
 
             filter = _.clone(filter);
@@ -236,7 +238,7 @@ function arrayToObj(arr) {
 function getLookups(fieldName) {
     var field = findField(fieldName);
     if (field.lookups === undefined) {
-        return [{id: "=", name: "is equal to"}]
+        return [{id: "=", name: "is equal to"}, {id: "!=", name: "is not equal to"}];
     } else {
         return _(field.lookups).map(function (lookup) { return lookupMap[lookup] });
     }
@@ -275,6 +277,13 @@ function describeFilter(filter) {
             components.push({
                 s: key.slice(0, -5),
                 v: "<=",
+                o: filter[key],
+                k: key
+            });
+        } else if (key.endsWith("!")) {
+            components.push({
+                s: key.slice(0, -1),
+                v: "!=",
                 o: filter[key],
                 k: key
             });
