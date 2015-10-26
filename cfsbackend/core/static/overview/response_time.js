@@ -40,7 +40,17 @@ function cleanupData(data) {
             return d.name;
         })
         .value();
-    console.log(data.officer_response_time_by_beat);
+
+    data.officer_response_time_by_priority =
+        _.chain(data.officer_response_time_by_priority)
+        .filter(function (d) {
+            return d.name;
+        })
+        .sortBy(function (d) {
+            return d.name == "P" ? "0" : d.name;
+        })
+        .value();
+
     return data;
 }
 
@@ -59,6 +69,7 @@ function monitorChart(keypath, fn) {
 //monitorChart('data.officer_response_time', buildORTChart);
 monitorChart('data.officer_response_time_by_source', buildORTBySourceChart);
 monitorChart('data.officer_response_time_by_beat', buildORTByBeatChart);
+monitorChart('data.officer_response_time_by_priority', buildORTByPriorityChart);
 
 // ========================================================================
 // Functions
@@ -66,39 +77,6 @@ monitorChart('data.officer_response_time_by_beat', buildORTByBeatChart);
 
 function buildURL(filter) {
     return url + "?" + buildQueryParams(filter);
-}
-
-
-function buildORTChart(data) {
-    var parentWidth = d3.select("#ort").node().clientWidth;
-    var width = parentWidth;
-    var height = width * 0.1;
-
-    //var svg = d3.selectAll("#ort-by-source svg");
-    //svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(function () {
-        var chart = nv.models.bulletChart()
-            .width(width)
-            .height(height);
-
-        data = [
-            {"ranges": [150, 225, 300], "measures": [220], "markers": [250]}
-
-        ];
-        var vis = d3.select("#ort").selectAll("svg")
-            .data(data)
-            .enter()
-            .append("svg")
-            .attr('class', "bullet nvd3")
-            .attr('width', width);
-
-        vis.transition().duration(100).call(chart);
-
-        nv.utils.windowResize(chart.update);
-
-        return chart;
-    })
 }
 
 
@@ -201,6 +179,40 @@ function buildORTByBeatChart(data) {
         nv.utils.windowResize(function () {
             chart.update();
             rotateLabels();
+        });
+
+        return chart;
+    })
+}
+
+
+function buildORTByPriorityChart(data) {
+    var parentWidth = d3.select("#ort-by-priority").node().clientWidth;
+    var width = parentWidth;
+    var height = width * 1.2;
+
+    var svg = d3.select("#ort-by-priority svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.discreteBarChart()
+            .x(function (d) {
+                return d.name
+            })
+            .y(function (d) {
+                return Math.round(d.mean);
+            })
+            ;
+
+        chart.yAxis.tickFormat(function (secs) {
+            return d3.format("d")(Math.round(secs / 60)) + ":" +
+                d3.format("02d")(Math.round(secs % 60));
+        });
+
+        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
+
+        nv.utils.windowResize(function () {
+            chart.update();
         });
 
         return chart;

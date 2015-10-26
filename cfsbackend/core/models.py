@@ -16,7 +16,6 @@ from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
     IntegerField, Sum, Case, When, F
 from django.db.models.expressions import Func
-from django.http import QueryDict
 
 
 def dictfetchall(cursor):
@@ -197,10 +196,10 @@ class CallResponseTimeOverview(CallOverview):
             'stddev': results['stddev']
         }
 
-    def officer_response_time_by_source(self):
+    def officer_response_time_by_field(self, field):
         results = self.qs \
-            .annotate(id=F('call_source'),
-                      name=F('call_source__descr')) \
+            .annotate(id=F(field + "_id"),
+                      name=F(field + '__descr')) \
             .values("id", "name") \
             .exclude(id=None) \
             .annotate(mean=DurationAvg("officer_response_time"),
@@ -208,22 +207,17 @@ class CallResponseTimeOverview(CallOverview):
             .order_by("-mean")
         return results
 
-    def officer_response_time_by_beat(self):
-        results = self.qs \
-            .annotate(id=F('beat'),
-                      name=F('beat__descr')) \
-            .values("id", "name") \
-            .annotate(mean=DurationAvg("officer_response_time"),
-                      stddev=DurationStdDev("officer_response_time"))
-        return results
-
     def to_dict(self):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
-            'officer_response_time_by_source': self.officer_response_time_by_source(),
             'officer_response_time': self.officer_response_time(),
-            'officer_response_time_by_beat': self.officer_response_time_by_beat(),
+            'officer_response_time_by_source': self.officer_response_time_by_field(
+                'call_source'),
+            'officer_response_time_by_beat': self.officer_response_time_by_field(
+                'beat'),
+            'officer_response_time_by_priority': self.officer_response_time_by_field(
+                'priority'),
         }
 
 

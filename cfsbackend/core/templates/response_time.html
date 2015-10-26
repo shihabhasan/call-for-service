@@ -15,6 +15,21 @@
             </div>
             <div class="large-9 columns">
                 <div class="row">
+                    <div class="large-6 columns">
+                        <div id="ort-by-priority">
+                            <h3 class="chart-title">Officer Mean Response Time By
+                                Priority</h3>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+                        <div class="explanation">
+                            This chart shows us average officer response time
+                            for each
+                            priority for the current call selection.
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="large-12 columns">
                         <div id="ort-by-source">
                             <h3 class="chart-title">Officer Mean Response Time By
