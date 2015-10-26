@@ -57,9 +57,15 @@
                 <button class="button radius small"
                         on-click="addfilter">Add filter
                 </button>
+
+                [[ #loading ]]
+                <div class="loading-spinner">
+                    <i class="fa fa-3x fa-pulse fa-spinner"></i>
+                </div>
+                [[ /loading ]]
             </form>
         </div>
-
     </div>
     <div id="sidebar-sizer">&nbsp;</div>
+
 </script>
