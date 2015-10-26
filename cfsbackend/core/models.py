@@ -95,15 +95,8 @@ class CallOverview:
     def qs(self):
         return self.filter.filter()
 
-    def officer_response_time(self):
-        results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
-                                    stddev=DurationStdDev(
-                                        'officer_response_time'))
-        return {
-            'avg': results['avg'],
-            'stddev': results['stddev']
-        }
 
+class CallVolumeOverview(CallOverview):
     def volume_by_date(self):
         cursor = connection.cursor()
 
@@ -135,7 +128,7 @@ class CallOverview:
         if self.span == timedelta(0, 0):
             return []
 
-        # In order for this to show average volume, we need to know the number 
+        # In order for this to show average volume, we need to know the number
         # of times each day of the week occurs.
         start = self.bounds['min_time'].date()
         end = self.bounds['max_time'].date()
@@ -170,26 +163,6 @@ class CallOverview:
 
         return results
 
-    def officer_response_time_by_beat(self):
-        results = self.qs \
-            .values("beat", "beat__descr") \
-            .annotate(mean=DurationAvg("officer_response_time"),
-                      stddev=DurationStdDev("officer_response_time"),
-                      missing=Sum(Case(When(officer_response_time=None, then=1),
-                                       default=0,
-                                       output_field=IntegerField())))
-        return results
-
-    def officer_response_time_by_source(self):
-        results = self.qs \
-            .annotate(id=F('call_source'),
-                      name=F('call_source__descr')) \
-            .values("id", "name") \
-            .exclude(id=None) \
-            .annotate(mean=DurationAvg("officer_response_time")) \
-            .order_by("-mean")
-        return results
-
     def volume_by_beat(self):
         qs = self.qs.annotate(name=F('beat__descr'), id=F('beat_id')).values(
             'name', 'id')
@@ -211,17 +184,47 @@ class CallOverview:
             'volume_by_beat': self.volume_by_field('beat'),
             'officer_response_time_by_source': self.officer_response_time_by_source(),
             # 'volume_by_close_code': self.volume_by_field('close_code'),
-            # 'officer_response_time_by_beat': self.officer_response_time_by_beat()
-            # 'officer_response_time': self.officer_response_time()
         }
 
 
-class CallVolumeOverview(CallOverview):
-    pass
-
-
 class CallResponseTimeOverview(CallOverview):
-    pass
+    def officer_response_time(self):
+        results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
+                                    stddev=DurationStdDev(
+                                        'officer_response_time'))
+        return {
+            'avg': results['avg'],
+            'stddev': results['stddev']
+        }
+
+    def officer_response_time_by_source(self):
+        results = self.qs \
+            .annotate(id=F('call_source'),
+                      name=F('call_source__descr')) \
+            .values("id", "name") \
+            .exclude(id=None) \
+            .annotate(mean=DurationAvg("officer_response_time"),
+                      stddev=DurationStdDev("officer_response_time")) \
+            .order_by("-mean")
+        return results
+
+    def officer_response_time_by_beat(self):
+        results = self.qs \
+            .annotate(id=F('beat'),
+                      name=F('beat__descr')) \
+            .values("id", "name") \
+            .annotate(mean=DurationAvg("officer_response_time"),
+                      stddev=DurationStdDev("officer_response_time"))
+        return results
+
+    def to_dict(self):
+        return {
+            'filter': self.filter.data,
+            'bounds': self.bounds,
+            'officer_response_time_by_source': self.officer_response_time_by_source(),
+            'officer_response_time': self.officer_response_time(),
+            'officer_response_time_by_beat': self.officer_response_time_by_beat(),
+        }
 
 
 class ModelWithDescr(models.Model):

@@ -17,10 +17,30 @@
                 <div class="row">
                     <div class="large-12 columns">
                         <div id="ort-by-source">
-                            <h3 class="chart-title">Officer Response Time By
+                            <h3 class="chart-title">Officer Mean Response Time By
                                 Source</h3>
                             {% include "_loading.html" %}
                             <svg></svg>
+                        </div>
+                        <div class="explanation">
+                            This chart shows us average officer response time
+                            for each
+                            call source for the current call selection.
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="large-12 columns">
+                        <div id="ort-by-beat">
+                            <h3 class="chart-title">Officer Mean Response Time By
+                                Beat</h3>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+                        <div class="explanation">
+                            This chart shows us average officer response time
+                            for each
+                            beat for the current call selection.
                         </div>
                     </div>
                 </div>
