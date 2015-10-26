@@ -1,3 +1,9 @@
+var NavBar = Ractive.extend({
+    template: '#navbar-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]']
+});
+
 var filterTypes = {
     "ModelChoiceField": {
         options: [{id: "=", name: "is equal to"}],
@@ -27,6 +33,13 @@ var filterTypes = {
     }
 };
 
+var lookupMap = {
+    "exact": {id: "=", name: "is equal to"},
+    "gte": {id: ">=", name: "is greater than or equal to"},
+    "lte": {id: "<=", name: "is less than or equal to"}
+};
+
+
 var Filter = Ractive.extend({
     template: '#filter-template',
     delimiters: ['[[', ']]'],
@@ -40,17 +53,23 @@ var Filter = Ractive.extend({
             displayName: displayName,
             displayValue: displayValue,
             describeFilter: describeFilter,
-            getOptions: function (fieldName) {
-                return _.sortBy(findField(fieldName).choices, function (n) { return n[1]; });
-            },
+            getLookups: getLookups,
             getFieldType: function (fieldName) {
-                return filterTypes[findField(fieldName).type];
+                var field = findField(fieldName);
+                if (field.rel !== undefined) {
+                    return {type: "select", options: filterForm.refs[field.rel]};
+                } else {
+                    return {type: field.type};
+                }
+            },
+            fieldLabel: function (field) {
+                return field.label || humanize(field.name);
             }
         }
     },
     computed: {
         filterHash: function () {
-            return "#" + buildQueryParams(this.get('filter'));
+            return "#!" + buildQueryParams(this.get('filter'));
         },
         fields: function () {
             return filterForm.fields;
@@ -79,9 +98,11 @@ var Filter = Ractive.extend({
 
             var key = field;
             if (verb === ">=") {
-                key += "_0";
+                key += "__gte";
             } else if (verb === "<=") {
-                key += "_1";
+                key += "__lte";
+            } else if (verb === "!=") {
+                key += "!";
             }
 
             filter = _.clone(filter);
@@ -108,8 +129,79 @@ var Filter = Ractive.extend({
         this.observe('filter', function (filter) {
             this.fire("filterUpdated", filter);
         });
+
+        var stickySidebar = $('.filter-sidebar');
+        var sizer = $("#sidebar-sizer");
+
+        if (stickySidebar.length > 0) {
+            var sidebarTop = stickySidebar.offset().top,
+                sidebarLeft = stickySidebar.offset().left,
+                stickyStyles = stickySidebar.attr('style');
+        }
+
+        var resetSidebar = function () {
+            stickySidebar.attr('style', stickyStyles).css({
+                'position': '',
+                'top': '',
+                'left': ''
+            }).removeClass('fixed');
+        }
+
+        var smallScreen = function () {
+            return sizer.width() / $("body").width() > 0.25;
+        }
+
+        $(window).scroll(function () {
+            if (stickySidebar.length > 0) {
+                if (!smallScreen()) {
+                    var scrollTop = $(window).scrollTop();
+
+                    if (sidebarTop < scrollTop) {
+                        stickySidebar.css({
+                            position: 'fixed',
+                            top: 0,
+                            left: sizer.offset().left,
+                            minWidth: 0,
+                            width: sizer.outerWidth() + 'px'
+                        }).addClass('fixed');
+                    } else {
+                        resetSidebar();
+                    }
+                }
+            }
+        });
+
+        $(window).resize(function () {
+            if (smallScreen()) {
+                resetSidebar();
+            }
+            stickySidebar.css({
+                left: sizer.offset().left,
+                width: sizer.outerWidth() + 'px'
+            })
+        });
     }
 });
+
+var Page = Ractive.extend({
+    components: {'Filter': Filter, 'NavBar': NavBar},
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    data: {
+        filterHash: '',
+        initialload: true,
+        loading: true
+    },
+    oninit: function () {
+        this.on('Filter.filterUpdated', _.bind(function (filter) {
+            this.set('loading', true);
+            this.set('filterHash', this.findComponent('Filter').get('filterHash'));
+            this.filterUpdated(filter);
+        }, this));
+    }
+});
+
+
 
 // ========================================================================
 // Functions
@@ -129,6 +221,7 @@ function humanize(property) {
 }
 
 function displayName(fieldName) {
+    if (fieldName === undefined) { return; }
     return findField(fieldName).label || humanize(fieldName);
 }
 
@@ -142,12 +235,22 @@ function arrayToObj(arr) {
     return obj;
 }
 
+function getLookups(fieldName) {
+    var field = findField(fieldName);
+    if (field.lookups === undefined) {
+        return [{id: "=", name: "is equal to"}, {id: "!=", name: "is not equal to"}];
+    } else {
+        return _(field.lookups).map(function (lookup) { return lookupMap[lookup] });
+    }
+}
+
 function displayValue(fieldName, value) {
+    if (fieldName === undefined) { return; }
     var field = findField(fieldName);
     var dValue;
 
-    if (field.choices) {
-        var choiceMap = arrayToObj(field.choices)
+    if (field.rel) {
+        var choiceMap = arrayToObj(filterForm.refs[field.rel])
         dValue = choiceMap[value];
     }
 
@@ -163,17 +266,24 @@ function describeFilter(filter) {
     var keys = _.keys(filter).sort();
 
     keys.forEach(function (key) {
-        if (key.endsWith("_0")) {
+        if (key.endsWith("__gte")) {
             components.push({
-                s: key.slice(0, -2),
+                s: key.slice(0, -5),
                 v: ">=",
                 o: filter[key],
                 k: key
             });
-        } else if (key.endsWith("_1")) {
+        } else if (key.endsWith("__lte")) {
             components.push({
-                s: key.slice(0, -2),
+                s: key.slice(0, -5),
                 v: "<=",
+                o: filter[key],
+                k: key
+            });
+        } else if (key.endsWith("!")) {
+            components.push({
+                s: key.slice(0, -1),
+                v: "!=",
                 o: filter[key],
                 k: key
             });
@@ -225,3 +335,5 @@ function updateHash(newHash) {
     window.location.hash = "!" + newHash;
     document.body.scrollTop = scr;
 }
+
+

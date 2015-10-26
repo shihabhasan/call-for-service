@@ -1,9 +1,9 @@
 "use strict";
 
-var predictive = new Ractive({
+var predictive = new Page({
     el: "#predictive-summary",
     template: "#predictive-template",
-    components: {'Filter': Filter},
-    delimiters: ['[[', ']]'],
-    tripleDelimiters: ['[[[', ']]]']
+    filterUpdated: function (filter) {
+        // noop;
+    }
 });

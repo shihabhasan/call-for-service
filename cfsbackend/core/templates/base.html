@@ -9,29 +9,34 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% compress css %}
-        <link type="text/css" rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.css' %}">
-        <link type="text/sass" rel="stylesheet" href="{% static 'dashboard/app.scss' %}">
+        <link type="text/css" rel="stylesheet"
+              href="{% static 'font-awesome/css/font-awesome.css' %}">
+        <link type="text/sass" rel="stylesheet"
+              href="{% static 'core.scss' %}">
         {% block stylesheets %}{% endblock %}
     {% endcompress %}
     {% block head %}{% endblock %}
 </head>
 <body>
+{% include "_navbar.html" %}
 {% include "_filter.html" %}
 {% block content %}
 {% endblock %}
+    <div class="row">
+        <footer class="small-12 columns">RTI 2015</footer>
+    </div>
 <!-- Latest compiled and minified JavaScript -->
+<script>
+    var filterForm = {{ form|safe }};
+</script>
 {% compress js %}
-    <script>
-        var filterForm = {{ form.as_json|safe }};
-    </script>
     <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
     <script src="{% static 'foundation/js/foundation.min.js' %}"></script>
     <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'moment/moment.js' %}"></script>
     <script src="{% static 'underscore/underscore.js' %}"></script>
     <script src="{% static 'polyfills.js' %}"></script>
-    <script src="{% static 'ractive-slide.js' %}"></script>
-    <script src="{% static 'app.js' %}"></script>
+    <script src="{% static 'core.js' %}"></script>
     {% block javascript %}{% endblock %}
 {% endcompress %}
 </body>

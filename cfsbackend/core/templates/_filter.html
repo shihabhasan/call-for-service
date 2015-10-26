@@ -1,91 +1,71 @@
 <script id="filter-template" type="text/html">
-    <div class="row filter-header">
-        <div class="small-12 columns filter-summary">
-            <div class="row">
-                <div class="small-11 columns">
-                    <div id="filter-description">
-                        [[ #each describeFilter(filter) ]]
-                            <span class="filter radius label">
-                                [[ displayName(s) ]] [[ v ]] [[ displayValue(s, o) ]]
-                                <i class="fa fa-close clickable"
-                                   on-click="removefilter:[[ k ]]"></i>
-                            </span>
-                        [[ else ]]
-                            <span>No active filters.</span>
-                        [[ /each ]]
-                    </div>
-                </div>
-
-                <div class="small-1 columns filter-edit">
-                    [[ #if loading ]]
-                    <i class="fa fa-spinner fa-spin"></i>
-                    [[ elseif editing ]]
+    <div class="filter-sidebar">
+        <div class="filters">
+            <div id="filter-description">
+                [[ #each describeFilter(filter) ]]
+                <div class="filter radius label">
+                        <span>
+                            [[ displayName(s) ]] [[ v ]] [[ displayValue(s, o) ]]
+                        </span>
                     <i class="fa fa-close clickable"
-                       on-click="editfilter:stop"></i>
-                    [[ else ]]
-                    <i class="fa fa-plus clickable"
-                       on-click="editfilter:start"></i>
-                    [[ /if ]]
+                       on-click="removefilter:[[ k ]]"></i>
                 </div>
+                [[ else ]]
+                <div>No active filters.</div>
+                [[ /each ]]
             </div>
         </div>
-        [[ #if editing ]]
-        <div class="small-12 columns filter-form" intro="slide">
-            <div class="row">
-                <div class="small-11 columns">
-                    <form>
-                        <select name="filter_subject"
-                                value="[[ addFilter.field ]]">
-                            [[ #each fields ]]
-                            <option value="[[ name ]]">[[ label ]]</option>
-                            [[ /each ]]
-                        </select>
 
-                        <select name="filter_verb"
-                                value="[[ addFilter.verb ]]">
-                            [[ #each getFieldType(addFilter.field).options
-                            ]]
-                            <option value="[[ id ]]">[[ name ]]</option>
-                            [[ /each ]]
-                        </select>
+        <div>
+            <form>
+                <select name="filter_subject"
+                        value="[[ addFilter.field ]]">
+                    [[ #each fields ]]
+                    <option value="[[ name ]]">[[ fieldLabel(.) ]]</option>
+                    [[ /each ]]
+                </select>
 
-                        [[ #getFieldType(addFilter.field) ]]
-                        [[ #if valueType == 'select' ]]
-                        <select name="filter_object"
-                                value="[[ addFilter.value ]]">
-                            [[ #each getOptions(addFilter.field) ]]
-                            <option value="[[ 0 ]]">[[ 1 ]]</option>
-                            [[ /each ]]
-                        </select>
-                        [[ elseif valueType == 'truth' ]]
-                        <select name="filter_object"
-                                value="[[ addFilter.value ]]">
-                            <option value="True">True</option>
-                            <option value="False">False</option>
-                        </select>
-                        [[ elseif valueType == 'date' ]]
-                        <input name="filter_object" type="date"
-                               value="[[ addFilter.value ]]">
-                        [[ else ]]
-                        <input name="filter_object" type="text"
-                               value="[[ addFilter.value ]]">
-                        [[ /if ]]
-                        [[ /each ]]
-                        <button class="button radius small"
-                                on-click="addfilter">Add filter
-                        </button>
-                    </form>
+                <select name="filter_verb"
+                        value="[[ addFilter.verb ]]">
+                    [[ #each getLookups(addFilter.field) ]]
+                    <option value="[[ id ]]">[[ name ]]</option>
+                    [[ /each ]]
+                </select>
+
+                [[ #getFieldType(addFilter.field) ]]
+                [[ #if type == 'select' ]]
+                <select name="filter_object"
+                        value="[[ addFilter.value ]]">
+                    [[ #each options ]]
+                    <option value="[[ 0 ]]">[[ 1 ]]</option>
+                    [[ /each ]]
+                </select>
+                [[ elseif type == 'boolean' ]]
+                <select name="filter_object"
+                        value="[[ addFilter.value ]]">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+                [[ elseif type == 'date' ]]
+                <input name="filter_object" type="date"
+                       value="[[ addFilter.value ]]">
+                [[ else ]]
+                <input name="filter_object" type="text"
+                       value="[[ addFilter.value ]]">
+                [[ /if ]]
+                [[ /each ]]
+                <button class="button radius small"
+                        on-click="addfilter">Add filter
+                </button>
+
+                [[ #loading ]]
+                <div class="loading-spinner">
+                    <i class="fa fa-3x fa-pulse fa-spinner"></i>
                 </div>
-            </div>
+                [[ /loading ]]
+            </form>
         </div>
-        [[ /if ]]
     </div>
+    <div id="sidebar-sizer">&nbsp;</div>
 
-    <div class="row">
-    <ul class="inline-list">
-      <li><a href="/[[ filterHash ]]">Dashboard</a></li>
-      <li><a href="/calls[[ filterHash ]]">Call List View</a></li>
-      <li><a href="/predictive[[ filterHash ]]">Call Volume Forecasting (Preview)</a></li>
-    </ul>
-    </div>
 </script>

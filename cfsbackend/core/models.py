@@ -16,6 +16,7 @@ from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
     IntegerField, Sum, Case, When, F
 from django.db.models.expressions import Func
+from django.http import QueryDict
 
 
 def dictfetchall(cursor):
@@ -80,8 +81,9 @@ class DurationStdDev(Aggregate):
 
 class CallOverview:
     def __init__(self, filters):
-        from .filters import CallFilter
-        self.filter = CallFilter(filters, queryset=Call.objects.all())
+        self._filters = filters
+        from .filters import CallFilterSet
+        self.filter = CallFilterSet(data=filters, queryset=Call.objects.all())
         self.bounds = self.qs.aggregate(min_time=Min('time_received'),
                                         max_time=Max('time_received'))
         if self.bounds['max_time'] and self.bounds['min_time']:
@@ -91,7 +93,7 @@ class CallOverview:
 
     @property
     def qs(self):
-        return self.filter.qs
+        return self.filter.filter()
 
     def officer_response_time(self):
         results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
@@ -147,7 +149,10 @@ class CallOverview:
         for result in results:
             result['freq'] = weekdays[result['dow_received']]
             result['total'] = result['volume']
-            result['volume'] /= result['freq']
+            try:
+                result['volume'] /= result['freq']
+            except ZeroDivisionError:
+                result['volume'] = 0
 
         return results
 
@@ -211,7 +216,7 @@ class CallOverview:
 
 
 class ModelWithDescr(models.Model):
-    descr = models.TextField(blank=False, null=False)
+    descr = models.TextField("Description", blank=False, null=False)
 
     def __str__(self):
         if self.descr:
@@ -355,9 +360,9 @@ class Call(models.Model):
     crossroad2 = models.TextField(blank=True, null=True)
     geox = models.FloatField(blank=True, null=True)
     geoy = models.FloatField(blank=True, null=True)
-    beat = models.ForeignKey(Beat, blank=True, null=True)
-    district = models.ForeignKey('District', blank=True, null=True)
-    sector = models.ForeignKey('Sector', blank=True, null=True)
+    beat = models.ForeignKey(Beat, blank=True, null=True, related_name='+')
+    district = models.ForeignKey('District', blank=True, null=True, related_name='+')
+    sector = models.ForeignKey('Sector', blank=True, null=True, related_name='+')
     business = models.TextField(blank=True, null=True)
     nature = models.ForeignKey('Nature', blank=True, null=True)
     priority = models.ForeignKey('Priority', blank=True, null=True)

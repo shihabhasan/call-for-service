@@ -1,12 +1,13 @@
 from django.db.models import Count
-from rest_framework import viewsets, filters
+from url_filter.integrations.drf import DjangoFilterBackend
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
     CallOverview
-from ..filters import CallFilter
+from ..filters import CallFilterSet
 from .. import serializers
 
 
@@ -27,15 +28,15 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
 
     You can filter by date/time using:
 
-    * `time_received_0` for received start date
-      and `time_received_1` for received end date.
-    * `time_closed_0` for closed start date
-      and `time_closed_1` for closed end date.
+    * `time_received__gte` for received start date
+      and `time_received__lte` for received end date.
+    * `time_closed__gte` for closed start date
+      and `time_closed__lte` for closed end date.
     """
     queryset = Call.objects.order_by('time_received')
     serializer_class = serializers.CallSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = CallFilter
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = CallFilterSet
 
 
 class CallOverviewViewSet(viewsets.ReadOnlyModelViewSet):

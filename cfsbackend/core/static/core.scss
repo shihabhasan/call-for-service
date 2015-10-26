@@ -6,16 +6,32 @@ body {
   margin-top: 0px;
 }
 
-.filter-header {
-  background-color: $jet;
-  color: $ghost;
-  @include radius(0 0 5px 5px);
-  margin-bottom: 20px;
-  padding: 10px;
+.content {
+  margin-top: 10px;
 }
 
-.filter-edit {
-  text-align: right;
+.filter-sidebar {
+  background-color: $jet;
+  color: $ghost;
+  @include radius(5px);
+  padding: 20px 10px 5px 10px;
+}
+
+.filters {
+  margin-bottom: 50px;
+}
+
+.filter.label {
+  background-color: $smoke;
+  color: $jet;
+  font-size: 0.9rem;
+  width: 100%;
+  margin-bottom: 5px;
+  text-align: left;
+
+  i {
+    float: right;
+  }
 }
 
 .filter-form {
@@ -26,12 +42,7 @@ body {
   border: 5px solid $ghost;
 }
 
-.filter.label {
-  background-color: $smoke;
-  color: $jet;
-  font-size: 0.9rem;
-  margin-right: 5px;
-}
+
 
 .loading {
   text-align: center;
@@ -94,4 +105,13 @@ h3.chart-title {
 
 #volume-by-beat .nv-x .tick line, #volume-by-nature .nv-x .tick line {
   opacity: 0;
+}
+
+.top-bar {
+  margin-bottom: 20px;
+}
+
+.loading-spinner {
+  float: right;
+  color: $smoke;
 }

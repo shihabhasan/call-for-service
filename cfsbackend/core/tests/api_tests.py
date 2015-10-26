@@ -25,7 +25,7 @@ class CallTestCase(APITestCase):
         self.assertEqual(response.data['count'], 3)
 
     def test_time_received_can_be_queried(self):
-        response = self.client.get('/api/calls/?time_received_0=2015-01-02')
+        response = self.client.get('/api/calls/?time_received__gte=2015-01-02')
         self.assertEqual(response.data['count'], 2)
         
     def test_district_can_be_queried(self):

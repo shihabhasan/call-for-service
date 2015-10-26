@@ -9,16 +9,13 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
-var dashboard = new Ractive({
-    el: document.getElementById("dashboard"),
+var dashboard = new Page({
+    el: $('body').get(),
     template: "#dashboard-template",
-    components: {'Filter': Filter},
     data: {
         'capitalize': function (string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
         },
-        loading: true,
-        initialload: true,
         data: {
             'volume_over_time': {
                 'period_size': 'day',
@@ -28,20 +25,15 @@ var dashboard = new Ractive({
             'volume_by_source': {}
         }
     },
-    delimiters: ['[[', ']]'],
-    tripleDelimiters: ['[[[', ']]]']
-});
-
-dashboard.on('Filter.filterUpdated', function (filter) {
-    dashboard.set('loading', true);
-    d3.json(buildURL(filter), function (error, newData) {
-        if (error) throw error;
-        dashboard.set('loading', false);
-        dashboard.set('initialload', false);
-        newData = cleanupData(newData);
-        dashboard.set('data', newData);
-
-    });
+    filterUpdated: function (filter) {
+        d3.json(buildURL(filter), _.bind(function (error, newData) {
+            if (error) throw error;
+            this.set('loading', false);
+            this.set('initialload', false);
+            newData = cleanupData(newData);
+            this.set('data', newData);
+        }, this));
+    }
 });
 
 dashboard.on('filterByDate', function (event, span) {
@@ -49,14 +41,14 @@ dashboard.on('filterByDate', function (event, span) {
 
     var f = cloneFilter();
     if (span === "7days") {
-        f['time_received_0'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
+        f['time_received__gte'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
+        f['time_received__lte'] = pastSunday.clone().format("YYYY-MM-DD");
     } else if (span === "28days") {
-        f['time_received_0'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
-        f['time_received_1'] = pastSunday.clone().subtract(1, 'day').format("YYYY-MM-DD");
+        f['time_received__gte'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
+        f['time_received__lte'] = pastSunday.clone().format("YYYY-MM-DD");
     } else if (span == "ytd") {
-        f['time_received_0'] = moment().clone().startOf("year").format("YYYY-MM-DD");
-        delete f['time_received_1'];
+        f['time_received__gte'] = moment().clone().startOf("year").format("YYYY-MM-DD");
+        delete f['time_received__lte'];
     }
 
     updateHash(buildQueryParams(f));
@@ -183,7 +175,7 @@ function cleanupData(data) {
                 .value()
         }
     ];
-    
+
     data.volume_by_beat = [
         {
             key: "Volume By Beat",
