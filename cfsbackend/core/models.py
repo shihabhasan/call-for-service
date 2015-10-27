@@ -11,10 +11,11 @@
 from __future__ import unicode_literals
 from collections import Counter
 from datetime import timedelta
+from django.contrib.postgres.fields import ArrayField
 
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
-    IntegerField, Sum, Case, When, F
+    IntegerField, Sum, Case, When, F, Avg, StdDev
 from django.db.models.expressions import Func
 
 
@@ -60,22 +61,33 @@ class DateTrunc(Func):
         super().__init__(expression, **extra)
 
 
-class DurationAvg(Aggregate):
-    function = 'AVG'
-    name = 'Avg'
-    template = "%(function)s(EXTRACT(EPOCH FROM %(expressions)s))"
+class Percentiles(Aggregate):
+    function = "PERCENTILE_CONT"
+    name = "percentile"
+    template = "%(function)s(%(percentiles)s) WITHIN GROUP (ORDER BY %(expressions)s)"
+
+    def __init__(self, expression, percentiles, **extra):
+        if isinstance(percentiles, (list, tuple)):
+            percentiles = "array%(percentiles)s" % {'percentiles': percentiles}
+        super().__init__(expression, percentiles=percentiles,
+                         output_field=DurationField(), **extra)
+
+
+class Extract(Func):
+    function = 'EXTRACT'
+    name = 'extract'
+    template = "%(function)s(%(date_part)s FROM %(expressions)s)"
+
+    def __init__(self, expression, date_part, **extra):
+        super().__init__(expression, date_part=date_part,
+                         output_field=DurationField(), **extra)
+
+
+class Secs(Extract):
+    name = 'secs'
 
     def __init__(self, expression, **extra):
-        super().__init__(expression, output_field=DurationField(), **extra)
-
-
-class DurationStdDev(Aggregate):
-    function = 'STDDEV_POP'
-    name = 'StdDev'
-    template = "%(function)s(EXTRACT(EPOCH FROM %(expressions)s))"
-
-    def __init__(self, expression, **extra):
-        super().__init__(expression, output_field=DurationField(), **extra)
+        super().__init__(expression, date_part='EPOCH', **extra)
 
 
 class CallOverview:
@@ -181,19 +193,26 @@ class CallVolumeOverview(CallOverview):
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature'),
             'volume_by_beat': self.volume_by_field('beat'),
-            'officer_response_time_by_source': self.officer_response_time_by_source(),
             # 'volume_by_close_code': self.volume_by_field('close_code'),
         }
 
 
 class CallResponseTimeOverview(CallOverview):
     def officer_response_time(self):
-        results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
-                                    stddev=DurationStdDev(
-                                        'officer_response_time'))
+        results = self.qs.filter(officer_response_time__gt=timedelta(0)).aggregate(
+            avg=Avg(Secs('officer_response_time')),
+            quartiles=Percentiles(Secs('officer_response_time'),
+                                  [0.25, 0.5, 0.75]),
+            max=Max(Secs('officer_response_time')))
+
+        # TODO Why is this wrapped in a list?
+        quartiles = results['quartiles'][0]
+
         return {
+            'quartiles': quartiles,
             'avg': results['avg'],
-            'stddev': results['stddev']
+            'max': results['max'],
+            'iqr': quartiles[2] - quartiles[0]
         }
 
     def officer_response_time_by_field(self, field):
@@ -202,8 +221,8 @@ class CallResponseTimeOverview(CallOverview):
                       name=F(field + '__descr')) \
             .values("id", "name") \
             .exclude(id=None) \
-            .annotate(mean=DurationAvg("officer_response_time"),
-                      stddev=DurationStdDev("officer_response_time")) \
+            .annotate(mean=Avg(Secs("officer_response_time")),
+                      stddev=StdDev(Secs("officer_response_time"))) \
             .order_by("-mean")
         return results
 
