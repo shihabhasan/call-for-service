@@ -205,8 +205,7 @@ class CallResponseTimeOverview(CallOverview):
                                   [0.25, 0.5, 0.75]),
             max=Max(Secs('officer_response_time')))
 
-        # TODO Why is this wrapped in a list?
-        quartiles = results['quartiles'][0]
+        quartiles = results['quartiles']
 
         return {
             'quartiles': quartiles,
