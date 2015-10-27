@@ -42,7 +42,6 @@ INSTALLED_APPS = (
 
     'rest_framework',
     'rest_framework_swagger',
-    'django_filters',
     'djangobower',
     "compressor",
     'django_extensions',
