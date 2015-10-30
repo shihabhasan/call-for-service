@@ -422,7 +422,7 @@ function buildDayHourHeatmap(data) {
         d.value = +d.volume;
     });
 
-    if (data.length < 24 * 7) {
+    if (data.length > 0 && data.length < 24 * 7) {
         for (var i = 0; i < 7; i++) {
             for (var j = 0; j < 24; j++) {
                 if (!_.find(data, function (d) {
@@ -448,6 +448,26 @@ function buildDayHourHeatmap(data) {
         svg = d3.select("#day-hour-heatmap").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     } else {
         svg = svg.select("g");
+    }
+    
+    if (_.isEmpty(data)) {
+        var noDataText = svg.selectAll('.nv-noData').data(["No Data Available"]);
+
+        noDataText.enter().append('text')
+            .attr('class', 'nvd3 nv-noData')
+            .attr('dy', '-.7em')
+            .style('text-anchor', 'middle');
+
+        noDataText
+            .attr('x', margin.left + width / 2)
+            .attr('y', margin.top + height / 2)
+            .text(function (d) {
+                return d
+            });
+
+        return;
+    } else {
+        svg.selectAll('.nv-noData').remove();
     }
 
     var dayLabels = svg.selectAll(".dayLabel").data(days).enter().append("text").text(function (d) {

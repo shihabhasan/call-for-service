@@ -207,12 +207,15 @@ class CallResponseTimeOverview(CallOverview):
 
         quartiles = results['quartiles']
 
-        return {
-            'quartiles': quartiles,
-            'avg': results['avg'],
-            'max': results['max'],
-            'iqr': quartiles[2] - quartiles[0]
-        }
+        if quartiles:
+            return {
+                'quartiles': quartiles,
+                'avg': results['avg'],
+                'max': results['max'],
+                'iqr': quartiles[2] - quartiles[0]
+            }
+        else:
+            return {}
 
     def officer_response_time_by_field(self, field):
         results = self.qs \
