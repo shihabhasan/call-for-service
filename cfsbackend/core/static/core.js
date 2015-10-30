@@ -57,7 +57,10 @@ var Filter = Ractive.extend({
             getFieldType: function (fieldName) {
                 var field = findField(fieldName);
                 if (field.rel !== undefined) {
-                    return {type: "select", options: filterForm.refs[field.rel]};
+                    return {
+                        type: "select",
+                        options: filterForm.refs[field.rel]
+                    };
                 } else {
                     return {type: field.type};
                 }
@@ -126,6 +129,18 @@ var Filter = Ractive.extend({
         $(window).on("hashchange", updateFilter);
     },
     oncomplete: function () {
+        // This is here to set addFilter.value to the default value in a select
+        // box. Without this, there would be no value on submit.
+        this.observe("addFilter.field", function (_) {
+            var self = this;
+
+            // We use setTimeout to move this to further down in the event loop.
+            // The page has to render first before this will work.
+            setTimeout(function () {
+                self.set("addFilter.value", $("select[name=filter_object]").val());
+            }, 0)
+        }, {defer: true});
+
         this.observe('filter', function (filter) {
             this.fire("filterUpdated", filter);
         });
@@ -202,7 +217,6 @@ var Page = Ractive.extend({
 });
 
 
-
 // ========================================================================
 // Functions
 // ========================================================================
@@ -221,7 +235,9 @@ function humanize(property) {
 }
 
 function displayName(fieldName) {
-    if (fieldName === undefined) { return; }
+    if (fieldName === undefined) {
+        return;
+    }
     return findField(fieldName).label || humanize(fieldName);
 }
 
@@ -238,14 +254,21 @@ function arrayToObj(arr) {
 function getLookups(fieldName) {
     var field = findField(fieldName);
     if (field.lookups === undefined) {
-        return [{id: "=", name: "is equal to"}, {id: "!=", name: "is not equal to"}];
+        return [{id: "=", name: "is equal to"}, {
+            id: "!=",
+            name: "is not equal to"
+        }];
     } else {
-        return _(field.lookups).map(function (lookup) { return lookupMap[lookup] });
+        return _(field.lookups).map(function (lookup) {
+            return lookupMap[lookup]
+        });
     }
 }
 
 function displayValue(fieldName, value) {
-    if (fieldName === undefined) { return; }
+    if (fieldName === undefined) {
+        return;
+    }
     var field = findField(fieldName);
     var dValue;
 

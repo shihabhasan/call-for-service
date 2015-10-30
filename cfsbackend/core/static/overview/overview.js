@@ -449,7 +449,7 @@ function buildDayHourHeatmap(data) {
     } else {
         svg = svg.select("g");
     }
-    
+
     if (_.isEmpty(data)) {
         var noDataText = svg.selectAll('.nv-noData').data(["No Data Available"]);
 

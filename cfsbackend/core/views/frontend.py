@@ -17,7 +17,7 @@ def filter_json():
             model = getattr(models, field['rel'])
             pk_name = model._meta.pk.name
             refs[field['rel']] = list(
-                model.objects.all().values_list(pk_name, "descr"))
+                model.objects.all().order_by("descr").values_list(pk_name, "descr"))
 
     out["refs"] = refs
     return json.dumps(out)
