@@ -111,14 +111,6 @@ function buildORTBySourceChart(data) {
 
         svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
 
-        //svg.selectAll('.nv-bar').style('cursor', 'pointer');
-        //
-        //chart.discretebar.dispatch.on('elementClick', function (e) {
-        //    if (e.data.id) {
-        //        toggleFilter("nature", e.data.id);
-        //    }
-        //});
-
         // Have to call this both during creation and after updating the chart
         // when the window is resized.
         var rotateLabels = function () {
@@ -224,15 +216,18 @@ function buildORTByPriorityChart(data) {
 function buildORTChart(data) {
     console.log(data);
     var parentWidth = d3.select("#ort").node().clientWidth;
-    var margin = {top: 0, left: 15, right: 15, bottom: 40},
-        width = parentWidth - margin.left - margin.right,
-        height = parentWidth * 0.2 - margin.top - margin.bottom,
-        boxtop = margin.top + 10,
-        boxbottom = height - 10,
-        tickHeight = (boxbottom - boxtop) * 0.7,
-        tickTop = height / 2 - tickHeight / 2,
-        center = boxtop + (boxbottom - boxtop) / 2,
-        domainMax = Math.min(data.max, data.quartiles[2] + 3 * data.iqr);
+    var margin = {top: 0, left: 15, right: 15, bottom: 40}
+        , width = parentWidth - margin.left - margin.right
+        , height = parentWidth * 0.2 - margin.top - margin.bottom
+        , boxtop = margin.top + 10
+        , boxbottom = height - 10
+        , tickHeight = (boxbottom - boxtop) * 0.7
+        , tickTop = height / 2 - tickHeight / 2
+        , center = boxtop + (boxbottom - boxtop) / 2
+        , domainMax = Math.min(data.max, data.quartiles[2] + 3 * data.iqr)
+        , tooltip = nv.models.tooltip()
+        , colors = ['#fcae91', '#fb6a4a', '#de2d26', '#a50f15']
+    ;
 
     var svg = d3.select("#ort").select("svg");
 
@@ -309,36 +304,76 @@ function buildORTChart(data) {
     boxplot.selectAll("line.whisker-left")
         .attr("x1", function (d) { return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5)) })
         .attr("x2", function (d) { return xScale(d.quartiles[0]) })
-        .style({"stroke": "rgb(31, 119, 180)"});
+        .style({"stroke": colors[0], "stroke-width": 3});
 
     boxplot.selectAll("line.tick-left")
         .attr("x1", function (d) { return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5)) })
         .attr("x2", function (d) { return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5)) })
-        .style({"stroke": "rgb(31, 119, 180)"});
+        .style({"stroke": colors[0], "stroke-width": 3});
 
     boxplot.selectAll("line.whisker-right")
         .attr("x1", function (d) { return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5)) })
         .attr("x2", function (d) { return xScale(d.quartiles[2]) })
-        .style({"stroke": "rgb(31, 119, 180)"});
+        .style({"stroke": colors[3], "stroke-width": 3});
 
     boxplot.selectAll("line.tick-right")
         .attr("x1", function (d) { return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5)) })
         .attr("x2", function (d) { return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5)) })
-        .style({"stroke": "rgb(31, 119, 180)"});
+        .style({"stroke": colors[3], "stroke-width": 3});
 
     boxplot.selectAll("rect.box-left")
         .attr("x", function (d) { return xScale(d.quartiles[0]) })
         .attr("width", function (d) { return xScale(d.quartiles[1] - d.quartiles[0]) })
-        .style({"stroke": "rgb(31, 119, 180)", "fill": "rgb(31, 119, 180)"});
+        .style({"stroke": colors[1], "fill": colors[1]});
 
     boxplot.selectAll("rect.box-right")
         .attr("x", function (d) { return xScale(d.quartiles[1]) })
         .attr("width", function (d) { return xScale(d.quartiles[2] - d.quartiles[1]) })
-        .style({"stroke": "rgb(31, 119, 180)", "fill": "rgb(31, 119, 180)"});
+        .style({"stroke": colors[2], "fill": colors[2]});
 
     boxplot.selectAll("line.nv-boxplot-median")
         .attr("x1", function (d) { return xScale(d.quartiles[1]) })
-        .attr("x2", function (d) { return xScale(d.quartiles[1]) });
+        .attr("x2", function (d) { return xScale(d.quartiles[1]) })
+        .style({"stroke-width": 3})
+
+    var tooltipData = function (d, i) {
+        return {
+            key: "Officer Response Time",
+            value: "Officer Response Time",
+            series: [
+                {
+                    key: '25%',
+                    value: durationFormat(data.quartiles[0]),
+                    color: colors[0]
+                },
+                {
+                    key: '50%',
+                    value: durationFormat(data.quartiles[1]),
+                    color: colors[1]
+                },
+                {
+                    key: '75%',
+                    value: durationFormat(data.quartiles[2]),
+                    color: colors[2]
+                },
+                {key: 'Max', value: durationFormat(data.max), color: colors[3]}
+            ],
+            data: d,
+            index: i,
+            e: d3.event
+        }
+    }
+
+    svg
+        .on('mouseover', function (d, i) {
+            tooltip.data(tooltipData(d, i)).hidden(false);
+        })
+        .on('mouseout', function (d, i) {
+            tooltip.data(tooltipData(d, i)).hidden(true);
+        })
+        .on('mousemove', function () {
+            tooltip();
+        })
 
     boxplot.selectAll("g.nv-x.nv-axis").call(xAxis);
 }
