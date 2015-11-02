@@ -16,7 +16,9 @@ CREATE MATERIALIZED VIEW in_call AS
 WITH
 start_ids AS (SELECT transaction_id FROM transaction WHERE descr = 'Dispatched'),
 end_ids AS (SELECT transaction_id FROM transaction WHERE descr in ('Cleared','Canceled'))
- SELECT c.call_id,
+ SELECT 
+    ROW_NUMBER() OVER (ORDER BY c.call_id ASC) AS in_call_id,
+    c.call_id,
     start_.time_recorded AS start_time,
     end_.time_recorded AS end_time,
     start_.shift_id,
