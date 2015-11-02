@@ -471,6 +471,22 @@ class InCallPeriod(models.Model):
         managed = False
         db_table = 'in_call'
 
+class OfficerActivity(models.Model):
+    officer_activity_id = models.IntegerField(primary_key=True)
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="+")
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
+    activity = models.TextField(blank=True, null=True)
+    call = models.ForeignKey(Call, blank=True, null=True,
+                             db_column="call_id",
+                             related_name="+")
+
+    class Meta:
+        managed = False
+        db_table = 'officer_activity'
+
 
 
 class Incident(models.Model):
