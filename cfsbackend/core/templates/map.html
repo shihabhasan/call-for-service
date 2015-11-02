@@ -3,7 +3,7 @@
 {% load staticfiles %}
 
 {% block content %}
-    <script id="dashboard-template" type="text/html">
+    <script id="map-template" type="text/html">
         <NavBar filterHash="[[ filterHash ]]"/>
         <div class="row dashboard">
             <div class="large-3 columns">
@@ -11,6 +11,7 @@
             </div>
             <div class="large-9 columns">
                 <h2>Map Goes Here</h2>
+                <svg id="map"></svg>
             </div>
         </div>
     </script>
@@ -21,8 +22,9 @@
     <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
     <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
+{#    <script src="{% static 'd3-geo-projection/d3.geo.projection.js' %}"></script>#}
     <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
-    <script src="{% static 'overview/overview.js' %}"></script>
+    <script src="{% static 'map/map.js' %}"></script>
 {% endblock %}
 </body>
 </html>
