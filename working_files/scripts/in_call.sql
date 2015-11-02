@@ -20,8 +20,7 @@ end_ids AS (SELECT transaction_id FROM transaction WHERE descr in ('Cleared','Ca
     start_.time_recorded AS start_time,
     end_.time_recorded AS end_time,
     start_.shift_id,
-    start_.call_unit_id AS start_call_unit_id,
-    end_.call_unit_id AS end_call_unit_id
+    start_.call_unit_id AS call_unit_id
    FROM call c, (
        SELECT cl1.call_log_id,
             cl1.transaction_id,
