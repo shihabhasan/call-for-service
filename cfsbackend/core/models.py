@@ -315,15 +315,15 @@ class OOSCode(ModelWithDescr):
         db_table = 'oos_code'
 
 
-class OutOfServicePeriods(models.Model):
+class OutOfServicePeriod(models.Model):
     oos_id = models.IntegerField(primary_key=True)
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
                                   db_column="call_unit_id",
-                                  related_name="call_unit")
+                                  related_name="+")
     shift_unit_id = models.BigIntegerField(blank=True, null=True)
     oos_code = models.ForeignKey(OOSCode, blank=True, null=True,
                                  db_column="oos_code_id",
-                                 related_name="oos_code")
+                                 related_name="+")
     location = models.TextField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
@@ -333,6 +333,72 @@ class OutOfServicePeriods(models.Model):
     class Meta:
         managed = False
         db_table = 'out_of_service'
+
+class Shift(models.Model):
+    shift_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'shift'
+
+class Officer(models.Model):
+    officer_id = models.IntegerField(primary_key=True)
+    name = models.TextField(blank=True, null=True)
+    name_aka = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'officer'
+
+class Bureau(ModelWithDescr):
+    bureau_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'bureau'
+
+class Division(ModelWithDescr):
+    division_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'division'
+
+class Unit(ModelWithDescr):
+    unit_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'unit'
+
+
+class ShiftUnit(models.Model):
+    shift_unit_id = models.IntegerField(primary_key=True)
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="+")
+    officer = models.ForeignKey(Officer, blank=True, null=True,
+                                db_column="officer_id",
+                                related_name="+")
+    in_time = models.DateTimeField(blank=True, null=True)
+    out_time = models.DateTimeField(blank=True, null=True)
+    bureau = models.ForeignKey(Bureau, blank=True, null=True,
+                               db_column="bureau_id",
+                               related_name="+")
+    division = models.ForeignKey(Division, blank=True, null=True,
+                               db_column="division_id",
+                               related_name="+")
+    unit = models.ForeignKey(Unit, blank=True, null=True,
+                               db_column="unit_id",
+                               related_name="+")
+    shift = models.ForeignKey(Shift, blank=True, null=True,
+                              db_column="shift_id",
+                              related_name="+")
+
+    class Meta:
+        managed = False
+        db_table = 'shift_unit'
+
 
 
 # Primary Classes
@@ -386,6 +452,25 @@ class Call(models.Model):
     class Meta:
         managed = False
         db_table = 'call'
+
+class InCallPeriod(models.Model):
+    in_call_id = models.IntegerField(primary_key=True)
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="+")
+    shift = models.ForeignKey(Shift, blank=True, null=True,
+                              db_column="shift_id",
+                              related_name="+")
+    call = models.ForeignKey(Call, blank=True, null=True,
+                             db_column="call_id",
+                             related_name="+")
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'in_call'
+
 
 
 class Incident(models.Model):
