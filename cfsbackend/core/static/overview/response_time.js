@@ -48,6 +48,20 @@ function cleanupData(data) {
     return data;
 }
 
+function cloneFilter() {
+    return _.clone(dashboard.findComponent('Filter').get('filter'));
+}
+
+function toggleFilter(key, value) {
+    var f = cloneFilter();
+    if (f[key] == value) {
+        delete f[key];
+    } else {
+        f[key] = value;
+    }
+    updateHash(buildQueryParams(f));
+}
+
 function monitorChart(keypath, fn) {
     dashboard.observe(keypath, function (newData) {
         if (!dashboard.get('loading')) {
@@ -70,13 +84,14 @@ monitorChart('data.officer_response_time_by_priority', buildORTByPriorityChart);
 // ========================================================================
 
 function durationFormat(secs) {
+    secs = Math.round(secs);
     if (secs > 60 * 60) {
-        return d3.format("d")(Math.round(secs / 60 / 60)) + ":" +
-            d3.format("02d")(Math.round((secs / 60) % 60)) + ":" +
-            d3.format("02d")(Math.round(secs % 60));
+        return d3.format("d")(Math.floor(secs / 60 / 60)) + ":" +
+            d3.format("02d")(Math.floor((secs / 60) % 60)) + ":" +
+            d3.format("02d")(Math.floor(secs % 60));
     } else {
-        return d3.format("d")(Math.round(secs / 60)) + ":" +
-            d3.format("02d")(Math.round(secs % 60));
+        return d3.format("d")(Math.floor(secs / 60)) + ":" +
+            d3.format("02d")(Math.floor(secs % 60));
     }
 
 }
@@ -110,6 +125,14 @@ function buildORTBySourceChart(data) {
         });
 
         svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
+
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+
+        chart.discretebar.dispatch.on('elementClick', function (e) {
+            if (e.data.id) {
+                toggleFilter("call_source", e.data.id);
+            }
+        });
 
         // Have to call this both during creation and after updating the chart
         // when the window is resized.
@@ -159,6 +182,13 @@ function buildORTByBeatChart(data) {
 
         svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
 
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+
+        chart.discretebar.dispatch.on('elementClick', function (e) {
+            if (e.data.id) {
+                toggleFilter("beat", e.data.id);
+            }
+        });
 
         // Have to call this both during creation and after updating the chart
         // when the window is resized.
@@ -205,6 +235,14 @@ function buildORTByPriorityChart(data) {
 
         svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
 
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+
+        chart.discretebar.dispatch.on('elementClick', function (e) {
+            if (e.data.id) {
+                toggleFilter("priority", e.data.id);
+            }
+        });
+
         nv.utils.windowResize(function () {
             chart.update();
         });
@@ -244,7 +282,7 @@ function buildORTChart(data) {
 
     if (_.isEmpty(data)) {
         svg.selectAll("g.nv-boxplot").remove();
-        
+
         var noDataText = svg.selectAll('.nv-noData').data(["No Data Available."]);
 
         noDataText.enter().append('text')
@@ -258,6 +296,11 @@ function buildORTChart(data) {
             .text(function (d) {
                 return d
             });
+
+        svg
+            .on('mouseover', null)
+            .on('mouseout', null)
+            .on('mousemove', null);
 
         return;
     } else {
@@ -275,59 +318,72 @@ function buildORTChart(data) {
         .orient("bottom")
         .tickFormat(durationFormat);
 
-    var boxplot = svg.selectAll("g.nv-boxplot")
-        .data([data]);
+    console.log(data);
+
+    // NOTE: This should not have to be done, but without it, the chart does
+    // not update. TODO investigate.
+    svg.selectAll("g.nv-boxplot").remove();
+
+    var boxplot = svg.selectAll("g.nv-boxplot").data([data]);
 
     boxplot.exit().remove();
 
-    var boxplots = boxplot.enter()
+    var boxplotEnter = boxplot.enter()
         .append("g")
         .classed("nv-boxplot", true);
 
-    boxplots.append("line")
+    boxplotEnter.append("line")
         .attr("y1", center)
         .attr("y2", center)
         .classed({"nv-boxplot-whisker": true, "whisker-left": true});
 
-    boxplots.append("line")
+    boxplotEnter.append("line")
         .attr("y1", tickTop)
         .attr("y2", tickTop + tickHeight)
         .classed({"nv-boxplot-tick": true, "tick-left": true});
 
-    boxplots.append("line")
+    boxplotEnter.append("line")
         .attr("y1", center)
         .attr("y2", center)
         .classed({"nv-boxplot-whisker": true, "whisker-right": true});
 
-    boxplots.append("line")
+    boxplotEnter.append("line")
         .attr("y1", tickTop)
         .attr("y2", tickTop + tickHeight)
         .classed({"nv-boxplot-tick": true, "tick-right": true});
 
-    boxplots.append("rect")
+    boxplotEnter.append("rect")
         .attr("y", boxtop)
         .attr("height", boxbottom - boxtop)
         .classed({"nv-boxplot-box": true, "box-left": true});
 
-    boxplots.append("rect")
+    boxplotEnter.append("rect")
         .attr("y", boxtop)
         .attr("height", boxbottom - boxtop)
         .classed({"nv-boxplot-box": true, "box-right": true});
 
-    boxplots.append("line")
+    boxplotEnter.append("line")
         .attr("y1", boxtop)
         .attr("y2", boxbottom)
         .classed({"nv-boxplot-median": true});
 
-    boxplots.append("g")
+    boxplotEnter.append("g")
         .classed({"nv-x": true, "nv-axis": true})
         .attr("transform", "translate(0, " + (height) + ")");
 
+    boxplot.selectAll("g.nv-x.nv-axis").call(xAxis);
+
     boxplot.selectAll("line.whisker-left")
         .attr("x1", function (d) {
+            console.log("hi");
+            console.log(d);
+            console.log(xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5)))
             return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5))
         })
         .attr("x2", function (d) {
+            console.log("hi");
+            console.log(d);
+            console.log(d.quartiles[0])
             return xScale(d.quartiles[0])
         })
         .style({"stroke": colors[0], "stroke-width": 3});
@@ -343,10 +399,10 @@ function buildORTChart(data) {
 
     boxplot.selectAll("line.whisker-right")
         .attr("x1", function (d) {
-            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5))
+            return xScale(d.quartiles[2])
         })
         .attr("x2", function (d) {
-            return xScale(d.quartiles[2])
+            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5))
         })
         .style({"stroke": colors[3], "stroke-width": 3});
 
@@ -425,5 +481,4 @@ function buildORTChart(data) {
             tooltip();
         })
 
-    boxplot.selectAll("g.nv-x.nv-axis").call(xAxis);
 }
