@@ -34,4 +34,5 @@ urlpatterns = [
     url(r'^response_time$', views.ResponseTimeView.as_view()),
     url(r'^calls$', views.CallListView.as_view()),
     url(r'^predictive$', views.PredictiveView.as_view()),
+    url(r'^map$', views.MapView.as_view()),
 ]

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+    <script id="dashboard-template" type="text/html">
+        <NavBar filterHash="[[ filterHash ]]"/>
+        <div class="row dashboard">
+            <div class="large-3 columns">
+                <Filter/>
+            </div>
+            <div class="large-9 columns">
+                <h2>Map Goes Here</h2>
+            </div>
+        </div>
+    </script>
+{% endblock %}
+
+<!-- Latest compiled and minified JavaScript -->
+{% block javascript %}
+    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
+    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
+    <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
+    <script src="{% static 'overview/overview.js' %}"></script>
+{% endblock %}
+</body>
+</html>
