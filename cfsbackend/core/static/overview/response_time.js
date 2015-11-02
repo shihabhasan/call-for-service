@@ -243,7 +243,9 @@ function buildORTChart(data) {
     }
 
     if (_.isEmpty(data)) {
-        var noDataText = svg.selectAll('.nv-noData').data(["No Data Available"]);
+        svg.selectAll("g.nv-boxplot").remove();
+        
+        var noDataText = svg.selectAll('.nv-noData').data(["No Data Available."]);
 
         noDataText.enter().append('text')
             .attr('class', 'nvd3 nv-noData')
