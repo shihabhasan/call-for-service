@@ -2,6 +2,10 @@
 
 {% load staticfiles %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+{% endblock %}
+
 {% block content %}
     <script id="map-template" type="text/html">
         <NavBar filterHash="[[ filterHash ]]"/>
@@ -11,6 +15,7 @@
             </div>
             <div class="large-9 columns">
                 <div id="map-container">
+                    <div id="legend"></div>
                     <svg id="map"></svg>
                 </div>
             </div>
@@ -23,8 +28,9 @@
     <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
     <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
-{#    <script src="{% static 'd3-geo-projection/d3.geo.projection.js' %}"></script>#}
+    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
     <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
+    <script src="{% static 'q/q.js' %}"></script>
     <script src="{% static 'map/map.js' %}"></script>
 {% endblock %}
 </body>

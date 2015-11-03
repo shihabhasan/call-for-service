@@ -3,10 +3,9 @@ from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
-    CallOverview, CallResponseTimeOverview, CallVolumeOverview
+    CallOverview, CallResponseTimeOverview, CallVolumeOverview, MapOverview
 from ..filters import CallFilterSet
 from .. import serializers
 
@@ -126,10 +125,21 @@ class CallResponseTimeView(APIView):
 
 class CallVolumeView(APIView):
     """
-    Gives all the information needed for the response time dashboard based off
+    Gives all the information needed for the call volume dashboard based off
     of user-submitted filters.
     """
 
     def get(self, request, format=None):
         overview = CallVolumeOverview(request.GET)
+        return Response(overview.to_dict())
+
+
+class MapInfoView(APIView):
+    """
+    Gives all the information needed for the map view based off of
+    user-submitted filters.
+    """
+
+    def get(self, request, format=None):
+        overview = MapOverview(request.GET)
         return Response(overview.to_dict())

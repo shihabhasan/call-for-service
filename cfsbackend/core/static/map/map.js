@@ -1,6 +1,6 @@
 "use strict";
 
-var url = "/api/response_time/";
+var url = "/api/map_info/";
 var charts = {};
 var outFormats = {
     "month": "%b %y",
@@ -9,46 +9,67 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
-var dashboard = new Page({
+var map = new Page({
     el: $('body').get(),
     template: "#map-template",
     data: {
-        data: {
-            'volume_over_time': {
-                'period_size': 'day',
-                'results': []
-            },
-            'day_hour_heatmap': [],
-            'volume_by_source': {}
-        }
+        mapDrawn: false
     },
     filterUpdated: function (filter) {
-        this.set('loading', false);
-        this.set('initialload', false);
-        //d3.json(buildURL(filter), _.bind(function (error, newData) {
-        //    if (error) throw error;
-        //    this.set('loading', false);
-        //    this.set('initialload', false);
-        //    //newData = cleanupData(newData);
-        //    //this.set('data', newData);
-        //}, this));
+        d3.json(buildURL(filter), _.bind(function (error, newData) {
+            if (error) throw error;
+            this.set('loading', false);
+            this.set('initialload', false);
+            newData = cleanupData(newData);
+            this.set('data', newData);
+        }, this));
     }
+});
+
+
+function ensureMapIsDrawn() {
+    var deferred = Q.defer();
+
+    function isMapDrawn() {
+
+        if (map.get('mapDrawn')) {
+            deferred.resolve();
+        } else {
+            setTimeout(isMapDrawn, 30);
+        }
+    }
+
+    isMapDrawn();
+
+    return deferred.promise;
+}
+
+
+map.observe('data', function (newData) {
+    d3.selectAll(".nvtooltip").remove();
+    var svg = d3.select("#map g");
+    if (svg.size() === 0) {
+        buildMap();
+    }
+
+    ensureMapIsDrawn().then(function () { updateMap(newData) });
 });
 
 // ========================================================================
 // Functions
 // ========================================================================
 
+function cleanupData(data) {
+    return data;
+}
+
 function buildURL(filter) {
     return url + "?" + buildQueryParams(filter);
 }
 
-var width = 800;
-var height = 800;
-
 function buildMap() {
     var width = d3.select("#map-container").node().clientWidth;
-    var height = width;
+    var height = width * 1.3
 
     var projection = d3.geo.conicConformal()
         .scale(1)
@@ -83,8 +104,7 @@ function buildMap() {
             .style("stroke", "black")
             .style("stroke-width", 1)
             .attr("class", function (d) {
-                return "beat-" + d.properties.LAWBEAT +
-                    " dist-" + d.properties.LAWDIST;
+                return "beat beat-" + d.properties.LAWBEAT;
             })
             .attr("data-beat", function (d) {
                 return d.properties.LAWBEAT
@@ -92,8 +112,92 @@ function buildMap() {
             .attr("data-dist", function (d) {
                 return d.properties.LAWDIST
             });
+
+        map.set('mapDrawn', true);
     });
 }
 
-buildMap();
+function updateMap(data) {
+    if (data === undefined) {
+        return;
+    }
+
+    var svg = d3.select("#map g")
+        , tooltip = nv.models.tooltip()
+        , numColors = 5
+        , colors = colorbrewer.OrRd[numColors]
+        , maxResponseTime = _(data.officer_response_time).chain().pluck('mean').max().value()
+        , minCallVolume = _(data.call_volume).chain().pluck('volume').min().value()
+        , maxCallVolume = _(data.call_volume).chain().pluck('volume').max().value()
+        , volumeScale = d3.scale.linear().domain([minCallVolume, maxCallVolume]).nice().range([0, numColors])
+        , numFmt = d3.format(",.g")
+        ;
+
+    d3.selectAll(".beat").style("fill", "white");
+
+    _(data.call_volume).each(function (d) {
+        var n = Math.min(numColors - 1, Math.floor(volumeScale(d.volume)));
+        d3.selectAll(".beat-" + d.name)
+            .style("fill", colors[n]);
+    });
+
+
+    var beats = _.reduce(data.call_volume, function (memo, d) {
+        memo[d.name] = d.volume;
+        return memo
+    });
+
+    var tooltipData = function (d, i) {
+        var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
+        return {
+            key: "Beat",
+            value: "Beat " + d.properties.LAWBEAT,
+            series: {
+                key: "Call Volume",
+                value: numFmt(beats[d.properties.LAWBEAT]),
+                color: colors[n]
+            },
+            data: d,
+            index: i,
+            e: d3.event
+        }
+    }
+
+    svg.selectAll(".beat")
+        .on('mouseover', function (d, i) {
+            tooltip.data(tooltipData(d, i)).hidden(false);
+        })
+        .on('mouseout', function (d, i) {
+            tooltip.data(tooltipData(d, i)).hidden(true);
+        })
+        .on('mousemove', function () {
+            tooltip();
+        })
+
+    var legendData = _.range(numColors);
+    legendData = _.map(legendData, function (n) {
+       return [
+         colors[n],
+           numFmt(volumeScale.invert(n)) + "-" + numFmt(volumeScale.invert(n+1))
+       ];
+    });
+
+    console.log(legendData);
+
+    var legend = d3.select('#legend');
+    legend.selectAll("ul").remove();
+    var list = legend.append('ul').classed('inline-list', true);
+    var keys = list.selectAll('li.key').data(legendData);
+    keys.enter()
+        .append('li')
+        .classed('key', true)
+        .style('border-left-width', '30px')
+        .style('border-left-style', 'solid')
+        .style('padding', '0 10px')
+        .style('border-left-color', function (d) { return d[0] })
+        .text(function (d) {
+            return d[1];
+        });
+}
+
 
