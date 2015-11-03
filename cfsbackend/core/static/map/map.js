@@ -46,35 +46,54 @@ function buildURL(filter) {
 var width = 800;
 var height = 800;
 
-var projection = d3.geo.conicConformal()
-.scale(1)
-    .translate([0, 0]);
+function buildMap() {
+    var width = d3.select("#map-container").node().clientWidth;
+    var height = width;
 
-var path = d3.geo.path()
-    .projection(projection);
+    var projection = d3.geo.conicConformal()
+        .scale(1)
+        .translate([0, 0])
+        .rotate([80, 0]);
 
-var svg = d3.select("#map")
-    .attr("width", 800)
-    .attr("height", 800)
-    .append("g");
+    var path = d3.geo.path()
+        .projection(projection);
 
-d3.json("/static/map/beats3.json", function (json) {
-    // Compute the bounds of a feature of interest, then derive scale & translate.
-    var b = path.bounds(json),
-        s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
-        t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+    var svg = d3.select("#map")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g");
 
-    // Update the projection to use computed scale & translate.
-    projection
-        .scale(s)
-        .translate(t);
+    d3.json("/static/map/beats.json", function (json) {
+        // Compute the bounds of a feature of interest, then derive scale & translate.
+        var b = path.bounds(json),
+            s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+            t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
 
-    svg.selectAll("path")
-        .data(json.features)
-        .enter()
-        .append("path")
-        .attr("d", path)
-        .style("fill", "blue")
-        .style("stroke", "black")
-        .style("stroke-width", 2)
-});
+        // Update the projection to use computed scale & translate.
+        projection
+            .scale(s)
+            .translate(t);
+
+        svg.selectAll("path")
+            .data(json.features)
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .style("fill", "white")
+            .style("stroke", "black")
+            .style("stroke-width", 1)
+            .attr("class", function (d) {
+                return "beat-" + d.properties.LAWBEAT +
+                    " dist-" + d.properties.LAWDIST;
+            })
+            .attr("data-beat", function (d) {
+                return d.properties.LAWBEAT
+            })
+            .attr("data-dist", function (d) {
+                return d.properties.LAWDIST
+            });
+    });
+}
+
+buildMap();
+
