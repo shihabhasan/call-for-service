@@ -9,7 +9,7 @@
 # into your database.
 
 from __future__ import unicode_literals
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import timedelta
 
 from django.db import models, connection
@@ -26,7 +26,6 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
         ]
-
 
 class DateTrunc(Func):
     """
@@ -77,6 +76,90 @@ class DurationStdDev(Aggregate):
 
     def __init__(self, expression, **extra):
         super().__init__(expression, output_field=DurationField(), **extra)
+
+class OfficerActivityOverview:
+    def __init__(self, filters):
+        self._filters = filters
+        from .filters import OfficerActivityFilterSet
+        self.filter = OfficerActivityFilterSet(data=filters,
+                queryset=OfficerActivity.objects.all())
+        self.bounds = self.qs.aggregate(min_time=Min('start_time'),
+                                        max_time=Max('end_time'))
+        if self.bounds['max_time'] and self.bounds['min_time']:
+            self.span = self.bounds['max_time'] - self.bounds['min_time']
+        else:
+            self.span = timedelta(0, 0)
+
+        # Interval between time samples in seconds
+        self.sample_interval = 60 * 10
+
+    @property
+    def qs(self):
+        return self.filter.filter()
+
+    def round_datetime(self, d, decimals=-1):
+        """
+        Round the given date time to the given decimal precision (defaults to 10 mins).
+        
+        Note that default Python3 rounding exhibits "round-toward-even" behavior:
+        http://stackoverflow.com/questions/10825926/python-3-x-rounding-behavior
+
+        This means that round(5, -1) = 0 and round(15, -1) = 20.
+        """
+        return d - timedelta(minutes=d.minute - round(d.minute, decimals),
+                         seconds=d.second,
+                         microseconds = d.microsecond)
+
+    def allocation_over_time(self):
+        if self.span == timedelta(0, 0):
+            return []
+
+        # In order for this to show average allocation, we need to know the number 
+        # of times each time sample occurs.
+        start = self.round_datetime(self.bounds['min_time'])
+        end = self.round_datetime(self.bounds['max_time'])
+        total_seconds = int((end-start).total_seconds())
+        time_sample_freq = Counter((start + timedelta(seconds=x)).time() for x in
+                           range(0, total_seconds + 1, self.sample_interval))
+
+        # Store the number of officers doing a given activity at a given time
+        aggregated_result = defaultdict(lambda: defaultdict(int))
+        """
+        results = self.qs \
+            .values('dow_received', 'hour_received') \
+            .annotate(volume=Count('dow_received')) \
+            .order_by('dow_received', 'hour_received')
+        """
+
+        for result in self.qs.values():
+            activity_start = self.round_datetime(result['start_time'])
+            activity_end = self.round_datetime(result['end_time'])
+            for active_instant in (activity_start + timedelta(seconds=x)
+                    for x in range(0, int((activity_end-activity_start).total_seconds()), self.sample_interval)):
+                aggregated_result[result['activity']][active_instant.time()] += 1
+
+        # Transform the aggregated result; we want a dict for each time period/activity combination
+        final_results = []
+        for activity in aggregated_result:
+            for time, total in aggregated_result[activity].items():
+                freq = time_sample_freq[time]
+                final_results.append({
+                    'activity': activity,
+                    'time': time,
+                    'freq': freq,
+                    'total': total,
+                    'avg_volume': 0 if freq == 0 else total / freq
+                })
+
+        return final_results
+    
+    def to_dict(self):
+        return {
+            'filter': self.filter.data,
+            'bounds': self.bounds,
+            'allocation_over_time': self.allocation_over_time(),
+        }
+
 
 
 class CallOverview:
@@ -213,6 +296,8 @@ class CallOverview:
             # 'officer_response_time_by_beat': self.officer_response_time_by_beat()
             # 'officer_response_time': self.officer_response_time()
         }
+
+
 
 
 class ModelWithDescr(models.Model):

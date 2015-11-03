@@ -2,7 +2,7 @@ from dateutil.parser import parse as dtparse
 from django.http import QueryDict
 from django.test import TestCase
 from .test_helpers import assert_list_equiv
-from ..models import Call, CallOverview, Beat
+from ..models import Call, CallOverview, Beat, CallUnit, OfficerActivity, OfficerActivityOverview
 from datetime import timedelta
 
 
@@ -20,6 +20,196 @@ def create_call(**kwargs):
 
 def q(string):
     return QueryDict(string)
+
+class OfficerActivityOverviewTest(TestCase):
+    def setUp(self):
+        call1 = create_call(call_id=1, time_received='2014-01-15T9:00')
+        call2 = create_call(call_id=2, time_received='2014-03-18T3:00')
+        cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
+        cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
+        a1 = OfficerActivity.objects.create(officer_activity_id=1,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-15T9:02'),
+                end_time=dtparse('2014-01-15T9:35'),
+                call_unit=cu1,
+                call=call1)
+        a2 = OfficerActivity.objects.create(officer_activity_id=2,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-15T9:08'),
+                end_time=dtparse('2014-01-15T9:20'),
+                call_unit=cu2,
+                call=call1)
+        a3 = OfficerActivity.objects.create(officer_activity_id=3,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-15T10:02'),
+                end_time=dtparse('2014-01-15T11:30'),
+                call_unit=cu1,
+                call=call2)
+        a4 = OfficerActivity.objects.create(officer_activity_id=4,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-16T9:55'),
+                end_time=dtparse('2014-01-16T10:14'),
+                call_unit=cu2,
+                call=call2)
+        a5 = OfficerActivity.objects.create(officer_activity_id=5,
+                activity="OUT OF SERVICE",
+                start_time=dtparse('2014-01-16T10:15'),
+                end_time=dtparse('2014-01-16T10:48'),
+                call_unit=cu1,
+                call=None)
+        a6 = OfficerActivity.objects.create(officer_activity_id=6,
+                activity="OUT OF SERVICE",
+                start_time=dtparse('2014-01-18T9:05'),
+                end_time=dtparse('2014-01-18T9:30'),
+                call_unit=cu2,
+                call=None)
+
+    def test_distinguishes_activities(self):
+        "Make sure we pick up on there being two types of activities."
+        overview = OfficerActivityOverview(q(''))
+        results = overview.to_dict()['allocation_over_time']
+        
+        self.assertEqual(sorted(set([r['activity'] for r in results])),
+                ['IN CALL', 'OUT OF SERVICE'])
+        
+    def test_rounds_correctly(self):
+        "Make sure our rounding method works as expected."
+        overview = OfficerActivityOverview(q(''))
+
+        rounded_times = [overview.round_datetime(a.start_time) for a in OfficerActivity.objects.all()]
+        rounded_times.extend([overview.round_datetime(a.end_time) for a in OfficerActivity.objects.all()])
+
+        correct_rounded_times = [
+            dtparse('2014-01-15T9:00'),
+            dtparse('2014-01-15T9:10'),
+            dtparse('2014-01-15T10:00'),
+            dtparse('2014-01-16T10:00'),
+            dtparse('2014-01-16T10:20'),
+            dtparse('2014-01-18T9:00'),
+            dtparse('2014-01-15T9:40'),
+            dtparse('2014-01-15T9:20'),
+            dtparse('2014-01-15T11:30'),
+            dtparse('2014-01-16T10:10'),
+            dtparse('2014-01-16T10:50'),
+            dtparse('2014-01-18T9:30'),
+        ]
+
+        self.assertEqual(rounded_times, correct_rounded_times)
+
+    def test_evaluates_no_activity(self):
+        # Should return 0 results
+        overview = OfficerActivityOverview(q('start_time__gte=2015-01-01'))
+        results = overview.to_dict()['allocation_over_time']
+
+        self.assertEqual(results, [])
+
+    def test_evaluates_one_activity(self):
+        # Should return 1 result (a1)
+        overview = OfficerActivityOverview(q('start_time__gte=2014-01-18'))
+        results = overview.to_dict()['allocation_over_time']
+
+        correct_results = [{
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('9:00').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('9:10').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('9:20').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }]
+
+
+        self.assertEqual(sorted(results, key=lambda x: x['time']), correct_results)
+
+    def test_evaluates_two_nonoverlapping_activities(self):
+        # Should return 2 results (a5, a6) that don't overlap in the
+        # same time period
+        overview = OfficerActivityOverview(q('activity=OUT+OF+SERVICE'))
+        results = overview.to_dict()['allocation_over_time']
+        
+        correct_results = [{
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('9:00').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('9:10').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('9:20').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('10:20').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('10:30').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time': dtparse('10:40').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }]
+
+        self.assertEqual(sorted(results, key=lambda x: x['time']), correct_results)
+
+    def test_evaluates_two_overlapping_activities(self):
+        # Should return 2 results (a1, a2) that overlap in the same time period
+        overview = OfficerActivityOverview(q('call=1'))
+        results = overview.to_dict()['allocation_over_time']
+        
+        correct_results = [{
+            'activity': 'IN CALL',
+            'time': dtparse('9:00').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }, {
+            'activity': 'IN CALL',
+            'time': dtparse('9:10').time(),
+            'freq': 1,
+            'total': 2,
+            'avg_volume': 2.0
+        }, {
+            'activity': 'IN CALL',
+            'time': dtparse('9:20').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }, {
+            'activity': 'IN CALL',
+            'time': dtparse('9:30').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }]
+
+        self.assertEqual(sorted(results, key=lambda x: x['time']), correct_results)
+
 
 
 class CallOverviewTest(TestCase):

@@ -1,10 +1,13 @@
 from datetime import timedelta
+from dateutil.parser import parse as dtparse
 
 from django import forms
+from django.http import QueryDict
 from django.test import TestCase
 
-from ..filters import create_filterset, create_rel_filterset
-from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode
+from ..filters import create_filterset, create_rel_filterset, OfficerActivityFilterSet
+from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode, \
+        OfficerActivity, Nature
 
 
 def test_create_simple_filterset():
@@ -56,6 +59,123 @@ def test_create_complex_filterset():
 
     cancelled = filters["cancelled"]
     assert type(cancelled.form_field) == forms.BooleanField
+
+
+class OfficerActivityFilterSetTest(TestCase):
+    def setUp(self):
+        self.n1 = Nature.objects.create(nature_id=1, descr='Robbery')
+        self.n2 = Nature.objects.create(nature_id=2, descr='Homicide')
+        self.call1 = Call.objects.create(call_id=1, time_received='2014-01-15T9:00', nature=self.n1)
+        self.call2 = Call.objects.create(call_id=2, time_received='2014-03-18T3:00', nature=self.n2)
+        self.cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
+        self.cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
+        self.a1 = OfficerActivity.objects.create(officer_activity_id=1,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-15T9:02'),
+                end_time=dtparse('2014-01-15T9:35'),
+                call_unit=self.cu1,
+                call=self.call1)
+        self.a2 = OfficerActivity.objects.create(officer_activity_id=2,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-15T9:08'),
+                end_time=dtparse('2014-01-15T9:20'),
+                call_unit=self.cu2,
+                call=self.call1)
+        self.a3 = OfficerActivity.objects.create(officer_activity_id=3,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-15T10:02'),
+                end_time=dtparse('2014-01-15T11:30'),
+                call_unit=self.cu1,
+                call=self.call2)
+        self.a4 = OfficerActivity.objects.create(officer_activity_id=4,
+                activity="IN CALL",
+                start_time=dtparse('2014-01-16T9:55'),
+                end_time=dtparse('2014-01-16T10:14'),
+                call_unit=self.cu2,
+                call=self.call2)
+        self.a5 = OfficerActivity.objects.create(officer_activity_id=5,
+                activity="OUT OF SERVICE",
+                start_time=dtparse('2014-01-16T10:15'),
+                end_time=dtparse('2014-01-16T10:48'),
+                call_unit=self.cu1,
+                call=None)
+        self.a6 = OfficerActivity.objects.create(officer_activity_id=6,
+                activity="OUT OF SERVICE",
+                start_time=dtparse('2014-01-18T9:05'),
+                end_time=dtparse('2014-01-18T9:30'),
+                call_unit=self.cu2,
+                call=None)
+
+    def test_call_unit_filter(self):
+        filter_set = OfficerActivityFilterSet(data=QueryDict("call_unit=1"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a1, qs)
+        self.assertIn(self.a3, qs)
+        self.assertIn(self.a5, qs)
+        self.assertEqual(3, len(qs))
+
+        filter_set = OfficerActivityFilterSet(data=QueryDict("call_unit!=1"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a2, qs)
+        self.assertIn(self.a4, qs)
+        self.assertIn(self.a6, qs)
+        self.assertEqual(3, len(qs))
+
+    def test_call_filter(self):
+        # Here we use nature as a proxy for call_id, since we can't filter on
+        # that; we just need to uniquely identify the call for this test case.
+        filter_set = OfficerActivityFilterSet(data=QueryDict("call__nature=1"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a1, qs)
+        self.assertIn(self.a2, qs)
+        self.assertEqual(2, len(qs))
+
+        filter_set = OfficerActivityFilterSet(data=QueryDict("call__nature!=1"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a3, qs)
+        self.assertIn(self.a4, qs)
+        self.assertIn(self.a5, qs)
+        self.assertIn(self.a6, qs)
+        self.assertEqual(4, len(qs))
+
+    def test_start_time_filter(self):
+        filter_set = OfficerActivityFilterSet(data=QueryDict("start_time__gte=2014-01-16"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a4, qs)
+        self.assertIn(self.a5, qs)
+        self.assertIn(self.a6, qs)
+        self.assertEqual(3, len(qs))
+
+        filter_set = OfficerActivityFilterSet(data=QueryDict("start_time__lte=2014-01-16"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a1, qs)
+        self.assertIn(self.a2, qs)
+        self.assertIn(self.a3, qs)
+        self.assertEqual(3, len(qs))
+
+    def test_activity_filter(self):
+        filter_set = OfficerActivityFilterSet(data=QueryDict("activity__exact=IN+CALL"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a1, qs)
+        self.assertIn(self.a2, qs)
+        self.assertIn(self.a3, qs)
+        self.assertIn(self.a4, qs)
+        self.assertEqual(4, len(qs))
+
+        filter_set = OfficerActivityFilterSet(data=QueryDict("activity__exact!=IN+CALL"),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        self.assertIn(self.a5, qs)
+        self.assertIn(self.a6, qs)
+        self.assertEqual(2, len(qs))
+
 
 
 class CallFilterSetTest(TestCase):

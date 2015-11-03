@@ -6,7 +6,7 @@ from url_filter.filters import Filter
 from django.db.models import Q
 
 from .models import Call, CallUnit, Squad, ZipCode, CallSource, Nature, \
-    District, Beat, Sector, Priority, CloseCode
+    District, Beat, Sector, Priority, CloseCode, OfficerActivity
 
 
 def get_form_field_for_type(ftype):
@@ -71,7 +71,6 @@ class CallUnitFilterSet(ModelFilterSet):
         model = CallUnit
         fields = ["call_unit_id", "squad"]
 
-
 CallFilterSet = create_filterset(
     Call,
     [
@@ -98,6 +97,20 @@ CallFilterSet = create_filterset(
         {"name": "first_dispatched", "rel": "CallUnit"},
         {"name": "reporting_unit", "rel": "CallUnit"},
         {"name": "cancelled", "type": "boolean"}
+    ]
+)
+
+OfficerActivityFilterSet = create_filterset(
+    OfficerActivity,
+    [
+        {"name": "call_unit", "rel": "CallUnit"},
+        {"name": "start_time", "type": "date", "lookups": ["gte", "lte"],
+         "default_lookup": "gte"},
+        {"name": "end_time", "type": "date", "lookups": ["gte", "lte"],
+         "default_lookup": "gte"},
+        {"name": "activity", "type": "text", "lookups": ["exact"],
+         "default_lookup": "exact"},
+        {"name": "call", "rel": "Call"}
     ]
 )
 
