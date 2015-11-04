@@ -154,65 +154,7 @@ function updateMap(data) {
     svg.selectAll(".beat").style("fill", blankColor);
 
 
-    function updateMapCallVolume() {
-        var numColors = 5
-            , colors = colorbrewer.OrRd[numColors]
-            , minCallVolume = _(data.call_volume).chain().pluck('volume').min().value()
-            , maxCallVolume = _(data.call_volume).chain().pluck('volume').max().value()
-            , volumeScale = d3.scale.linear().domain([minCallVolume, maxCallVolume]).nice().range([0, numColors])
-            , numFmt = d3.format(",.g")
-            ;
-
-        _(data.call_volume).each(function (d) {
-            var n = Math.min(numColors - 1, Math.floor(volumeScale(d.volume)));
-            d3.selectAll(".beat-" + d.name)
-                .style("fill", colors[n]);
-        });
-
-        var beats = _.reduce(data.call_volume, function (memo, d) {
-            memo[d.name] = d.volume;
-            return memo
-        }, {});
-
-        var tooltipData = function (d, i) {
-            var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
-            var series = {'key': "Call Volume"};
-            if (_.isUndefined(beats[d.properties.LAWBEAT])) {
-                series.value = "No data";
-                series.color = blankColor;
-            } else {
-                series.value = numFmt(beats[d.properties.LAWBEAT]);
-                series.color = colors[n];
-            }
-            return {
-                key: "Beat",
-                value: "Beat " + d.properties.LAWBEAT,
-                series: series,
-                data: d,
-                index: i,
-                e: d3.event
-            }
-        }
-
-        svg.selectAll(".beat")
-            .on('mouseover', function (d, i) {
-                tooltip.data(tooltipData(d, i)).hidden(false);
-            })
-            .on('mouseout', function (d, i) {
-                tooltip.data(tooltipData(d, i)).hidden(true);
-            })
-            .on('mousemove', function () {
-                tooltip();
-            })
-
-        var legendData = _.range(numColors);
-        legendData = _.map(legendData, function (n) {
-            return [
-                colors[n],
-                numFmt(volumeScale.invert(n)) + "-" + numFmt(volumeScale.invert(n + 1))
-            ];
-        });
-
+    function updateLegend(legendData) {
         var legend = d3.select('#legend');
         legend.selectAll("ul").remove();
         var list = legend.append('ul').classed('inline-list', true);
@@ -231,34 +173,45 @@ function updateMap(data) {
             });
     }
 
-    function updateMapResponseTime() {
-        var numColors = 6
-            , colors = colorbrewer.PuRd[numColors]
-            , minResponseTime = _(data.officer_response_time).chain().pluck('mean').min().value()
-            , maxResponseTime = _(data.officer_response_time).chain().pluck('mean').max().value()
-            , volumeScale = d3.scale.linear().domain([minResponseTime, maxResponseTime]).nice().range([0, numColors])
-            , durFmt = durationFormat
+    function setupTooltip(tooltipData) {
+        svg.selectAll(".beat")
+            .on('mouseover', function (d, i) {
+                tooltip.data(tooltipData(d, i)).hidden(false);
+            })
+            .on('mouseout', function (d, i) {
+                tooltip.data(tooltipData(d, i)).hidden(true);
+            })
+            .on('mousemove', function () {
+                tooltip();
+            })
+    }
+
+    function update(data, key, seriesName, numColors, colorScheme, fmt) {
+        var colors = colorScheme[numColors]
+            , minValue = _(data).chain().pluck(key).min().value()
+            , maxValue = _(data).chain().pluck(key).max().value()
+            , scale = d3.scale.linear().domain([minValue, maxValue]).nice().range([0, numColors])
             ;
 
-        _(data.officer_response_time).each(function (d) {
-            var n = Math.min(numColors - 1, Math.floor(volumeScale(d.mean)));
+        _(data).each(function (d) {
+            var n = Math.min(numColors - 1, Math.floor(scale(d[key])));
             d3.selectAll(".beat-" + d.name)
                 .style("fill", colors[n]);
         });
 
-        var beats = _.reduce(data.officer_response_time, function (memo, d) {
-            memo[d.name] = d.mean;
+        var beats = _.reduce(data, function (memo, d) {
+            memo[d.name] = d[key];
             return memo
         }, {});
 
         var tooltipData = function (d, i) {
-            var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
-            var series = {'key': "Officer Response Time"};
+            var n = Math.floor(scale(beats[d.properties.LAWBEAT]));
+            var series = {'key': seriesName};
             if (_.isUndefined(beats[d.properties.LAWBEAT])) {
                 series.value = "No data";
                 series.color = blankColor;
             } else {
-                series.value = durFmt(beats[d.properties.LAWBEAT]);
+                series.value = fmt(beats[d.properties.LAWBEAT]);
                 series.color = colors[n];
             }
             return {
@@ -271,47 +224,23 @@ function updateMap(data) {
             }
         }
 
-        svg.selectAll(".beat")
-            .on('mouseover', function (d, i) {
-                tooltip.data(tooltipData(d, i)).hidden(false);
-            })
-            .on('mouseout', function (d, i) {
-                tooltip.data(tooltipData(d, i)).hidden(true);
-            })
-            .on('mousemove', function () {
-                tooltip();
-            })
+        setupTooltip(tooltipData);
 
         var legendData = _.range(numColors);
         legendData = _.map(legendData, function (n) {
             return [
                 colors[n],
-                durFmt(volumeScale.invert(n)) + "-" + durFmt(volumeScale.invert(n + 1))
+                fmt(scale.invert(n)) + "-" + fmt(scale.invert(n + 1))
             ];
         });
 
-        var legend = d3.select('#legend');
-        legend.selectAll("ul").remove();
-        var list = legend.append('ul').classed('inline-list', true);
-        var keys = list.selectAll('li.key').data(legendData);
-        keys.enter()
-            .append('li')
-            .classed('key', true)
-            .style('border-left-width', '30px')
-            .style('border-left-style', 'solid')
-            .style('padding', '0 10px')
-            .style('border-left-color', function (d) {
-                return d[0]
-            })
-            .text(function (d) {
-                return d[1];
-            });
+        updateLegend(legendData);
     }
 
     if (map.get('showing') === 'call_volume') {
-        updateMapCallVolume();
+        update(data.call_volume, 'volume', "Call Volume", 5, colorbrewer.OrRd, d3.format(",.g"));
     } else {
-        updateMapResponseTime();
+        update(data.officer_response_time, 'mean', "Officer Response Time", 6, colorbrewer.PuRd, durationFormat);
     }
 }
 
