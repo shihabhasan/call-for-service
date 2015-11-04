@@ -16,6 +16,17 @@
             <div class="large-9 columns">
                 <div id="map-container">
                     <div id="legend"></div>
+                    <div>
+                        <ul class="inline-list">
+                            [[ #if showing == "call_volume" ]]
+                            <li><strong>Call Volume</strong></li>
+                            <li><a href="#" on-click="showing:officer_response_time">Officer Response Time</a></li>
+                            [[ else ]]
+                            <li><a href="#" on-click="showing:call_volume">Call Volume</a></li>
+                            <li><strong>Officer Response Time</strong></li>
+                            [[ /if ]]
+                        </ul>
+                    </div>
                     <svg id="map"></svg>
                 </div>
             </div>

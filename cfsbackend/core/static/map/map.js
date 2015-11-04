@@ -13,6 +13,7 @@ var map = new Page({
     el: $('body').get(),
     template: "#map-template",
     data: {
+        showing: 'call_volume',
         mapDrawn: false
     },
     filterUpdated: function (filter) {
@@ -52,8 +53,27 @@ map.observe('data', function (newData) {
         buildMap();
     }
 
-    ensureMapIsDrawn().then(function () { updateMap(newData) });
+    ensureMapIsDrawn().then(function () {
+        updateMap(newData)
+    });
 });
+
+map.observe('showing', function () {
+    d3.selectAll(".nvtooltip").remove();
+    var svg = d3.select("#map g");
+    if (svg.size() === 0) {
+        return;
+    }
+
+    ensureMapIsDrawn().then(function () {
+        updateMap(map.get('data'));
+    });
+});
+
+map.on('showing', function (event, state) {
+    map.set('showing', state);
+    return false;
+})
 
 // ========================================================================
 // Functions
@@ -85,7 +105,9 @@ function buildMap() {
         .append("g");
 
     d3.json("/static/map/beats.json", function (json) {
-        json.features = _(json.features).reject(function (d) { return d.properties.LAWDIST === "DSO" });
+        json.features = _(json.features).reject(function (d) {
+            return d.properties.LAWDIST === "DSO"
+        });
 
         // Compute the bounds of a feature of interest, then derive scale & translate.
         var b = path.bounds(json),
@@ -126,85 +148,173 @@ function updateMap(data) {
 
     var svg = d3.select("#map g")
         , tooltip = nv.models.tooltip()
-        , numColors = 5
-        , colors = colorbrewer.OrRd[numColors]
-        , maxResponseTime = _(data.officer_response_time).chain().pluck('mean').max().value()
-        , minCallVolume = _(data.call_volume).chain().pluck('volume').min().value()
-        , maxCallVolume = _(data.call_volume).chain().pluck('volume').max().value()
-        , volumeScale = d3.scale.linear().domain([minCallVolume, maxCallVolume]).nice().range([0, numColors])
-        , numFmt = d3.format(",.g")
         , blankColor = "#EEE"
         ;
 
-    d3.selectAll(".beat").style("fill", blankColor);
-
-    _(data.call_volume).each(function (d) {
-        var n = Math.min(numColors - 1, Math.floor(volumeScale(d.volume)));
-        d3.selectAll(".beat-" + d.name)
-            .style("fill", colors[n]);
-    });
+    svg.selectAll(".beat").style("fill", blankColor);
 
 
-    var beats = _.reduce(data.call_volume, function (memo, d) {
-        memo[d.name] = d.volume;
-        return memo
-    });
+    function updateMapCallVolume() {
+        var numColors = 5
+            , colors = colorbrewer.OrRd[numColors]
+            , minCallVolume = _(data.call_volume).chain().pluck('volume').min().value()
+            , maxCallVolume = _(data.call_volume).chain().pluck('volume').max().value()
+            , volumeScale = d3.scale.linear().domain([minCallVolume, maxCallVolume]).nice().range([0, numColors])
+            , numFmt = d3.format(",.g")
+            ;
 
-    var tooltipData = function (d, i) {
-        var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
-        var series = {'key': "Call Volume"};
-        if (_.isUndefined(beats[d.properties.LAWBEAT])) {
-            series.value = "No data";
-            series.color = blankColor;
-        } else {
-            series.value = numFmt(beats[d.properties.LAWBEAT]);
-            series.color = colors[n];
+        _(data.call_volume).each(function (d) {
+            var n = Math.min(numColors - 1, Math.floor(volumeScale(d.volume)));
+            d3.selectAll(".beat-" + d.name)
+                .style("fill", colors[n]);
+        });
+
+        var beats = _.reduce(data.call_volume, function (memo, d) {
+            memo[d.name] = d.volume;
+            return memo
+        }, {});
+
+        var tooltipData = function (d, i) {
+            var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
+            var series = {'key': "Call Volume"};
+            if (_.isUndefined(beats[d.properties.LAWBEAT])) {
+                series.value = "No data";
+                series.color = blankColor;
+            } else {
+                series.value = numFmt(beats[d.properties.LAWBEAT]);
+                series.color = colors[n];
+            }
+            return {
+                key: "Beat",
+                value: "Beat " + d.properties.LAWBEAT,
+                series: series,
+                data: d,
+                index: i,
+                e: d3.event
+            }
         }
-        return {
-            key: "Beat",
-            value: "Beat " + d.properties.LAWBEAT,
-            series: series,
-            data: d,
-            index: i,
-            e: d3.event
-        }
+
+        svg.selectAll(".beat")
+            .on('mouseover', function (d, i) {
+                tooltip.data(tooltipData(d, i)).hidden(false);
+            })
+            .on('mouseout', function (d, i) {
+                tooltip.data(tooltipData(d, i)).hidden(true);
+            })
+            .on('mousemove', function () {
+                tooltip();
+            })
+
+        var legendData = _.range(numColors);
+        legendData = _.map(legendData, function (n) {
+            return [
+                colors[n],
+                numFmt(volumeScale.invert(n)) + "-" + numFmt(volumeScale.invert(n + 1))
+            ];
+        });
+
+        var legend = d3.select('#legend');
+        legend.selectAll("ul").remove();
+        var list = legend.append('ul').classed('inline-list', true);
+        var keys = list.selectAll('li.key').data(legendData);
+        keys.enter()
+            .append('li')
+            .classed('key', true)
+            .style('border-left-width', '30px')
+            .style('border-left-style', 'solid')
+            .style('padding', '0 10px')
+            .style('border-left-color', function (d) {
+                return d[0]
+            })
+            .text(function (d) {
+                return d[1];
+            });
     }
 
-    svg.selectAll(".beat")
-        .on('mouseover', function (d, i) {
-            tooltip.data(tooltipData(d, i)).hidden(false);
-        })
-        .on('mouseout', function (d, i) {
-            tooltip.data(tooltipData(d, i)).hidden(true);
-        })
-        .on('mousemove', function () {
-            tooltip();
-        })
+    function updateMapResponseTime() {
+        var numColors = 6
+            , colors = colorbrewer.PuRd[numColors]
+            , minResponseTime = _(data.officer_response_time).chain().pluck('mean').min().value()
+            , maxResponseTime = _(data.officer_response_time).chain().pluck('mean').max().value()
+            , volumeScale = d3.scale.linear().domain([minResponseTime, maxResponseTime]).nice().range([0, numColors])
+            , durFmt = durationFormat
+            ;
 
-    var legendData = _.range(numColors);
-    legendData = _.map(legendData, function (n) {
-       return [
-         colors[n],
-           numFmt(volumeScale.invert(n)) + "-" + numFmt(volumeScale.invert(n+1))
-       ];
-    });
-
-    console.log(legendData);
-
-    var legend = d3.select('#legend');
-    legend.selectAll("ul").remove();
-    var list = legend.append('ul').classed('inline-list', true);
-    var keys = list.selectAll('li.key').data(legendData);
-    keys.enter()
-        .append('li')
-        .classed('key', true)
-        .style('border-left-width', '30px')
-        .style('border-left-style', 'solid')
-        .style('padding', '0 10px')
-        .style('border-left-color', function (d) { return d[0] })
-        .text(function (d) {
-            return d[1];
+        _(data.officer_response_time).each(function (d) {
+            var n = Math.min(numColors - 1, Math.floor(volumeScale(d.mean)));
+            d3.selectAll(".beat-" + d.name)
+                .style("fill", colors[n]);
         });
+
+        var beats = _.reduce(data.officer_response_time, function (memo, d) {
+            memo[d.name] = d.mean;
+            return memo
+        }, {});
+
+        var tooltipData = function (d, i) {
+            var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
+            var series = {'key': "Officer Response Time"};
+            if (_.isUndefined(beats[d.properties.LAWBEAT])) {
+                series.value = "No data";
+                series.color = blankColor;
+            } else {
+                series.value = durFmt(beats[d.properties.LAWBEAT]);
+                series.color = colors[n];
+            }
+            return {
+                key: "Beat",
+                value: "Beat " + d.properties.LAWBEAT,
+                series: series,
+                data: d,
+                index: i,
+                e: d3.event
+            }
+        }
+
+        svg.selectAll(".beat")
+            .on('mouseover', function (d, i) {
+                tooltip.data(tooltipData(d, i)).hidden(false);
+            })
+            .on('mouseout', function (d, i) {
+                tooltip.data(tooltipData(d, i)).hidden(true);
+            })
+            .on('mousemove', function () {
+                tooltip();
+            })
+
+        var legendData = _.range(numColors);
+        legendData = _.map(legendData, function (n) {
+            return [
+                colors[n],
+                durFmt(volumeScale.invert(n)) + "-" + durFmt(volumeScale.invert(n + 1))
+            ];
+        });
+
+        var legend = d3.select('#legend');
+        legend.selectAll("ul").remove();
+        var list = legend.append('ul').classed('inline-list', true);
+        var keys = list.selectAll('li.key').data(legendData);
+        keys.enter()
+            .append('li')
+            .classed('key', true)
+            .style('border-left-width', '30px')
+            .style('border-left-style', 'solid')
+            .style('padding', '0 10px')
+            .style('border-left-color', function (d) {
+                return d[0]
+            })
+            .text(function (d) {
+                return d[1];
+            });
+    }
+
+    if (map.get('showing') === 'call_volume') {
+        updateMapCallVolume();
+    } else {
+        updateMapResponseTime();
+    }
 }
+
+
 
 
