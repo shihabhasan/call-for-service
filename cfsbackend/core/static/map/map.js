@@ -133,9 +133,10 @@ function updateMap(data) {
         , maxCallVolume = _(data.call_volume).chain().pluck('volume').max().value()
         , volumeScale = d3.scale.linear().domain([minCallVolume, maxCallVolume]).nice().range([0, numColors])
         , numFmt = d3.format(",.g")
+        , blankColor = "#EEE"
         ;
 
-    d3.selectAll(".beat").style("fill", "white");
+    d3.selectAll(".beat").style("fill", blankColor);
 
     _(data.call_volume).each(function (d) {
         var n = Math.min(numColors - 1, Math.floor(volumeScale(d.volume)));
@@ -151,14 +152,18 @@ function updateMap(data) {
 
     var tooltipData = function (d, i) {
         var n = Math.floor(volumeScale(beats[d.properties.LAWBEAT]));
+        var series = {'key': "Call Volume"};
+        if (_.isUndefined(beats[d.properties.LAWBEAT])) {
+            series.value = "No data";
+            series.color = blankColor;
+        } else {
+            series.value = numFmt(beats[d.properties.LAWBEAT]);
+            series.color = colors[n];
+        }
         return {
             key: "Beat",
             value: "Beat " + d.properties.LAWBEAT,
-            series: {
-                key: "Call Volume",
-                value: numFmt(beats[d.properties.LAWBEAT]),
-                color: colors[n]
-            },
+            series: series,
             data: d,
             index: i,
             e: d3.event
