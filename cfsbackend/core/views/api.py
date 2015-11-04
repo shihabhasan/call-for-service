@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
-    CallOverview
+    CallOverview, OfficerActivityOverview
 from ..filters import CallFilterSet
 from .. import serializers
 
@@ -130,4 +130,4 @@ class OfficerAllocationView(APIView):
 
     def get(self, request, format=None):
         overview = OfficerActivityOverview(request.GET)
-        return Response(activity.to_dict())
+        return Response(overview.to_dict())
