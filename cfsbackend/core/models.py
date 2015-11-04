@@ -124,12 +124,6 @@ class OfficerActivityOverview:
 
         # Store the number of officers doing a given activity at a given time
         aggregated_result = defaultdict(lambda: defaultdict(int))
-        """
-        results = self.qs \
-            .values('dow_received', 'hour_received') \
-            .annotate(volume=Count('dow_received')) \
-            .order_by('dow_received', 'hour_received')
-        """
 
         for result in self.qs.values():
             activity_start = self.round_datetime(result['start_time'])
