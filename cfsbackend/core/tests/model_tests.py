@@ -2,7 +2,8 @@ from dateutil.parser import parse as dtparse
 from django.http import QueryDict
 from django.test import TestCase
 from .test_helpers import assert_list_equiv
-from ..models import Call, CallOverview, Beat, CallUnit, OfficerActivity, OfficerActivityOverview
+from ..models import Call, CallOverview, Beat, CallUnit, OfficerActivity, OfficerActivityOverview,\
+                     Nature
 from datetime import timedelta
 
 
@@ -23,8 +24,12 @@ def q(string):
 
 class OfficerActivityOverviewTest(TestCase):
     def setUp(self):
-        call1 = create_call(call_id=1, time_received='2014-01-15T9:00')
-        call2 = create_call(call_id=2, time_received='2014-03-18T3:00')
+        n1 = Nature.objects.create(nature_id=1, descr='Robbery')
+        n2 = Nature.objects.create(nature_id=2, descr='Homicide')
+        call1 = create_call(call_id=1, time_received='2014-01-15T9:00',
+                            nature=n1)
+        call2 = create_call(call_id=2, time_received='2014-03-18T3:00',
+                            nature=n2)
         cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
         cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
         a1 = OfficerActivity.objects.create(officer_activity_id=1,
@@ -97,14 +102,14 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(rounded_times, correct_rounded_times)
 
     def test_evaluates_no_activity(self):
-        # Should return 0 results
+        # Should return 0 activities
         overview = OfficerActivityOverview(q('start_time__gte=2015-01-01'))
         results = overview.to_dict()['allocation_over_time']
 
         self.assertEqual(results, [])
 
     def test_evaluates_one_activity(self):
-        # Should return 1 result (a1)
+        # Should return 1 activity (a1)
         overview = OfficerActivityOverview(q('start_time__gte=2014-01-18'))
         results = overview.to_dict()['allocation_over_time']
 
@@ -132,7 +137,7 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(sorted(results, key=lambda x: x['time']), correct_results)
 
     def test_evaluates_two_nonoverlapping_activities(self):
-        # Should return 2 results (a5, a6) that don't overlap in the
+        # Should return 2 activities (a5, a6) that don't overlap in the
         # same time period
         overview = OfficerActivityOverview(q('activity=OUT+OF+SERVICE'))
         results = overview.to_dict()['allocation_over_time']
@@ -178,8 +183,8 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(sorted(results, key=lambda x: x['time']), correct_results)
 
     def test_evaluates_two_overlapping_activities(self):
-        # Should return 2 results (a1, a2) that overlap in the same time period
-        overview = OfficerActivityOverview(q('call=1'))
+        # Should return 2 activities (a1, a2) that overlap in the same time period
+        overview = OfficerActivityOverview(q('call__nature=1'))
         results = overview.to_dict()['allocation_over_time']
         
         correct_results = [{

@@ -19,6 +19,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.call_id AS call_id
   FROM
     in_call ic
+  WHERE
+    ic.start_time IS NOT NULL AND
+    ic.end_time IS NOT NULL
   UNION ALL
   SELECT
     oos.call_unit_id AS call_unit_id,
@@ -28,6 +31,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     NULL AS call_id
    FROM
      out_of_service oos
+   WHERE
+     oos.start_time IS NOT NULL AND
+     oos.end_time IS NOT NULL
    UNION ALL
    SELECT
      sh.call_unit_id AS call_unit_id,
@@ -36,4 +42,7 @@ CREATE MATERIALIZED VIEW officer_activity AS
      'ON DUTY' AS activity,
      NULL AS call_id
    FROM
-     shift_unit sh) activity; 
+     shift_unit sh
+   WHERE
+     sh.in_time IS NOT NULL AND
+     sh.out_time IS NOT NULL) activity; 
