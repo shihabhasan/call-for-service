@@ -121,3 +121,13 @@ class OverviewView(APIView):
     def get(self, request, format=None):
         overview = CallOverview(request.GET)
         return Response(overview.to_dict())
+
+class OfficerAllocationView(APIView):
+    """
+    Gives all the information needed for the officer allocation dashboard based off
+    of user-submitted filters.
+    """
+
+    def get(self, request, format=None):
+        overview = OfficerActivityOverview(request.GET)
+        return Response(activity.to_dict())

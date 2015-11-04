@@ -25,6 +25,7 @@ router.register(r'calls_overview', views.CallOverviewViewSet, 'callsoverview')
 
 urlpatterns = [
     # url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/officer_allocation/', views.OfficerAllocationView.as_view()),
     url(r'^api/overview/', views.OverviewView.as_view()),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
