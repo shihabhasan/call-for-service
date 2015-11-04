@@ -85,6 +85,8 @@ function buildMap() {
         .append("g");
 
     d3.json("/static/map/beats.json", function (json) {
+        json.features = _(json.features).reject(function (d) { return d.properties.LAWDIST === "DSO" });
+
         // Compute the bounds of a feature of interest, then derive scale & translate.
         var b = path.bounds(json),
             s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
