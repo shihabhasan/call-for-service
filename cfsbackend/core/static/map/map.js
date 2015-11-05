@@ -89,7 +89,7 @@ function buildURL(filter) {
 
 function buildMap() {
     var width = d3.select("#map-container").node().clientWidth;
-    var height = width * 1.3
+    var height = width * 1.3;
 
     var projection = d3.geo.conicConformal()
         .scale(1)
@@ -146,13 +146,45 @@ function updateMap(data) {
         return;
     }
 
-    var svg = d3.select("#map g")
+    var svg = d3.select("#map")
+        , g = svg.select("g")
         , tooltip = nv.models.tooltip()
         , blankColor = "#EEE"
         ;
 
-    svg.selectAll(".beat").style("fill", blankColor);
+    g.selectAll(".beat").style("fill", blankColor);
 
+    if (data.count === 0) {
+        var noDataText = g.selectAll('.nv-noData').data(["No Data Available."]);
+        g.selectAll('path').style('opacity', 0.2);
+
+        var width = svg.node().clientWidth;
+        var height = svg.node().clientHeight;
+
+        noDataText.enter()
+            .append('text')
+            .attr('class', 'nvd3 nv-noData')
+            .attr('dy', '-.7em')
+            .style('text-anchor', 'middle');
+
+        noDataText
+            .attr('x', width / 2 )
+            .attr('y', 100 )
+            .text(function (d) {
+                console.log(d);
+                return d;
+            });
+
+        g
+            .on('mouseover', null)
+            .on('mouseout', null)
+            .on('mousemove', null);
+
+        return;
+    } else {
+        g.selectAll('.nv-noData').remove();
+        g.selectAll('path').style('opacity', 1);
+    }
 
     function updateLegend(legendData) {
         var legend = d3.select('#legend');
@@ -174,7 +206,7 @@ function updateMap(data) {
     }
 
     function setupTooltip(tooltipData) {
-        svg.selectAll(".beat")
+        g.selectAll(".beat")
             .on('mouseover', function (d, i) {
                 tooltip.data(tooltipData(d, i)).hidden(false);
             })

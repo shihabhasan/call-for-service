@@ -105,6 +105,9 @@ class CallOverview:
     def qs(self):
         return self.filter.filter()
 
+    def count(self):
+        return self.qs.count()
+
 
 class CallVolumeOverview(CallOverview):
     def volume_by_date(self):
@@ -187,6 +190,7 @@ class CallVolumeOverview(CallOverview):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
+            'count': self.count(),
             'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_source(),
@@ -232,6 +236,7 @@ class CallResponseTimeOverview(CallOverview):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
+            'count': self.count(),
             'officer_response_time': self.officer_response_time(),
             'officer_response_time_by_source': self.officer_response_time_by_field(
                 'call_source'),
@@ -262,6 +267,8 @@ class MapOverview(CallOverview):
 
     def to_dict(self):
         return {
+            'filter': self.filter.data,
+            'count': self.count(),
             'officer_response_time': self.officer_response_time_by_beat(),
             'call_volume': self.volume_by_beat()
         }
