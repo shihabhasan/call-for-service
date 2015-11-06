@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+{% endblock %}
+
+{% block content %}
+    <script id="map-template" type="text/html">
+        <NavBar filterHash="[[ filterHash ]]"/>
+        <div class="row dashboard">
+            <div class="large-3 columns">
+                <Filter/>
+            </div>
+            <div class="large-9 columns">
+                <div id="map-container">
+                    <div id="legend"></div>
+                    <div>
+                        <ul class="inline-list">
+                            [[ #if showing == "call_volume" ]]
+                            <li><strong>Call Volume</strong></li>
+                            <li><a href="#" on-click="showing:officer_response_time">Officer Response Time</a></li>
+                            [[ else ]]
+                            <li><a href="#" on-click="showing:call_volume">Call Volume</a></li>
+                            <li><strong>Officer Response Time</strong></li>
+                            [[ /if ]]
+                        </ul>
+                    </div>
+                    <svg id="map"></svg>
+                </div>
+            </div>
+        </div>
+    </script>
+{% endblock %}
+
+<!-- Latest compiled and minified JavaScript -->
+{% block javascript %}
+    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
+    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
+    <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
+    <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
+    <script src="{% static 'q/q.js' %}"></script>
+    <script src="{% static 'map/map.js' %}"></script>
+{% endblock %}
+</body>
+</html>

@@ -12,7 +12,6 @@ from __future__ import unicode_literals
 from collections import Counter
 from datetime import timedelta
 from django.contrib.postgres.fields import ArrayField
-
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
     IntegerField, Sum, Case, When, F, Avg, StdDev
@@ -106,6 +105,9 @@ class CallOverview:
     def qs(self):
         return self.filter.filter()
 
+    def count(self):
+        return self.qs.count()
+
 
 class CallVolumeOverview(CallOverview):
     def volume_by_date(self):
@@ -188,6 +190,7 @@ class CallVolumeOverview(CallOverview):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
+            'count': self.count(),
             'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_source(),
@@ -199,7 +202,8 @@ class CallVolumeOverview(CallOverview):
 
 class CallResponseTimeOverview(CallOverview):
     def officer_response_time(self):
-        results = self.qs.filter(officer_response_time__gt=timedelta(0)).aggregate(
+        results = self.qs.filter(
+            officer_response_time__gt=timedelta(0)).aggregate(
             avg=Avg(Secs('officer_response_time')),
             quartiles=Percentiles(Secs('officer_response_time'),
                                   [0.25, 0.5, 0.75]),
@@ -232,6 +236,7 @@ class CallResponseTimeOverview(CallOverview):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
+            'count': self.count(),
             'officer_response_time': self.officer_response_time(),
             'officer_response_time_by_source': self.officer_response_time_by_field(
                 'call_source'),
@@ -239,6 +244,33 @@ class CallResponseTimeOverview(CallOverview):
                 'beat'),
             'officer_response_time_by_priority': self.officer_response_time_by_field(
                 'priority'),
+        }
+
+
+class MapOverview(CallOverview):
+    def officer_response_time_by_beat(self):
+        results = self.qs \
+            .annotate(name=F("beat__descr")) \
+            .values("name") \
+            .exclude(name=None) \
+            .annotate(mean=Avg(Secs("officer_response_time"))) \
+            .order_by("-mean")
+        return results
+
+    def volume_by_beat(self):
+        qs = self.qs \
+                .annotate(name=F('beat__descr')) \
+                .values('name') \
+                .exclude(name=None)
+
+        return qs.annotate(volume=Count('name'))
+
+    def to_dict(self):
+        return {
+            'filter': self.filter.data,
+            'count': self.count(),
+            'officer_response_time': self.officer_response_time_by_beat(),
+            'call_volume': self.volume_by_beat()
         }
 
 

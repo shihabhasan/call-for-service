@@ -359,4 +359,15 @@ function updateHash(newHash) {
     document.body.scrollTop = scr;
 }
 
+function durationFormat(secs) {
+    secs = Math.round(secs);
+    if (secs > 60 * 60) {
+        return d3.format("d")(Math.floor(secs / 60 / 60)) + ":" +
+            d3.format("02d")(Math.floor((secs / 60) % 60)) + ":" +
+            d3.format("02d")(Math.floor(secs % 60));
+    } else {
+        return d3.format("d")(Math.floor(secs / 60)) + ":" +
+            d3.format("02d")(Math.floor(secs % 60));
+    }
+}
 

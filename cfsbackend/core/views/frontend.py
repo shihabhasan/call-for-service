@@ -1,9 +1,7 @@
 import json
-
 from django.shortcuts import render_to_response
 from django.views.generic import View, TemplateView
 from core import models
-
 from ..filters import CallFilterSet
 
 
@@ -17,7 +15,8 @@ def filter_json():
             model = getattr(models, field['rel'])
             pk_name = model._meta.pk.name
             refs[field['rel']] = list(
-                model.objects.all().order_by("descr").values_list(pk_name, "descr"))
+                model.objects.all().order_by("descr").values_list(pk_name,
+                                                                  "descr"))
 
     out["refs"] = refs
     return json.dumps(out)
@@ -51,3 +50,9 @@ class PredictiveView(TemplateView):
         context = super(PredictiveView, self).get_context_data(**kwargs)
         context['form'] = filter_json()
         return context
+
+
+class MapView(View):
+    def get(self, request, *args, **kwargs):
+        return render_to_response("map.html",
+                                  dict(form=filter_json()))
