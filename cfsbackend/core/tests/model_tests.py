@@ -2,7 +2,7 @@ from dateutil.parser import parse as dtparse
 from django.http import QueryDict
 from django.test import TestCase
 from .test_helpers import assert_list_equiv
-from ..models import Call, CallOverview, Beat
+from ..models import Call, Beat, Percentiles, Secs, CallVolumeOverview
 from datetime import timedelta
 
 
@@ -22,7 +22,31 @@ def q(string):
     return QueryDict(string)
 
 
-class CallOverviewTest(TestCase):
+class PercentilesTest(TestCase):
+    def setUp(self):
+        create_call(call_id=1, time_received='2014-01-15T09:00',
+                    officer_response_time=timedelta(0, 120))
+        create_call(call_id=2, time_received='2015-01-01T09:00',
+                    officer_response_time=timedelta(0, 600))
+        create_call(call_id=3, time_received='2015-01-01T12:30',
+                    officer_response_time=timedelta(0, 900))
+        create_call(call_id=4, time_received='2015-01-08T09:00')
+
+    def test_median(self):
+        results = Call.objects.aggregate(
+            median=Percentiles(Secs('officer_response_time'), 0.5))
+        assert results['median'] == 600
+
+    def test_quartiles(self):
+        results = Call.objects.aggregate(
+            quartiles=Percentiles(Secs('officer_response_time'),
+                                  [0.25, 0.5, 0.75]))
+        assert results['quartiles'][0] == 360
+        assert results['quartiles'][1] == 600
+        assert results['quartiles'][2] == 750
+
+
+class CallVolumeOverviewTest(TestCase):
     def setUp(self):
         b1 = Beat.objects.create(beat_id=1, descr="B1")
         b2 = Beat.objects.create(beat_id=2, descr="B2")
@@ -43,7 +67,7 @@ class CallOverviewTest(TestCase):
                     beat=b1)
 
     def test_moving_average(self):
-        overview = CallOverview(q(''))
+        overview = CallVolumeOverview(q(''))
         results = overview.to_dict()['volume_by_date']
 
         correct_items = [
@@ -76,7 +100,7 @@ class CallOverviewTest(TestCase):
     # volume_by_date, but we may need them if we decide to scale volume_by_date
     # automatically again
     def test_call_volume_for_day(self):
-        overview = CallOverview(
+        overview = CallVolumeOverview(
             q("time_received__gte=2015-01-01&time_received__lte=2015-01-02"))
         assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
                                    "max_time": dtparse('2015-01-01T12:30')}
@@ -86,7 +110,7 @@ class CallOverviewTest(TestCase):
                             "average": 2}])
 
     def test_call_volume_for_multiple_days(self):
-        overview = CallOverview(
+        overview = CallVolumeOverview(
             q("time_received__gte=2015-01-01&time_received__lte=2015-01-09"))
         results = overview.volume_by_date()
         assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
@@ -99,7 +123,7 @@ class CallOverviewTest(TestCase):
                             "average": 2}])
 
     def test_call_volume_for_month(self):
-        overview = CallOverview(
+        overview = CallVolumeOverview(
             q("time_received__gte=2015-01-01&time_received__lte=2015-02-02"))
         results = overview.volume_by_date()
         assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
@@ -113,7 +137,7 @@ class CallOverviewTest(TestCase):
                             'average': 1}])
 
     def test_call_volume_for_multiple_months(self):
-        overview = CallOverview(
+        overview = CallVolumeOverview(
             q("time_received__gte=2014-11-01&time_received__lte=2015-02-02"))
         results = overview.volume_by_date()
         assert overview.bounds == {"min_time": dtparse("2014-11-01T12:00"),
@@ -130,7 +154,7 @@ class CallOverviewTest(TestCase):
                             "average": 1}])
 
     def test_call_volume_for_year(self):
-        overview = CallOverview(
+        overview = CallVolumeOverview(
             q("time_received__gte=2014-01-01&time_received__lte=2015-02-02"))
         results = overview.volume_by_date()
         assert overview.bounds == {"min_time": dtparse("2014-01-15T09:00"),
@@ -150,7 +174,7 @@ class CallOverviewTest(TestCase):
                             "average": 1}])
 
     def test_day_hour_heatmap(self):
-        overview = CallOverview(
+        overview = CallVolumeOverview(
             q("time_received__gte=2015-01-01&time_received__lte=2015-02-02"))
         results = overview.to_dict()['day_hour_heatmap']
 

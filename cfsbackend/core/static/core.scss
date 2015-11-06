@@ -115,3 +115,12 @@ h3.chart-title {
   float: right;
   color: $smoke;
 }
+
+.boxplot {
+  fill: rgb(31, 119, 180);
+  stroke: rgb(31, 119, 180);
+}
+
+.boxplot.whisker {
+  stroke-width: 2;
+}

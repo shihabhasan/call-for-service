@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
-    CallOverview
+    CallOverview, CallResponseTimeOverview, CallVolumeOverview
 from ..filters import CallFilterSet
 from .. import serializers
 
@@ -43,7 +43,8 @@ class CallOverviewViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for reduced data payload for summary page. Note that it aggregates by count of calls
     """
-    queryset = Call.objects.values('month_received', 'week_received', 'dow_received', 'hour_received').annotate(
+    queryset = Call.objects.values('month_received', 'week_received',
+                                   'dow_received', 'hour_received').annotate(
         Count('call_id'))
     serializer_class = serializers.CallOverviewSerializer
 
@@ -112,12 +113,23 @@ class CloseCodeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.CloseCodeSerializer
 
 
-class OverviewView(APIView):
+class CallResponseTimeView(APIView):
     """
-    Gives all the information needed for the overview dashboard based off
+    Gives all the information needed for the response time dashboard based off
     of user-submitted filters.
     """
 
     def get(self, request, format=None):
-        overview = CallOverview(request.GET)
+        overview = CallResponseTimeOverview(request.GET)
+        return Response(overview.to_dict())
+
+
+class CallVolumeView(APIView):
+    """
+    Gives all the information needed for the response time dashboard based off
+    of user-submitted filters.
+    """
+
+    def get(self, request, format=None):
+        overview = CallVolumeOverview(request.GET)
         return Response(overview.to_dict())

@@ -11,12 +11,12 @@
 from __future__ import unicode_literals
 from collections import Counter
 from datetime import timedelta
+from django.contrib.postgres.fields import ArrayField
 
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
-    IntegerField, Sum, Case, When, F
+    IntegerField, Sum, Case, When, F, Avg, StdDev
 from django.db.models.expressions import Func
-from django.http import QueryDict
 
 
 def dictfetchall(cursor):
@@ -61,22 +61,33 @@ class DateTrunc(Func):
         super().__init__(expression, **extra)
 
 
-class DurationAvg(Aggregate):
-    function = 'AVG'
-    name = 'Avg'
-    template = "%(function)s(EXTRACT(EPOCH FROM %(expressions)s))"
+class Percentiles(Aggregate):
+    function = "PERCENTILE_CONT"
+    name = "percentile"
+    template = "%(function)s(%(percentiles)s) WITHIN GROUP (ORDER BY %(expressions)s)"
+
+    def __init__(self, expression, percentiles, **extra):
+        if isinstance(percentiles, (list, tuple)):
+            percentiles = "array%(percentiles)s" % {'percentiles': percentiles}
+        super().__init__(expression, percentiles=percentiles,
+                         output_field=DurationField(), **extra)
+
+
+class Extract(Func):
+    function = 'EXTRACT'
+    name = 'extract'
+    template = "%(function)s(%(date_part)s FROM %(expressions)s)"
+
+    def __init__(self, expression, date_part, **extra):
+        super().__init__(expression, date_part=date_part,
+                         output_field=DurationField(), **extra)
+
+
+class Secs(Extract):
+    name = 'secs'
 
     def __init__(self, expression, **extra):
-        super().__init__(expression, output_field=DurationField(), **extra)
-
-
-class DurationStdDev(Aggregate):
-    function = 'STDDEV_POP'
-    name = 'StdDev'
-    template = "%(function)s(EXTRACT(EPOCH FROM %(expressions)s))"
-
-    def __init__(self, expression, **extra):
-        super().__init__(expression, output_field=DurationField(), **extra)
+        super().__init__(expression, date_part='EPOCH', **extra)
 
 
 class CallOverview:
@@ -95,14 +106,8 @@ class CallOverview:
     def qs(self):
         return self.filter.filter()
 
-    def officer_response_time(self):
-        results = self.qs.aggregate(avg=DurationAvg('officer_response_time'),
-                                    stddev=DurationStdDev('officer_response_time'))
-        return {
-            'avg': results['avg'],
-            'stddev': results['stddev']
-        }
 
+class CallVolumeOverview(CallOverview):
     def volume_by_date(self):
         cursor = connection.cursor()
 
@@ -134,7 +139,7 @@ class CallOverview:
         if self.span == timedelta(0, 0):
             return []
 
-        # In order for this to show average volume, we need to know the number 
+        # In order for this to show average volume, we need to know the number
         # of times each day of the week occurs.
         start = self.bounds['min_time'].date()
         end = self.bounds['max_time'].date()
@@ -169,26 +174,6 @@ class CallOverview:
 
         return results
 
-    def officer_response_time_by_beat(self):
-        results = self.qs \
-            .values("beat", "beat__descr") \
-            .annotate(mean=DurationAvg("officer_response_time"),
-                      stddev=DurationStdDev("officer_response_time"),
-                      missing=Sum(Case(When(officer_response_time=None, then=1),
-                                       default=0,
-                                       output_field=IntegerField())))
-        return results
-
-    def officer_response_time_by_source(self):
-        results = self.qs \
-            .annotate(id=F('call_source'),
-                      name=F('call_source__descr')) \
-            .values("id", "name") \
-            .exclude(id=None) \
-            .annotate(mean=DurationAvg("officer_response_time")) \
-            .order_by("-mean")
-        return results
-
     def volume_by_beat(self):
         qs = self.qs.annotate(name=F('beat__descr'), id=F('beat_id')).values(
             'name', 'id')
@@ -208,10 +193,52 @@ class CallOverview:
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature'),
             'volume_by_beat': self.volume_by_field('beat'),
-            'officer_response_time_by_source': self.officer_response_time_by_source(),
             # 'volume_by_close_code': self.volume_by_field('close_code'),
-            # 'officer_response_time_by_beat': self.officer_response_time_by_beat()
-            # 'officer_response_time': self.officer_response_time()
+        }
+
+
+class CallResponseTimeOverview(CallOverview):
+    def officer_response_time(self):
+        results = self.qs.filter(officer_response_time__gt=timedelta(0)).aggregate(
+            avg=Avg(Secs('officer_response_time')),
+            quartiles=Percentiles(Secs('officer_response_time'),
+                                  [0.25, 0.5, 0.75]),
+            max=Max(Secs('officer_response_time')))
+
+        quartiles = results['quartiles']
+
+        if quartiles:
+            return {
+                'quartiles': quartiles,
+                'avg': results['avg'],
+                'max': results['max'],
+                'iqr': quartiles[2] - quartiles[0]
+            }
+        else:
+            return {}
+
+    def officer_response_time_by_field(self, field):
+        results = self.qs \
+            .annotate(id=F(field + "_id"),
+                      name=F(field + '__descr')) \
+            .values("id", "name") \
+            .exclude(id=None) \
+            .annotate(mean=Avg(Secs("officer_response_time")),
+                      stddev=StdDev(Secs("officer_response_time"))) \
+            .order_by("-mean")
+        return results
+
+    def to_dict(self):
+        return {
+            'filter': self.filter.data,
+            'bounds': self.bounds,
+            'officer_response_time': self.officer_response_time(),
+            'officer_response_time_by_source': self.officer_response_time_by_field(
+                'call_source'),
+            'officer_response_time_by_beat': self.officer_response_time_by_field(
+                'beat'),
+            'officer_response_time_by_priority': self.officer_response_time_by_field(
+                'priority'),
         }
 
 
@@ -361,8 +388,10 @@ class Call(models.Model):
     geox = models.FloatField(blank=True, null=True)
     geoy = models.FloatField(blank=True, null=True)
     beat = models.ForeignKey(Beat, blank=True, null=True, related_name='+')
-    district = models.ForeignKey('District', blank=True, null=True, related_name='+')
-    sector = models.ForeignKey('Sector', blank=True, null=True, related_name='+')
+    district = models.ForeignKey('District', blank=True, null=True,
+                                 related_name='+')
+    sector = models.ForeignKey('Sector', blank=True, null=True,
+                               related_name='+')
     business = models.TextField(blank=True, null=True)
     nature = models.ForeignKey('Nature', blank=True, null=True)
     priority = models.ForeignKey('Priority', blank=True, null=True)

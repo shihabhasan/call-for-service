@@ -11,7 +11,14 @@
         </ul>
         <section class="top-bar-section">
             <ul class="left">
-                <li><a href="/[[ filterHash ]]">Dashboard</a></li>
+                <li class="has-dropdown">
+                    <a href="#">Dashboards</a>
+                    <ul class="dropdown">
+                        <li><a href="/[[ filterHash ]]">Call Volume</a></li>
+                        <li><a href="/response_time[[ filterHash ]]">Response Time</a></li>
+                    </ul>
+                </li>
+
                 <li><a href="/calls[[ filterHash ]]">Call List</a></li>
                 <li><a href="/predictive[[ filterHash ]]">Call Volume
                     Forecasting (Preview)</a></li>

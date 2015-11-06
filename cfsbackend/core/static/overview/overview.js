@@ -1,6 +1,6 @@
 "use strict";
 
-var url = "/api/overview/";
+var url = "/api/call_volume/";
 var charts = {};
 var outFormats = {
     "month": "%b %y",
@@ -210,7 +210,6 @@ monitorChart('data.volume_by_nature', buildVolumeByNatureChart);
 monitorChart('data.volume_by_date', buildVolumeByDateChart);
 monitorChart('data.volume_by_source', buildVolumeBySourceChart);
 monitorChart('data.volume_by_beat', buildVolumeByBeatChart);
-monitorChart('data.officer_response_time_by_source', buildORTBySourceChart);
 
 // ========================================================================
 // Functions
@@ -287,63 +286,6 @@ function buildVolumeByNatureChart(data) {
         // when the window is resized.
         var rotateLabels = function () {
             var xTicks = d3.select('#volume-by-nature .nv-x.nv-axis > g').selectAll('g');
-
-            xTicks.selectAll('text')
-                .style("text-anchor", "start")
-                .attr("dx", "0.25em")
-                .attr("dy", "0.75em")
-                .attr("transform", "rotate(45 0,0)");
-        };
-
-        rotateLabels();
-
-        nv.utils.windowResize(function () {
-            chart.update();
-            rotateLabels();
-
-        });
-
-        return chart;
-    })
-}
-
-function buildORTBySourceChart(data) {
-    var parentWidth = d3.select("#ort-by-source").node().clientWidth;
-    var width = parentWidth;
-    var height = width * 0.8;
-
-    var svg = d3.select("#ort-by-source svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(function () {
-        var chart = nv.models.discreteBarChart()
-            .x(function (d) {
-                return d.name
-            })
-            .y(function (d) {
-                return Math.round(d.mean);
-            })
-            .margin({"bottom": 150, "right": 50});
-
-        chart.yAxis.tickFormat(function (secs) {
-            return d3.format("d")(Math.round(secs / 60)) + ":" +
-                d3.format("02d")(Math.round(secs % 60));
-        });
-
-        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
-
-        //svg.selectAll('.nv-bar').style('cursor', 'pointer');
-        //
-        //chart.discretebar.dispatch.on('elementClick', function (e) {
-        //    if (e.data.id) {
-        //        toggleFilter("nature", e.data.id);
-        //    }
-        //});
-
-        // Have to call this both during creation and after updating the chart
-        // when the window is resized.
-        var rotateLabels = function () {
-            var xTicks = d3.select('#ort-by-source .nv-x.nv-axis > g').selectAll('g');
 
             xTicks.selectAll('text')
                 .style("text-anchor", "start")
@@ -480,7 +422,7 @@ function buildDayHourHeatmap(data) {
         d.value = +d.volume;
     });
 
-    if (data.length < 24 * 7) {
+    if (data.length > 0 && data.length < 24 * 7) {
         for (var i = 0; i < 7; i++) {
             for (var j = 0; j < 24; j++) {
                 if (!_.find(data, function (d) {
@@ -506,6 +448,26 @@ function buildDayHourHeatmap(data) {
         svg = d3.select("#day-hour-heatmap").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     } else {
         svg = svg.select("g");
+    }
+
+    if (_.isEmpty(data)) {
+        var noDataText = svg.selectAll('.nv-noData').data(["No Data Available"]);
+
+        noDataText.enter().append('text')
+            .attr('class', 'nvd3 nv-noData')
+            .attr('dy', '-.7em')
+            .style('text-anchor', 'middle');
+
+        noDataText
+            .attr('x', margin.left + width / 2)
+            .attr('y', margin.top + height / 2)
+            .text(function (d) {
+                return d
+            });
+
+        return;
+    } else {
+        svg.selectAll('.nv-noData').remove();
     }
 
     var dayLabels = svg.selectAll(".dayLabel").data(days).enter().append("text").text(function (d) {
