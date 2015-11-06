@@ -159,9 +159,7 @@ BOWER_INSTALLED_APPS = (
 )
 
 COMPRESS_PRECOMPILERS = (
-    ('text/sass', 'node-sass {infile} --include-path ' + BOWER_COMPONENTS_ROOT + "/bower_components/"),
-    ('text/ecmascript-6', 'babel {infile}'),
-    ('text/template', 'cfsbackend.compressor_filters.JSTemplateFilter'),
+    ('text/x-scss', 'django_libsass.SassCompiler'),
 )
 
 

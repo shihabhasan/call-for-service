@@ -2,11 +2,9 @@
 
 {% load staticfiles %}
 
-{% block head %}
-    {% block stylesheets %}
-        <link type="text/sass" rel="stylesheet"
-              href="{% static 'predictive/predictive.scss' %}">
-    {% endblock %}
+{% block stylesheets %}
+    <link type="text/x-scss" rel="stylesheet"
+          href="{% static 'predictive/predictive.scss' %}">
 {% endblock %}
 
 
