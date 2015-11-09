@@ -4,7 +4,7 @@ being on duty, and/or being out of service.  Note that there could be significan
 overlap here.  We'll use this to drive the officer allocation view.
 */
 
-DROP MATERIALIZED VIEW IF EXISTS officer_activity;
+DROP MATERIALIZED VIEW IF EXISTS officer_activity CASCADE;
 
 CREATE MATERIALIZED VIEW officer_activity AS
   SELECT
@@ -76,3 +76,9 @@ CREATE MATERIALIZED VIEW discrete_officer_activity AS
     time_sample ts
   WHERE
     ts.time_ BETWEEN oa.start_time AND oa.end_time;
+    
+CREATE INDEX discrete_officer_activity_time
+  ON discrete_officer_activity(time_);
+  
+CREATE INDEX discrete_officer_activity_time_hour
+  ON discrete_officer_activity (EXTRACT(HOUR FROM time_));
