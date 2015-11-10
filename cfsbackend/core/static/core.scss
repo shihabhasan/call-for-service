@@ -124,3 +124,19 @@ h3.chart-title {
 .boxplot.whisker {
   stroke-width: 2;
 }
+
+.mapinfo {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 5px;
+
+  h4 {
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  div {
+    font-size: 0.8rem;
+  }
+}
