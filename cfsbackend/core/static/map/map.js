@@ -313,7 +313,7 @@ function fmt(val, style) {
         style = dashboard.get('showing');
     }
     if (style === 'call_volume') {
-        return d3.format(",.g")(val);
+        return d3.format(",.2f")(val).replace(/\.0+$/, "");
     } else if (style === 'officer_response_time') {
         return durationFormat(val);
     } else {
