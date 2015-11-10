@@ -16,7 +16,7 @@
             <div class="large-9 columns">
                 <div class="row">
                     <div class="medium-12 columns">
-                        <div id="volume-by-date">
+                        <div id="allocation-over-time">
                             <h3 class="chart-title">Average Officer Allocation</h3>
                             {% include "_loading.html" %}
                             <svg></svg>
@@ -36,6 +36,8 @@
 {% endblock %}
 
 {% block javascript %}
+    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
+    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
     <script src="{% static 'officer_allocation/officer_allocation.js' %}"></script>
