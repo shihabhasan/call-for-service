@@ -77,7 +77,6 @@ dashboard.on(
 
 dashboard.on('complete', drawMap);
 
-
 function drawMap() {
     var width = d3.select("#map-container").node().clientWidth,
         height = width * 1.15;
@@ -86,13 +85,18 @@ function drawMap() {
         .style('width', width + 'px')
         .style('height', height + 'px');
 
+    var northEast = L.latLng(36.13898378070337, -78.75068664550781),
+        southWest = L.latLng(35.860952532806905, -79.04937744140625),
+        bounds = L.latLngBounds(southWest, northEast);
+
     var map = L.map('map', {
         center: [36.0, -78.9],
         zoom: 12,
-        minZoom: 12
+        maxBounds: bounds,
+        minZoom: 11,
+        maxZoom: 18
     });
 
-    map.setMaxBounds(map.getBounds());
 
     L.tileLayer(
         'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
@@ -116,7 +120,7 @@ function drawMap() {
     info.update = function (props) {
         if (props) {
             this._div.innerHTML = '<h4>Beat ' + props.LAWBEAT + '</h4>' +
-                "<div>Call Volume" +
+                "<div>Call Volume " +
                 fmt(dashboard.get('beats').call_volume[props.LAWBEAT], 'call_volume') +
                 "<br />Officer Response Time " +
                 fmt(

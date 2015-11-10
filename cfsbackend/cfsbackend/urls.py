@@ -31,9 +31,10 @@ urlpatterns = [
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', include('rest_framework_swagger.urls')),
-    url(r'^$', views.DashboardView.as_view()),
+    url(r'^call_volume$', views.DashboardView.as_view()),
     url(r'^response_time$', views.ResponseTimeView.as_view()),
     url(r'^calls$', views.CallListView.as_view()),
     url(r'^predictive$', views.PredictiveView.as_view()),
     url(r'^map$', views.MapView.as_view()),
+    url(r'^$', views.MapView.as_view())
 ]
