@@ -110,13 +110,9 @@ FROM in_call,
     call,
     time_sample ts
 WHERE (
-    in_call.start_call_unit_id IN ( SELECT DISTINCT shift_unit.call_unit_id FROM shift_unit)
-    AND in_call.start_call_unit_id NOT IN (SELECT * FROM sergeants)
+    in_call.call_unit_id IN ( SELECT DISTINCT shift_unit.call_unit_id FROM shift_unit)
+    AND in_call.call_unit_id NOT IN (SELECT * FROM sergeants)
   )
-  AND (
-    in_call.end_call_unit_id IN ( SELECT DISTINCT shift_unit.call_unit_id FROM shift_unit)
-    AND in_call.end_call_unit_id NOT IN (SELECT * FROM sergeants)
-  ) 
   AND ts.time_ >= in_call.start_time
   AND ts.time_ <= in_call.end_time
   AND in_call.call_id = call.call_id

@@ -5,7 +5,7 @@ from rest_framework.fields import SkipField, CharField
 from rest_framework.serializers import Serializer
 
 from .models import Call, Sector, District, Beat, City, \
-    CallSource, CallUnit, Nature, CloseCode
+    CallSource, CallUnit, Nature, CloseCode, OfficerActivity
 
 
 class NonNullSerializer(serializers.ModelSerializer):
@@ -123,6 +123,16 @@ class CallSerializer(NonNullSerializer):
             'business', 'priority', 'report_only', 'cancelled', 'time_received', 'time_routed',
             'time_finished', 'first_unit_dispatch', 'first_unit_enroute', 'first_unit_arrive', 'first_unit_transport',
             'last_unit_clear', 'time_closed', 'officer_response_time', 'overall_response_time')
+
+class OfficerActivitySerializer(NonNullSerializer):
+
+    call_unit = CallUnitSerializer(read_only=True, allow_null=False)
+    call = CallSerializer(read_only=True, allow_null=True)
+
+    class Meta:
+        model = OfficerActivity
+        fields = ('officer_activity_id', 'call_unit', 'start_time', 'end_time',
+                'activity', 'call')
 
 
 class CallOverviewSerializer(serializers.HyperlinkedModelSerializer):

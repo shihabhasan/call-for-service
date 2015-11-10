@@ -2,7 +2,9 @@ from dateutil.parser import parse as dtparse
 from django.http import QueryDict
 from django.test import TestCase
 from .test_helpers import assert_list_equiv
-from ..models import Call, Beat, Percentiles, Secs, CallVolumeOverview
+
+from ..models import Call, Beat, Percentiles, Secs, CallVolumeOverview, \
+        CallUnit, OfficerActivity, OfficerActivityOverview, Nature
 from datetime import timedelta
 
 
@@ -20,6 +22,127 @@ def create_call(**kwargs):
 
 def q(string):
     return QueryDict(string)
+
+class OfficerActivityOverviewTest(TestCase):
+    def setUp(self):
+        n1 = Nature.objects.create(nature_id=1, descr='Robbery')
+        n2 = Nature.objects.create(nature_id=2, descr='Homicide')
+        call1 = create_call(call_id=1, time_received='2014-01-15T9:00',
+                            nature=n1)
+        call2 = create_call(call_id=2, time_received='2014-03-18T3:00',
+                            nature=n2)
+        cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
+        cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
+        a1 = OfficerActivity.objects.create(officer_activity_id=1,
+                activity="IN CALL",
+                time=dtparse('2014-01-15T9:00'),
+                call_unit=cu1,
+                call=call1)
+        a2 = OfficerActivity.objects.create(officer_activity_id=2,
+                activity="IN CALL",
+                time=dtparse('2014-01-15T9:10'),
+                call_unit=cu2,
+                call=call1)
+        a3 = OfficerActivity.objects.create(officer_activity_id=3,
+                activity="IN CALL",
+                time=dtparse('2014-01-15T10:00'),
+                call_unit=cu1,
+                call=call2)
+        a4 = OfficerActivity.objects.create(officer_activity_id=4,
+                activity="IN CALL",
+                time=dtparse('2014-01-16T9:50'),
+                call_unit=cu2,
+                call=call2)
+        a5 = OfficerActivity.objects.create(officer_activity_id=5,
+                activity="OUT OF SERVICE",
+                time=dtparse('2014-01-16T10:10'),
+                call_unit=cu1,
+                call=None)
+        a6 = OfficerActivity.objects.create(officer_activity_id=6,
+                activity="OUT OF SERVICE",
+                time=dtparse('2014-01-18T9:00'),
+                call_unit=cu2,
+                call=None)
+
+    def test_distinguishes_activities(self):
+        "Make sure we pick up on there being two types of activities."
+        overview = OfficerActivityOverview(q(''))
+        results = overview.to_dict()['allocation_over_time']
+        
+        self.assertEqual(sorted(set([r['activity'] for r in results])),
+                ['IN CALL', 'OUT OF SERVICE'])
+        
+    def test_evaluates_no_activity(self):
+        # Should return 0 activities
+        overview = OfficerActivityOverview(q('time__gte=2015-01-01'))
+        results = overview.to_dict()['allocation_over_time']
+
+        self.assertEqual(results, [])
+
+    def test_evaluates_one_activity(self):
+        # Should return 1 activity (a6)
+        overview = OfficerActivityOverview(q('time__gte=2014-01-17'))
+        results = overview.to_dict()['allocation_over_time']
+
+        correct_results = [{
+            'activity': 'OUT OF SERVICE',
+            'time_hour_minute': dtparse('9:00').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }]
+
+
+        self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
+
+    # The concept of overlapping activities is deprecated since we're applying
+    # the conversion from continuous intervals to discrete time points in the
+    # database now.  It doesn't hurt to have these (modified) test cases in here,
+    # though.
+
+    def test_evaluates_two_nonoverlapping_activities(self):
+        # Should return 2 activities (a5, a6) that don't overlap in the
+        # same time period
+        overview = OfficerActivityOverview(q('activity=OUT+OF+SERVICE'))
+        results = overview.to_dict()['allocation_over_time']
+        
+        correct_results = [{
+            'activity': 'OUT OF SERVICE',
+            'time_hour_minute': dtparse('9:00').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }, {
+            'activity': 'OUT OF SERVICE',
+            'time_hour_minute': dtparse('10:10').time(),
+            'freq': 2,
+            'total': 1,
+            'avg_volume': 0.5
+        }]
+
+        self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
+
+    def test_evaluates_two_overlapping_activities(self):
+        # Should return 2 activities (a1, a2) that overlap in the same time period
+        overview = OfficerActivityOverview(q('call__nature=1'))
+        results = overview.to_dict()['allocation_over_time']
+        
+        correct_results = [{
+            'activity': 'IN CALL',
+            'time_hour_minute': dtparse('9:00').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }, {
+            'activity': 'IN CALL',
+            'time_hour_minute': dtparse('9:10').time(),
+            'freq': 1,
+            'total': 1,
+            'avg_volume': 1.0
+        }]
+
+        self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
+
 
 
 class PercentilesTest(TestCase):
@@ -159,7 +282,6 @@ class CallVolumeOverviewTest(TestCase):
         results = overview.volume_by_date()
         assert overview.bounds == {"min_time": dtparse("2014-01-15T09:00"),
                                    "max_time": dtparse('2015-02-01T09:00')}
-        print(overview.volume_by_date())
 
         assert_list_equiv(results,
                           [{"date": dtparse("2014-01-15T00:00"), "volume": 1,

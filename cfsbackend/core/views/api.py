@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode, \
-    CallOverview, CallResponseTimeOverview, CallVolumeOverview, MapOverview
+    CallOverview, CallResponseTimeOverview, CallVolumeOverview, \
+    MapOverview, OfficerActivityOverview
 from ..filters import CallFilterSet
 from .. import serializers
 
@@ -120,6 +121,16 @@ class CallResponseTimeView(APIView):
 
     def get(self, request, format=None):
         overview = CallResponseTimeOverview(request.GET)
+        return Response(overview.to_dict())
+
+class OfficerAllocationView(APIView):
+    """
+    Gives all the information needed for the officer allocation dashboard based off
+    of user-submitted filters.
+    """
+
+    def get(self, request, format=None):
+        overview = OfficerActivityOverview(request.GET)
         return Response(overview.to_dict())
 
 

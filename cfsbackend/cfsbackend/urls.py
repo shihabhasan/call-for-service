@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^api/call_volume/$', views.CallVolumeView.as_view()),
     url(r'^api/response_time/$', views.CallResponseTimeView.as_view()),
     url(r'^api/map_info/$', views.MapInfoView.as_view()),
+    url(r'^api/officer_allocation/', views.OfficerAllocationView.as_view()),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', include('rest_framework_swagger.urls')),

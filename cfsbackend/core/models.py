@@ -9,7 +9,7 @@
 # into your database.
 
 from __future__ import unicode_literals
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import timedelta
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, connection
@@ -25,7 +25,6 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
         ]
-
 
 class DateTrunc(Func):
     """
@@ -87,6 +86,74 @@ class Secs(Extract):
 
     def __init__(self, expression, **extra):
         super().__init__(expression, date_part='EPOCH', **extra)
+
+class OfficerActivityOverview:
+    def __init__(self, filters):
+        self._filters = filters
+        from .filters import OfficerActivityFilterSet
+        self.filter = OfficerActivityFilterSet(data=filters,
+                queryset=OfficerActivity.objects.all())
+        self.bounds = self.qs.aggregate(min_time=Min('time'),
+                                        max_time=Max('time'))
+
+        # The interval between discrete time samples in the database
+        # in secondes
+        self.sample_interval = 10 * 60
+        
+    @property
+    def qs(self):
+        return self.filter.filter()
+
+    def round_datetime(self, d, decimals=-1):
+        """
+        Round the given date time to the given decimal precision (defaults to 10 mins).
+        
+        Note that default Python3 rounding exhibits "round-toward-even" behavior:
+        http://stackoverflow.com/questions/10825926/python-3-x-rounding-behavior
+
+        This means that round(5, -1) = 0 and round(15, -1) = 20.
+        """
+        return d - timedelta(minutes=d.minute - round(d.minute, decimals),
+                         seconds=d.second,
+                         microseconds = d.microsecond)
+
+    def allocation_over_time(self):
+        # Return an empty list if we didn't get any data
+        if (not self.bounds['max_time'] or not self.bounds['min_time']):
+            return []
+
+        # In order for this to show average allocation, we need to know the number 
+        # of times each time sample occurs.
+        start = self.round_datetime(self.bounds['min_time'])
+        end = self.round_datetime(self.bounds['max_time'])
+        total_seconds = int((end-start).total_seconds())
+        time_freq = Counter((start + timedelta(seconds=x)).time() for x in
+                           range(0, total_seconds + 1, self.sample_interval))
+
+
+        # We have to strip off the date component by casting to time
+        results = self.qs \
+                .extra({'time_hour_minute': 'time_::time'}) \
+                .values('time_hour_minute', 'activity') \
+                .annotate(avg_volume=Count('*'))
+
+        for result in results:
+            result['freq'] = time_freq[result['time_hour_minute']]
+            result['total'] = result['avg_volume']
+            try:
+                result['avg_volume'] /= result['freq']
+            except ZeroDivisionError:
+                result['avg_volume'] = 0
+
+        return results
+
+    def to_dict(self):
+        return {
+            'filter': self.filter.data,
+            'bounds': self.bounds,
+            'allocation_over_time': self.allocation_over_time(),
+        }
+
 
 
 class CallOverview:
@@ -274,6 +341,8 @@ class MapOverview(CallOverview):
         }
 
 
+
+
 class ModelWithDescr(models.Model):
     descr = models.TextField("Description", blank=False, null=False)
 
@@ -374,15 +443,15 @@ class OOSCode(ModelWithDescr):
         db_table = 'oos_code'
 
 
-class OutOfServicePeriods(models.Model):
+class OutOfServicePeriod(models.Model):
     oos_id = models.IntegerField(primary_key=True)
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
                                   db_column="call_unit_id",
-                                  related_name="call_unit")
+                                  related_name="+")
     shift_unit_id = models.BigIntegerField(blank=True, null=True)
     oos_code = models.ForeignKey(OOSCode, blank=True, null=True,
                                  db_column="oos_code_id",
-                                 related_name="oos_code")
+                                 related_name="+")
     location = models.TextField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
     start_time = models.DateTimeField(blank=True, null=True)
@@ -392,6 +461,72 @@ class OutOfServicePeriods(models.Model):
     class Meta:
         managed = False
         db_table = 'out_of_service'
+
+class Shift(models.Model):
+    shift_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'shift'
+
+class Officer(models.Model):
+    officer_id = models.IntegerField(primary_key=True)
+    name = models.TextField(blank=True, null=True)
+    name_aka = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'officer'
+
+class Bureau(ModelWithDescr):
+    bureau_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'bureau'
+
+class Division(ModelWithDescr):
+    division_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'division'
+
+class Unit(ModelWithDescr):
+    unit_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'unit'
+
+
+class ShiftUnit(models.Model):
+    shift_unit_id = models.IntegerField(primary_key=True)
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="+")
+    officer = models.ForeignKey(Officer, blank=True, null=True,
+                                db_column="officer_id",
+                                related_name="+")
+    in_time = models.DateTimeField(blank=True, null=True)
+    out_time = models.DateTimeField(blank=True, null=True)
+    bureau = models.ForeignKey(Bureau, blank=True, null=True,
+                               db_column="bureau_id",
+                               related_name="+")
+    division = models.ForeignKey(Division, blank=True, null=True,
+                               db_column="division_id",
+                               related_name="+")
+    unit = models.ForeignKey(Unit, blank=True, null=True,
+                               db_column="unit_id",
+                               related_name="+")
+    shift = models.ForeignKey(Shift, blank=True, null=True,
+                              db_column="shift_id",
+                              related_name="+")
+
+    class Meta:
+        managed = False
+        db_table = 'shift_unit'
+
 
 
 # Primary Classes
@@ -447,6 +582,41 @@ class Call(models.Model):
     class Meta:
         managed = False
         db_table = 'call'
+
+class InCallPeriod(models.Model):
+    in_call_id = models.IntegerField(primary_key=True)
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="+")
+    shift = models.ForeignKey(Shift, blank=True, null=True,
+                              db_column="shift_id",
+                              related_name="+")
+    call = models.ForeignKey(Call, blank=True, null=True,
+                             db_column="call_id",
+                             related_name="+")
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'in_call'
+
+class OfficerActivity(models.Model):
+    officer_activity_id = models.IntegerField(primary_key=True)
+    call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
+                                  db_column="call_unit_id",
+                                  related_name="+")
+    time = models.DateTimeField(blank=True, null=True,
+                                db_column="time_")
+    activity = models.TextField(blank=True, null=True)
+    call = models.ForeignKey(Call, blank=True, null=True,
+                             db_column="call_id",
+                             related_name="+")
+
+    class Meta:
+        managed = False
+        db_table = 'discrete_officer_activity'
+
 
 
 class Incident(models.Model):
