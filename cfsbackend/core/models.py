@@ -83,16 +83,13 @@ class OfficerActivityOverview:
         from .filters import OfficerActivityFilterSet
         self.filter = OfficerActivityFilterSet(data=filters,
                 queryset=OfficerActivity.objects.all())
-        self.bounds = self.qs.aggregate(min_time=Min('start_time'),
-                                        max_time=Max('end_time'))
-        if self.bounds['max_time'] and self.bounds['min_time']:
-            self.span = self.bounds['max_time'] - self.bounds['min_time']
-        else:
-            self.span = timedelta(0, 0)
+        self.bounds = self.qs.aggregate(min_time=Min('time'),
+                                        max_time=Max('time'))
 
-        # Interval between time samples in seconds
-        self.sample_interval = 60 * 10
-
+        # The interval between discrete time samples in the database
+        # in secondes
+        self.sample_interval = 10 * 60
+        
     @property
     def qs(self):
         return self.filter.filter()
@@ -111,7 +108,8 @@ class OfficerActivityOverview:
                          microseconds = d.microsecond)
 
     def allocation_over_time(self):
-        if self.span == timedelta(0, 0):
+        # Return an empty list if we didn't get any data
+        if (not self.bounds['max_time'] or not self.bounds['min_time']):
             return []
 
         # In order for this to show average allocation, we need to know the number 
@@ -119,34 +117,26 @@ class OfficerActivityOverview:
         start = self.round_datetime(self.bounds['min_time'])
         end = self.round_datetime(self.bounds['max_time'])
         total_seconds = int((end-start).total_seconds())
-        time_sample_freq = Counter((start + timedelta(seconds=x)).time() for x in
+        time_freq = Counter((start + timedelta(seconds=x)).time() for x in
                            range(0, total_seconds + 1, self.sample_interval))
 
-        # Store the number of officers doing a given activity at a given time
-        aggregated_result = defaultdict(lambda: defaultdict(int))
 
-        for result in self.qs.values():
-            activity_start = self.round_datetime(result['start_time'])
-            activity_end = self.round_datetime(result['end_time'])
-            for active_instant in (activity_start + timedelta(seconds=x)
-                    for x in range(0, int((activity_end-activity_start).total_seconds()), self.sample_interval)):
-                aggregated_result[result['activity']][active_instant.time()] += 1
+        # We have to strip off the date component by casting to time
+        results = self.qs \
+                .extra({'time_hour_minute': 'time_::time'}) \
+                .values('time_hour_minute', 'activity') \
+                .annotate(avg_volume=Count('*'))
 
-        # Transform the aggregated result; we want a dict for each time period/activity combination
-        final_results = []
-        for activity in aggregated_result:
-            for time, total in aggregated_result[activity].items():
-                freq = time_sample_freq[time]
-                final_results.append({
-                    'activity': activity,
-                    'time': time,
-                    'freq': freq,
-                    'total': total,
-                    'avg_volume': 0 if freq == 0 else total / freq
-                })
+        for result in results:
+            result['freq'] = time_freq[result['time_hour_minute']]
+            result['total'] = result['avg_volume']
+            try:
+                result['avg_volume'] /= result['freq']
+            except ZeroDivisionError:
+                result['avg_volume'] = 0
 
-        return final_results
-    
+        return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
@@ -555,8 +545,8 @@ class OfficerActivity(models.Model):
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
                                   db_column="call_unit_id",
                                   related_name="+")
-    start_time = models.DateTimeField(blank=True, null=True)
-    end_time = models.DateTimeField(blank=True, null=True)
+    time = models.DateTimeField(blank=True, null=True,
+                                db_column="time_")
     activity = models.TextField(blank=True, null=True)
     call = models.ForeignKey(Call, blank=True, null=True,
                              db_column="call_id",
@@ -564,7 +554,7 @@ class OfficerActivity(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'officer_activity'
+        db_table = 'discrete_officer_activity'
 
 
 

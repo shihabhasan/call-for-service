@@ -69,42 +69,38 @@ class OfficerActivityFilterSetTest(TestCase):
         self.call2 = Call.objects.create(call_id=2, time_received='2014-03-18T3:00', nature=self.n2)
         self.cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
         self.cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
+
         self.a1 = OfficerActivity.objects.create(officer_activity_id=1,
                 activity="IN CALL",
-                start_time=dtparse('2014-01-15T9:02'),
-                end_time=dtparse('2014-01-15T9:35'),
+                time=dtparse('2014-01-15T9:00'),
                 call_unit=self.cu1,
                 call=self.call1)
         self.a2 = OfficerActivity.objects.create(officer_activity_id=2,
                 activity="IN CALL",
-                start_time=dtparse('2014-01-15T9:08'),
-                end_time=dtparse('2014-01-15T9:20'),
+                time=dtparse('2014-01-15T9:10'),
                 call_unit=self.cu2,
                 call=self.call1)
         self.a3 = OfficerActivity.objects.create(officer_activity_id=3,
                 activity="IN CALL",
-                start_time=dtparse('2014-01-15T10:02'),
-                end_time=dtparse('2014-01-15T11:30'),
+                time=dtparse('2014-01-15T10:00'),
                 call_unit=self.cu1,
                 call=self.call2)
         self.a4 = OfficerActivity.objects.create(officer_activity_id=4,
                 activity="IN CALL",
-                start_time=dtparse('2014-01-16T9:55'),
-                end_time=dtparse('2014-01-16T10:14'),
+                time=dtparse('2014-01-16T9:50'),
                 call_unit=self.cu2,
                 call=self.call2)
         self.a5 = OfficerActivity.objects.create(officer_activity_id=5,
                 activity="OUT OF SERVICE",
-                start_time=dtparse('2014-01-16T10:15'),
-                end_time=dtparse('2014-01-16T10:48'),
+                time=dtparse('2014-01-16T10:10'),
                 call_unit=self.cu1,
                 call=None)
         self.a6 = OfficerActivity.objects.create(officer_activity_id=6,
                 activity="OUT OF SERVICE",
-                start_time=dtparse('2014-01-18T9:05'),
-                end_time=dtparse('2014-01-18T9:30'),
+                time=dtparse('2014-01-18T9:00'),
                 call_unit=self.cu2,
                 call=None)
+
 
     def test_call_unit_filter(self):
         filter_set = OfficerActivityFilterSet(data=QueryDict("call_unit=1"),
@@ -142,8 +138,8 @@ class OfficerActivityFilterSetTest(TestCase):
         self.assertIn(self.a6, qs)
         self.assertEqual(4, len(qs))
 
-    def test_start_time_filter(self):
-        filter_set = OfficerActivityFilterSet(data=QueryDict("start_time__gte=2014-01-16"),
+    def test_time_filter(self):
+        filter_set = OfficerActivityFilterSet(data=QueryDict("time__gte=2014-01-16"),
                 queryset=OfficerActivity.objects.all())
         qs = filter_set.filter()
         self.assertIn(self.a4, qs)
@@ -151,7 +147,7 @@ class OfficerActivityFilterSetTest(TestCase):
         self.assertIn(self.a6, qs)
         self.assertEqual(3, len(qs))
 
-        filter_set = OfficerActivityFilterSet(data=QueryDict("start_time__lte=2014-01-16"),
+        filter_set = OfficerActivityFilterSet(data=QueryDict("time__lte=2014-01-16"),
                 queryset=OfficerActivity.objects.all())
         qs = filter_set.filter()
         self.assertIn(self.a1, qs)
