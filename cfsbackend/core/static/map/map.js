@@ -86,7 +86,13 @@ function drawMap() {
         .style('width', width + 'px')
         .style('height', height + 'px');
 
-    var map = L.map('map').setView([36.0, -78.9], 12);
+    var map = L.map('map', {
+        center: [36.0, -78.9],
+        zoom: 12,
+        minZoom: 12
+    });
+
+    map.setMaxBounds(map.getBounds());
 
     L.tileLayer(
         'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
