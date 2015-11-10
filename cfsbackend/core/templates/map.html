@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+    <link rel="stylesheet" href="{% static 'leaflet/dist/leaflet.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -27,7 +28,7 @@
                             [[ /if ]]
                         </ul>
                     </div>
-                    <svg id="map"></svg>
+                    <div id="map"></div>
                 </div>
             </div>
         </div>
@@ -42,6 +43,7 @@
     <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
     <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
     <script src="{% static 'q/q.js' %}"></script>
+    <script src="{% static 'leaflet/dist/leaflet.js' %}"></script>
     <script src="{% static 'map/map.js' %}"></script>
 {% endblock %}
 </body>
