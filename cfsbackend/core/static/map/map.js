@@ -272,9 +272,9 @@ function updateMap(data) {
     }
 
     if (dashboard.get('showing') === 'call_volume') {
-        update(data.call_volume, 'volume', 5, colorbrewer.OrRd);
+        update(data.call_volume, 'volume', 5, colorbrewer.Reds);
     } else {
-        update(data.officer_response_time, 'mean', 6, colorbrewer.PuRd);
+        update(data.officer_response_time, 'mean', 6, colorbrewer.Blues);
     }
 }
 
