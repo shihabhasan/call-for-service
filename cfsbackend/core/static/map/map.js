@@ -95,17 +95,15 @@ function drawMap() {
             zoom: 12,
             maxBounds: bounds,
             minZoom: 11,
-            maxZoom: 18
+            maxZoom: 16
         });
 
 
     L.tileLayer(
-        'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}',
+        'http://tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
         {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-            maxZoom: 18,
-            id: 'dpdcfs.cigtj42c107u5tpkn9bxnh6mo',
-            accessToken: 'pk.eyJ1IjoiZHBkY2ZzIiwiYSI6ImNpZ3RqNDNoNzA3dTl0cGtudnd6dTVjYmYifQ.PVmca7xR3BwLEfN4HWgVvQ'
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+            maxZoom: 18
         }).addTo(map);
 
     var info = L.control();
