@@ -26,7 +26,6 @@ var dashboard = new Page(
                         if (error) throw error;
                         this.set('loading', false);
                         this.set('initialload', false);
-                        newData = cleanupData(newData);
                         this.set('data', newData);
                     }, this));
         }
@@ -50,10 +49,11 @@ dashboard.observe(
                 return memo
             }, {});
 
-        dashboard.set('beats', {
-            call_volume: call_volume,
-            officer_response_time: officer_response_time
-        });
+        dashboard.set(
+            'beats', {
+                call_volume: call_volume,
+                officer_response_time: officer_response_time
+            });
 
         ensureMapIsDrawn().then(
             function () {
@@ -89,13 +89,14 @@ function drawMap() {
         southWest = L.latLng(35.860952532806905, -79.04937744140625),
         bounds = L.latLngBounds(southWest, northEast);
 
-    var map = L.map('map', {
-        center: [36.0, -78.9],
-        zoom: 12,
-        maxBounds: bounds,
-        minZoom: 11,
-        maxZoom: 18
-    });
+    var map = L.map(
+        'map', {
+            center: [36.0, -78.9],
+            zoom: 12,
+            maxBounds: bounds,
+            minZoom: 11,
+            maxZoom: 18
+        });
 
 
     L.tileLayer(
@@ -119,14 +120,23 @@ function drawMap() {
     // properties passed
     info.update = function (props) {
         if (props) {
+            var call_volume = dashboard.get('beats').call_volume[props.LAWBEAT],
+                officer_response_time = dashboard.get('beats').officer_response_time[props.LAWBEAT],
+                text;
+
+            if (call_volume === undefined) {
+                text = "No data.";
+            } else {
+                text = "Call Volume " +
+                    fmt(dashboard.get('beats').call_volume[props.LAWBEAT], 'call_volume') +
+                    "<br />Officer Response Time " +
+                    fmt(
+                        dashboard.get('beats').officer_response_time[props.LAWBEAT],
+                        'officer_response_time');
+            }
+
             this._div.innerHTML = '<h4>Beat ' + props.LAWBEAT + '</h4>' +
-                "<div>Call Volume " +
-                fmt(dashboard.get('beats').call_volume[props.LAWBEAT], 'call_volume') +
-                "<br />Officer Response Time " +
-                fmt(
-                    dashboard.get('beats').officer_response_time[props.LAWBEAT],
-                    'officer_response_time') +
-                "</div>";
+                "<div>" + text + "</div>";
         } else {
             this._div.innerHTML = "<div>Hover over a beat</div>";
         }
@@ -228,15 +238,22 @@ function updateMap(data) {
     }
 
     function update(data, key, numColors, colorScheme) {
-        var colors = colorScheme[numColors + 1].slice(1)
-            , minValue = _(data).chain().pluck(key).min().value()
-            , maxValue = _(data).chain().pluck(key).max().value()
-            , scale = d3.scale.linear()
+        var minValue = _(data).chain().pluck(key).min().value(),
+            maxValue = _(data).chain().pluck(key).max().value(),
+            colors;
+
+        numColors = Math.min(numColors, maxValue - minValue + 1);
+
+        if (numColors < 3) {
+            colors = colorScheme[3].slice(3 - numColors);
+        } else {
+            colors = colorScheme[numColors + 1].slice(1);
+        }
+
+        var scale = d3.scale.linear()
             .domain([minValue, maxValue])
             .nice()
-            .range([0, numColors])
-            ;
-
+            .range([0, numColors]);
 
         var beats = _.reduce(
             data, function (memo, d) {
@@ -244,12 +261,21 @@ function updateMap(data) {
                 return memo
             }, {});
 
-        var legendData = _.range(numColors);
-        legendData = _.map(
-            legendData, function (n) {
+        var legendData = _.map(
+            _.range(numColors), function (n) {
+                var start = Math.ceil(scale.invert(n)),
+                    end = Math.floor(scale.invert(n + 1)),
+                    text;
+
+                if (start >= end) {
+                    text = fmt(start);
+                } else {
+                    text = fmt(start) + "-" + fmt(end)
+                }
+
                 return [
                     colors[n],
-                    fmt(scale.invert(n)) + "-" + fmt(scale.invert(n + 1))
+                    text
                 ];
             });
 
@@ -283,9 +309,6 @@ function updateMap(data) {
 //// Functions
 //// ========================================================================
 
-function cleanupData(data) {
-    return data;
-}
 
 function buildURL(filter) {
     return url + "?" + buildQueryParams(filter);
@@ -295,7 +318,6 @@ function ensureMapIsDrawn() {
     var deferred = Q.defer();
 
     function isMapDrawn() {
-
         if (dashboard.get('mapDrawn')) {
             deferred.resolve();
         } else {
