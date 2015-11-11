@@ -186,6 +186,24 @@ function drawMap() {
             });
     }
 
+    d3.select(window).on(
+        'scroll', function () {
+            var mapTop = map._container.getBoundingClientRect().top;
+            if (mapTop < 0) {
+                d3.select(info._div)
+                    .style({
+                        position: 'relative',
+                        top: -mapTop + "px"
+                    })
+            } else {
+                d3.select(info._div)
+                    .style({
+                        position: null,
+                        top: null
+                    })
+            }
+        });
+
     d3.json(
         "/static/map/beats.json", function (json) {
             json.features = _(json.features).reject(
