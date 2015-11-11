@@ -145,17 +145,18 @@ STATICFILES_FINDERS = (
 BOWER_COMPONENTS_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..', 'components'))
 
 BOWER_INSTALLED_APPS = (
-    'jquery#2.1.4',
-    'd3#3.5.6',
-    'moment#2.10.6',
-    'underscore#1.8.3',
-    'underscore-contrib#0.3.0',
-    'foundation#5.5.2',
-    'font-awesome#4.4.0',
-    'ractive#0.7.3',
     'colorbrewer#1.0.0',
+    'd3#3.5.6',
+    'font-awesome#4.4.0',
+    'foundation#5.5.2',
+    'jquery#2.1.4',
+    'leaflet#0.7.7',
+    'moment#2.10.6',
     'nvd3#b255bca4a3',
     'q#1.0.1',
+    'ractive#0.7.3',
+    'underscore#1.8.3',
+    'underscore-contrib#0.3.0',
 )
 
 COMPRESS_PRECOMPILERS = (

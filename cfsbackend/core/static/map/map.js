@@ -9,181 +9,227 @@ var outFormats = {
     "hour": "%m/%d %H:%M"
 };
 
-var map = new Page({
-    el: $('body').get(),
-    template: "#map-template",
-    data: {
-        showing: 'call_volume',
-        mapDrawn: false
-    },
-    filterUpdated: function (filter) {
-        d3.json(buildURL(filter), _.bind(function (error, newData) {
-            if (error) throw error;
-            this.set('loading', false);
-            this.set('initialload', false);
-            newData = cleanupData(newData);
-            this.set('data', newData);
-        }, this));
-    }
-});
+var geojson, control;
 
-
-function ensureMapIsDrawn() {
-    var deferred = Q.defer();
-
-    function isMapDrawn() {
-
-        if (map.get('mapDrawn')) {
-            deferred.resolve();
-        } else {
-            setTimeout(isMapDrawn, 30);
+var dashboard = new Page(
+    {
+        el: $('body').get(),
+        template: "#map-template",
+        data: {
+            showing: 'call_volume',
+            mapDrawn: false
+        },
+        filterUpdated: function (filter) {
+            d3.json(
+                buildURL(filter), _.bind(
+                    function (error, newData) {
+                        if (error) throw error;
+                        this.set('loading', false);
+                        this.set('initialload', false);
+                        this.set('data', newData);
+                    }, this));
         }
-    }
-
-    isMapDrawn();
-
-    return deferred.promise;
-}
-
-
-map.observe('data', function (newData) {
-    d3.selectAll(".nvtooltip").remove();
-    var svg = d3.select("#map g");
-    if (svg.size() === 0) {
-        buildMap();
-    }
-
-    ensureMapIsDrawn().then(function () {
-        updateMap(newData)
     });
-});
 
-map.observe('showing', function () {
-    d3.selectAll(".nvtooltip").remove();
-    var svg = d3.select("#map g");
-    if (svg.size() === 0) {
-        return;
-    }
+dashboard.observe(
+    'data', function (newData) {
+        if (newData === undefined) {
+            return;
+        }
 
-    ensureMapIsDrawn().then(function () {
-        updateMap(map.get('data'));
-    });
-});
+        var call_volume = _.reduce(
+            newData.call_volume, function (memo, d) {
+                memo[d.name] = d.volume;
+                return memo
+            }, {});
 
-map.on('showing', function (event, state) {
-    map.set('showing', state);
-    return false;
-})
+        var officer_response_time = _.reduce(
+            newData.officer_response_time, function (memo, d) {
+                memo[d.name] = d.mean;
+                return memo
+            }, {});
 
-// ========================================================================
-// Functions
-// ========================================================================
-
-function cleanupData(data) {
-    return data;
-}
-
-function buildURL(filter) {
-    return url + "?" + buildQueryParams(filter);
-}
-
-function buildMap() {
-    var width = d3.select("#map-container").node().clientWidth;
-    var height = width * 1.3;
-
-    var projection = d3.geo.conicConformal()
-        .scale(1)
-        .translate([0, 0])
-        .rotate([80, 0]);
-
-    var path = d3.geo.path()
-        .projection(projection);
-
-    var svg = d3.select("#map")
-        .attr("width", width)
-        .attr("height", height)
-        .append("g");
-
-    d3.json("/static/map/beats.json", function (json) {
-        json.features = _(json.features).reject(function (d) {
-            return d.properties.LAWDIST === "DSO"
-        });
-
-        // Compute the bounds of a feature of interest, then derive scale & translate.
-        var b = path.bounds(json),
-            s = .95 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
-            t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
-
-        // Update the projection to use computed scale & translate.
-        projection
-            .scale(s)
-            .translate(t);
-
-        svg.selectAll("path")
-            .data(json.features)
-            .enter()
-            .append("path")
-            .attr("d", path)
-            .style("fill", "white")
-            .style("stroke", "black")
-            .style("stroke-width", 1)
-            .attr("class", function (d) {
-                return "beat beat-" + d.properties.LAWBEAT;
-            })
-            .attr("data-beat", function (d) {
-                return d.properties.LAWBEAT
-            })
-            .attr("data-dist", function (d) {
-                return d.properties.LAWDIST
+        dashboard.set(
+            'beats', {
+                call_volume: call_volume,
+                officer_response_time: officer_response_time
             });
 
-        map.set('mapDrawn', true);
+        ensureMapIsDrawn().then(
+            function () {
+                updateMap(newData)
+            });
     });
+
+dashboard.observe(
+    'showing', function (val) {
+        ensureMapIsDrawn().then(
+            function () {
+                updateMap(dashboard.get('data'));
+            });
+    });
+
+dashboard.on(
+    'showing', function (event, state) {
+        dashboard.set('showing', state);
+        return false;
+    });
+
+dashboard.on('complete', drawMap);
+
+function drawMap() {
+    var width = d3.select("#map-container").node().clientWidth,
+        height = width * 1.15;
+
+    d3.select("#map")
+        .style('width', width + 'px')
+        .style('height', height + 'px');
+
+    var northEast = L.latLng(36.13898378070337, -78.75068664550781),
+        southWest = L.latLng(35.860952532806905, -79.04937744140625),
+        bounds = L.latLngBounds(southWest, northEast);
+
+    var map = L.map(
+        'map', {
+            center: [36.0, -78.9],
+            zoom: 12,
+            maxBounds: bounds,
+            minZoom: 11,
+            maxZoom: 16
+        });
+
+
+    L.tileLayer(
+        'http://tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
+        {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+            maxZoom: 18
+        }).addTo(map);
+
+    var info = L.control();
+
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'mapinfo');
+        this.update();
+        return this._div;
+    };
+
+    // method that we will use to update the control based on feature
+    // properties passed
+    info.update = function (props) {
+        if (props) {
+            var call_volume = dashboard.get('beats').call_volume[props.LAWBEAT],
+                officer_response_time = dashboard.get('beats').officer_response_time[props.LAWBEAT],
+                text;
+
+            if (call_volume === undefined) {
+                text = "No data.";
+            } else {
+                text = "Call Volume " +
+                    fmt(dashboard.get('beats').call_volume[props.LAWBEAT], 'call_volume') +
+                    "<br />Officer Response Time " +
+                    fmt(
+                        dashboard.get('beats').officer_response_time[props.LAWBEAT],
+                        'officer_response_time');
+            }
+
+            this._div.innerHTML = '<h4>Beat ' + props.LAWBEAT + '</h4>' +
+                "<div>" + text + "</div>";
+        } else {
+            this._div.innerHTML = "<div>Hover over a beat</div>";
+        }
+    };
+
+    info.addTo(map);
+
+    function highlightFeature(e) {
+        var layer = e.target;
+
+        layer.setStyle(
+            {
+                dashArray: '',
+                fillOpacity: 0.5,
+                weight: 3
+            });
+
+        if (!L.Browser.ie && !L.Browser.opera) {
+            layer.bringToFront();
+        }
+
+        info.update(layer.feature.properties);
+    }
+
+    function resetHighlight(e) {
+        var layer = e.target;
+
+        layer.setStyle(
+            {
+                weight: 2,
+                dashArray: '3',
+                fillOpacity: 0.6
+            });
+
+        if (!L.Browser.ie && !L.Browser.opera) {
+            layer.bringToFront();
+        }
+
+        info.update();
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.on(
+            {
+                mouseover: highlightFeature,
+                mouseout: resetHighlight
+            });
+    }
+
+    d3.select(window).on(
+        'scroll', function () {
+            var mapTop = map._container.getBoundingClientRect().top;
+            if (mapTop < 0) {
+                d3.select(info._div)
+                    .style({
+                        position: 'relative',
+                        top: -mapTop + "px"
+                    })
+            } else {
+                d3.select(info._div)
+                    .style({
+                        position: null,
+                        top: null
+                    })
+            }
+        });
+
+    d3.json(
+        "/static/map/beats.json", function (json) {
+            json.features = _(json.features).reject(
+                function (d) {
+                    return d.properties.LAWDIST === "DSO"
+                });
+
+            var myStyle = {
+                color: "white",
+                dashArray: '3',
+                fillColor: "#AAAAAA",
+                opacity: 1,
+                fillOpacity: 0.6,
+                weight: 2
+            };
+
+            geojson = L.geoJson(
+                json, {
+                    style: myStyle,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+            dashboard.set('mapDrawn', true);
+        });
 }
 
 function updateMap(data) {
-    if (data === undefined) {
-        return;
-    }
-
-    var svg = d3.select("#map")
-        , g = svg.select("g")
-        , tooltip = nv.models.tooltip()
-        , blankColor = "#EEE"
-        ;
-
-    g.selectAll(".beat").style("fill", blankColor);
-
     if (data.count === 0) {
-        var noDataText = g.selectAll('.nv-noData').data(["No Data Available."]);
-        g.selectAll('path').style('opacity', 0.2);
-
-        var width = svg.node().clientWidth;
-        var height = svg.node().clientHeight;
-
-        noDataText.enter()
-            .append('text')
-            .attr('class', 'nvd3 nv-noData')
-            .attr('dy', '-.7em')
-            .style('text-anchor', 'middle');
-
-        noDataText
-            .attr('x', width / 2 )
-            .attr('y', 100 )
-            .text(function (d) {
-                console.log(d);
-                return d;
-            });
-
-        g
-            .on('mouseover', null)
-            .on('mouseout', null)
-            .on('mousemove', null);
-
-        return;
-    } else {
-        g.selectAll('.nv-noData').remove();
-        g.selectAll('path').style('opacity', 1);
+        // handle no data
     }
 
     function updateLegend(legendData) {
@@ -197,85 +243,118 @@ function updateMap(data) {
             .style('border-left-width', '30px')
             .style('border-left-style', 'solid')
             .style('padding', '0 10px')
-            .style('border-left-color', function (d) {
-                return d[0]
-            })
-            .text(function (d) {
-                return d[1];
-            });
+            .style(
+                'border-left-color', function (d) {
+                    return d[0]
+                })
+            .text(
+                function (d) {
+                    return d[1];
+                });
     }
 
-    function setupTooltip(tooltipData) {
-        g.selectAll(".beat")
-            .on('mouseover', function (d, i) {
-                tooltip.data(tooltipData(d, i)).hidden(false);
-            })
-            .on('mouseout', function (d, i) {
-                tooltip.data(tooltipData(d, i)).hidden(true);
-            })
-            .on('mousemove', function () {
-                tooltip();
-            })
-    }
+    function update(data, key, numColors, colorScheme) {
+        var minValue = _(data).chain().pluck(key).min().value(),
+            maxValue = _(data).chain().pluck(key).max().value(),
+            colors;
 
-    function update(data, key, seriesName, numColors, colorScheme, fmt) {
-        var colors = colorScheme[numColors]
-            , minValue = _(data).chain().pluck(key).min().value()
-            , maxValue = _(data).chain().pluck(key).max().value()
-            , scale = d3.scale.linear().domain([minValue, maxValue]).nice().range([0, numColors])
-            ;
+        numColors = Math.min(numColors, maxValue - minValue + 1);
 
-        _(data).each(function (d) {
-            var n = Math.min(numColors - 1, Math.floor(scale(d[key])));
-            d3.selectAll(".beat-" + d.name)
-                .style("fill", colors[n]);
-        });
-
-        var beats = _.reduce(data, function (memo, d) {
-            memo[d.name] = d[key];
-            return memo
-        }, {});
-
-        var tooltipData = function (d, i) {
-            var n = Math.floor(scale(beats[d.properties.LAWBEAT]));
-            var series = {'key': seriesName};
-            if (_.isUndefined(beats[d.properties.LAWBEAT])) {
-                series.value = "No data";
-                series.color = blankColor;
-            } else {
-                series.value = fmt(beats[d.properties.LAWBEAT]);
-                series.color = colors[n];
-            }
-            return {
-                key: "Beat",
-                value: "Beat " + d.properties.LAWBEAT,
-                series: series,
-                data: d,
-                index: i,
-                e: d3.event
-            }
+        if (numColors < 3) {
+            colors = colorScheme[3].slice(3 - numColors);
+        } else {
+            colors = colorScheme[numColors + 1].slice(1);
         }
 
-        setupTooltip(tooltipData);
+        var scale = d3.scale.linear()
+            .domain([minValue, maxValue])
+            .nice()
+            .range([0, numColors]);
 
-        var legendData = _.range(numColors);
-        legendData = _.map(legendData, function (n) {
-            return [
-                colors[n],
-                fmt(scale.invert(n)) + "-" + fmt(scale.invert(n + 1))
-            ];
-        });
+        var beats = _.reduce(
+            data, function (memo, d) {
+                memo[d.name] = d[key];
+                return memo
+            }, {});
+
+        var legendData = _.map(
+            _.range(numColors), function (n) {
+                var start = Math.ceil(scale.invert(n)),
+                    end = Math.floor(scale.invert(n + 1)),
+                    text;
+
+                if (start >= end) {
+                    text = fmt(start);
+                } else {
+                    text = fmt(start) + "-" + fmt(end)
+                }
+
+                return [
+                    colors[n],
+                    text
+                ];
+            });
 
         updateLegend(legendData);
+
+        var styleFn = function (d) {
+            var n = Math.min(
+                numColors - 1, Math.floor(scale(beats[d.properties.LAWBEAT])));
+            return {
+                fillColor: colors[n],
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.8
+            }
+        };
+
+        geojson.setStyle(styleFn);
     }
 
-    if (map.get('showing') === 'call_volume') {
-        update(data.call_volume, 'volume', "Call Volume", 5, colorbrewer.OrRd, d3.format(",.g"));
+    if (dashboard.get('showing') === 'call_volume') {
+        update(data.call_volume, 'volume', 5, colorbrewer.Reds);
     } else {
-        update(data.officer_response_time, 'mean', "Officer Response Time", 6, colorbrewer.PuRd, durationFormat);
+        update(data.officer_response_time, 'mean', 6, colorbrewer.Blues);
     }
 }
 
 
+//// ========================================================================
+//// Functions
+//// ========================================================================
 
 
+function buildURL(filter) {
+    return url + "?" + buildQueryParams(filter);
+}
+
+function ensureMapIsDrawn() {
+    var deferred = Q.defer();
+
+    function isMapDrawn() {
+        if (dashboard.get('mapDrawn')) {
+            deferred.resolve();
+        } else {
+            setTimeout(isMapDrawn, 30);
+        }
+    }
+
+    isMapDrawn();
+
+    return deferred.promise;
+}
+
+function fmt(val, style) {
+    if (style === undefined) {
+        style = dashboard.get('showing');
+    }
+    if (style === 'call_volume') {
+        return d3.format(",.2f")(val).replace(/\.0+$/, "");
+    } else if (style === 'officer_response_time') {
+        return durationFormat(val);
+    } else {
+        return val;
+    }
+}
