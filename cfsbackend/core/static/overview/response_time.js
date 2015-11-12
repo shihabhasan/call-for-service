@@ -238,11 +238,29 @@ function buildORTByPriorityChart(data) {
     })
 }
 
+function getORTChartBounds() {
+    var parent = d3.select("#ort"),
+        parentWidth = parent.node().clientWidth,
+        ratio = 5 / 1,
+        width = parentWidth,
+        height = width / ratio;
+
+    return {width: width, height: height};
+}
+
+function resizeORTChart() {
+    var bounds = getORTChartBounds(),
+        svg = d3.select("#ort").select("svg");
+
+    svg.attr("width", bounds.width)
+       .attr("height", bounds.height);
+}
+
 function buildORTChart(data) {
-    var parentWidth = d3.select("#ort").node().clientWidth;
     var margin = {top: 0, left: 15, right: 15, bottom: 40}
-        , width = parentWidth - margin.left - margin.right
-        , height = parentWidth * 0.2 - margin.top - margin.bottom
+        , bounds = getORTChartBounds()
+        , width = bounds.width - margin.left - margin.right
+        , height = bounds.height - margin.top - margin.bottom
         , boxtop = margin.top + 10
         , boxbottom = height - 10
         , tickHeight = (boxbottom - boxtop) * 0.7
@@ -258,8 +276,9 @@ function buildORTChart(data) {
         svg = d3.select("#ort")
             .append("svg")
             .classed("nvd3-svg", true)
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", bounds.width)
+            .attr("height", bounds.height)
+            .attr("viewBox", "0 0 " + bounds.width + " " + bounds.height)
             .append("g")
             .classed({"nvd3": true, "nv-boxPlotWithAxes": true})
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -304,8 +323,6 @@ function buildORTChart(data) {
         .scale(xScale)
         .orient("bottom")
         .tickFormat(durationFormat);
-
-    console.log(data);
 
     // NOTE: This should not have to be done, but without it, the chart does
     // not update. TODO investigate.
@@ -469,3 +486,7 @@ function buildORTChart(data) {
         })
 
 }
+
+d3.select(window).on('resize', function () {
+    resizeORTChart();
+})
