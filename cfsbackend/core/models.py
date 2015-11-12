@@ -10,7 +10,7 @@
 
 from __future__ import unicode_literals
 from collections import Counter, defaultdict
-from datetime import timedelta
+from datetime import timedelta, time
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
@@ -137,15 +137,55 @@ class OfficerActivityOverview:
                 .values('time_hour_minute', 'activity') \
                 .annotate(avg_volume=Count('*'))
 
-        for result in results:
-            result['freq'] = time_freq[result['time_hour_minute']]
-            result['total'] = result['avg_volume']
-            try:
-                result['avg_volume'] /= result['freq']
-            except ZeroDivisionError:
-                result['avg_volume'] = 0
+        # Make sure we have an entry for each combination of time and
+        # activity.
+        agg_result = {t: {
+            'IN CALL - CITIZEN INITIATED': {
+                'avg_volume': 0,
+                'total': 0
+            },
+            'IN CALL - SELF INITIATED': {
+                'avg_volume': 0,
+                'total': 0
+            },
+            'IN CALL - DIRECTED PATROL': {
+                'avg_volume': 0,
+                'total': 0
+            },
+            'OUT OF SERVICE': {
+                'avg_volume': 0,
+                'total': 0
+            },
+            'ON DUTY': {
+                'avg_volume': 0,
+                'total': 0
+            }
+        } for t in time_freq}
 
-        return results
+        for r in results:
+            time_ = r['time_hour_minute']
+            activity = r['activity']
+            freq = time_freq[r['time_hour_minute']]
+            agg_result[time_][activity]['freq'] = freq
+            agg_result[time_][activity]['total'] = r['avg_volume']
+            agg_result[time_][activity]['avg_volume'] = r['avg_volume']
+            try:
+                agg_result[time_][activity]['avg_volume'] /= freq
+            except ZeroDivisionError:
+                agg_result[time_][activity]['avg_volume'] = 0
+
+        # Patrol stats are ON DUTY minus everything else
+        for r in agg_result.values():
+            r['PATROL'] = {
+                'freq': r['ON DUTY']['freq'],
+                'total': r['ON DUTY']['total'] \
+                        - sum([v['total'] for k,v in r.items() if not k == 'ON DUTY']),
+                'avg_volume': r['ON DUTY']['avg_volume'] \
+                        - sum([v['avg_volume'] for k,v in r.items() if not k == 'ON DUTY']),
+            }
+
+        # Keys have to be strings to transmit to the client
+        return {str(k): v for k,v in agg_result.items()}
 
     def to_dict(self):
         return {

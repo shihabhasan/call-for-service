@@ -21,7 +21,8 @@ CREATE MATERIALIZED VIEW officer_activity AS
     in_call ic
   WHERE
     ic.start_time IS NOT NULL AND
-    ic.end_time IS NOT NULL
+    ic.end_time IS NOT NULL AND
+    ic.end_time - ic.start_time < interval '1 day'
   UNION ALL
   SELECT
     oos.call_unit_id AS call_unit_id,
@@ -33,7 +34,8 @@ CREATE MATERIALIZED VIEW officer_activity AS
      out_of_service oos
    WHERE
      oos.start_time IS NOT NULL AND
-     oos.end_time IS NOT NULL
+     oos.end_time IS NOT NULL AND
+     oos.end_time - oos.start_time < interval '1 day'
    UNION ALL
    SELECT
      sh.call_unit_id AS call_unit_id,
@@ -45,7 +47,8 @@ CREATE MATERIALIZED VIEW officer_activity AS
      shift_unit sh
    WHERE
      sh.in_time IS NOT NULL AND
-     sh.out_time IS NOT NULL) activity; 
+     sh.out_time IS NOT NULL AND
+     sh.out_time - sh.in_time < interval '1 day') activity; 
      
 /*
 This view has a row for each instance of officer activity at each 10 minute interval.  It can be used to aggregate activity up based on discrete time intervals instead of a continuous start_time to end_time.

@@ -54,36 +54,57 @@ function toggleFilter(key, value) {
     updateHash(buildQueryParams(f));
 }
 
-
 function cleanupData(data) {
     var indate = d3.time.format("%H:%M:%S");
-    data.allocation_over_time = _.sortBy(data.allocation_over_time, 'time_hour_minute');
-    data.allocation_over_time = [
-        {
+    
+    var temp_allocation_data = [{
             key: "Out of Service",
-            values: _.where(data.allocation_over_time, { activity: "OUT OF SERVICE" })
-                .map(function(obj) {
-                    obj = _.chain(obj)
-                        .selectKeys(["time_hour_minute", "avg_volume"])
-                        .renameKeys({"time_hour_minute": "x", "avg_volume": "y"})
-                        .value();
-                    obj.x = indate.parse(obj.x);
-                    return obj;
-                })
-        },
-        {
-            key: "In Call",
-            values: _.where(data.allocation_over_time, { activity: "IN CALL" })
-                .map(function(obj) {
-                    obj = _.chain(obj)
-                        .selectKeys(["time_hour_minute", "avg_volume"])
-                        .renameKeys({"time_hour_minute": "x", "avg_volume": "y"})
-                        .value();
-                    obj.x = indate.parse(obj.x);
-                    return obj;
-                })
-        }
-    ];
+            values: [],
+        }, {
+            key: "Directed Patrol",
+            values: [],
+        }, {
+            key: "Officer-Initiated Call",
+            values: [],
+        }, {
+            key: "Citizen-Initiated Call",
+            values: [],
+        }, {
+            key: "Patrol",
+            values: [],
+        }];
+
+    _.sortBy(_.keys(data.allocation_over_time)).forEach(function (k) {
+        var oos = data.allocation_over_time[k]['OUT OF SERVICE'].avg_volume,
+            dp = data.allocation_over_time[k]['IN CALL - DIRECTED PATROL'].avg_volume,
+            oic = data.allocation_over_time[k]['IN CALL - SELF INITIATED'].avg_volume,
+            cic = data.allocation_over_time[k]['IN CALL - CITIZEN INITIATED'].avg_volume,
+            pat = data.allocation_over_time[k]['PATROL'].avg_volume,
+            time = indate.parse(k);
+
+        temp_allocation_data[0].values.push({
+            'x': time,
+            'y': oos,
+        });
+        temp_allocation_data[1].values.push({
+            'x': time,
+            'y': dp,
+        });
+        temp_allocation_data[2].values.push({
+            'x': time,
+            'y': oic,
+        });
+        temp_allocation_data[3].values.push({
+            'x': time,
+            'y': cic,
+        });
+        temp_allocation_data[4].values.push({
+            'x': time,
+            'y': pat,
+        });
+    });
+
+    data.allocation_over_time = temp_allocation_data;
     return data;
 }
 
