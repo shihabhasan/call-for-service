@@ -92,8 +92,12 @@ function drawMap() {
         });
 
     function resize() {
-        var width = d3.select("#map-container").node().clientWidth,
-            height = width * 1.15;
+        var container = d3.select("#map-container").node(),
+            width = container.clientWidth,
+            bounds = container.getBoundingClientRect(),
+            pTop = bounds.top,
+            pBottom = window.innerHeight,
+            height = Math.max(10, pBottom - pTop - 100);
 
         d3.select("#map")
             .style('width', width + 'px')
@@ -101,8 +105,6 @@ function drawMap() {
 
         map.invalidateSize();
     }
-
-    resize();
 
     d3.select(window).on("resize.map", function () {
         console.log("hi")
@@ -194,24 +196,6 @@ function drawMap() {
             });
     }
 
-    d3.select(window).on(
-        'scroll', function () {
-            var mapTop = map._container.getBoundingClientRect().top;
-            if (mapTop < 0) {
-                d3.select(info._div)
-                    .style({
-                        position: 'relative',
-                        top: -mapTop + "px"
-                    })
-            } else {
-                d3.select(info._div)
-                    .style({
-                        position: null,
-                        top: null
-                    })
-            }
-        });
-
     d3.json(
         "/static/map/beats.json", function (json) {
             json.features = _(json.features).reject(
@@ -233,8 +217,12 @@ function drawMap() {
                     style: myStyle,
                     onEachFeature: onEachFeature
                 }).addTo(map);
+
+            resize();
             dashboard.set('mapDrawn', true);
         });
+
+
 }
 
 function updateMap(data) {
