@@ -81,6 +81,7 @@ function cleanupData(data) {
             cic = data.allocation_over_time[k]['IN CALL - CITIZEN INITIATED'].avg_volume,
             pat = data.allocation_over_time[k]['PATROL'].avg_volume,
             time = indate.parse(k);
+        console.log(time);
 
         temp_allocation_data[0].values.push({
             'x': time,
@@ -152,6 +153,14 @@ function buildAllocationOverTimeChart(data) {
         chart.yAxis
             .axisLabel("Officers Allocated")
             .tickFormat(d3.format(",d"));
+
+        // Keep NaNs from showing up in the tooltip header
+        // This was supposed to have been fixed, but
+        // apparently, it wasn't
+        //
+        // https://github.com/novus/nvd3/issues/1081
+        chart.interactiveLayer.tooltip
+            .headerFormatter(function (d) { return d; });
 
         svg.datum(data).call(chart);
         nv.utils.windowResize(chart.update);
