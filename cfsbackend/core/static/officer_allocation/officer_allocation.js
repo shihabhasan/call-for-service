@@ -75,7 +75,7 @@ function cleanupData(data) {
         }];
 
     _.sortBy(_.keys(data.allocation_over_time)).forEach(function (k) {
-        var oos = data.allocation_over_time[k]['OUT OF SERVICE'].avg_volume,
+        var oos = d3.round(data.allocation_over_time[k]['OUT OF SERVICE'].avg_volume, 2),
             dp = data.allocation_over_time[k]['IN CALL - DIRECTED PATROL'].avg_volume,
             oic = data.allocation_over_time[k]['IN CALL - SELF INITIATED'].avg_volume,
             cic = data.allocation_over_time[k]['IN CALL - CITIZEN INITIATED'].avg_volume,
@@ -104,6 +104,7 @@ function cleanupData(data) {
             'y': pat,
         });
     });
+    console.log(data);
 
     data.allocation_over_time = temp_allocation_data;
     return data;
@@ -152,7 +153,7 @@ function buildAllocationOverTimeChart(data) {
 
         chart.yAxis
             .axisLabel("Officers Allocated")
-            .tickFormat(d3.format(",d"));
+            .tickFormat(d3.format(",.2r"));
 
         // Keep NaNs from showing up in the tooltip header
         // This was supposed to have been fixed, but

@@ -130,7 +130,6 @@ class OfficerActivityOverview:
         time_freq = Counter((start + timedelta(seconds=x)).time() for x in
                            range(0, total_seconds + 1, self.sample_interval))
 
-
         # We have to strip off the date component by casting to time
         results = self.qs \
                 .extra({'time_hour_minute': 'time_::time'}) \
@@ -142,23 +141,28 @@ class OfficerActivityOverview:
         agg_result = {t: {
             'IN CALL - CITIZEN INITIATED': {
                 'avg_volume': 0,
-                'total': 0
+                'total': 0,
+                'freq': 0
             },
             'IN CALL - SELF INITIATED': {
                 'avg_volume': 0,
-                'total': 0
+                'total': 0,
+                'freq': 0
             },
             'IN CALL - DIRECTED PATROL': {
                 'avg_volume': 0,
-                'total': 0
+                'total': 0,
+                'freq': 0
             },
             'OUT OF SERVICE': {
                 'avg_volume': 0,
-                'total': 0
+                'total': 0,
+                'freq': 0
             },
             'ON DUTY': {
                 'avg_volume': 0,
-                'total': 0
+                'total': 0,
+                'freq': 0
             }
         } for t in time_freq}
 
