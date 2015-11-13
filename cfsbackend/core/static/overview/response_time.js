@@ -238,11 +238,21 @@ function buildORTByPriorityChart(data) {
     })
 }
 
+function getORTChartBounds() {
+    var parent = d3.select("#ort"),
+        parentWidth = parent.node().clientWidth,
+        ratio = 5 / 1,
+        width = parentWidth,
+        height = width / ratio;
+
+    return {width: width, height: height};
+}
+
 function buildORTChart(data) {
-    var parentWidth = d3.select("#ort").node().clientWidth;
     var margin = {top: 0, left: 15, right: 15, bottom: 40}
-        , width = parentWidth - margin.left - margin.right
-        , height = parentWidth * 0.2 - margin.top - margin.bottom
+        , bounds = getORTChartBounds()
+        , width = bounds.width - margin.left - margin.right
+        , height = bounds.height - margin.top - margin.bottom
         , boxtop = margin.top + 10
         , boxbottom = height - 10
         , tickHeight = (boxbottom - boxtop) * 0.7
@@ -253,24 +263,26 @@ function buildORTChart(data) {
         ;
 
     var svg = d3.select("#ort").select("svg");
+    var g;
 
     if (svg.size() === 0) {
-        svg = d3.select("#ort")
+        g = d3.select("#ort")
             .append("svg")
             .classed("nvd3-svg", true)
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", bounds.width)
+            .attr("height", bounds.height)
+            .attr("viewBox", "0 0 " + bounds.width + " " + bounds.height)
             .append("g")
             .classed({"nvd3": true, "nv-boxPlotWithAxes": true})
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     } else {
-        svg = svg.select("g");
+        g = svg.select("g");
     }
 
     if (_.isEmpty(data)) {
-        svg.selectAll("g.nv-boxplot").remove();
+        g.selectAll("g.nv-boxplot").remove();
 
-        var noDataText = svg.selectAll('.nv-noData').data(["No Data Available."]);
+        var noDataText = g.selectAll('.nv-noData').data(["No Data Available."]);
 
         noDataText.enter().append('text')
             .attr('class', 'nvd3 nv-noData')
@@ -284,14 +296,14 @@ function buildORTChart(data) {
                 return d
             });
 
-        svg
+        g
             .on('mouseover', null)
             .on('mouseout', null)
             .on('mousemove', null);
 
         return;
     } else {
-        svg.selectAll('.nv-noData').remove();
+        g.selectAll('.nv-noData').remove();
     }
 
     var domainMax = Math.min(data.max, data.quartiles[2] + 3 * data.iqr);
@@ -305,13 +317,11 @@ function buildORTChart(data) {
         .orient("bottom")
         .tickFormat(durationFormat);
 
-    console.log(data);
-
     // NOTE: This should not have to be done, but without it, the chart does
     // not update. TODO investigate.
-    svg.selectAll("g.nv-boxplot").remove();
+    g.selectAll("g.nv-boxplot").remove();
 
-    var boxplot = svg.selectAll("g.nv-boxplot").data([data]);
+    var boxplot = g.selectAll("g.nv-boxplot").data([data]);
 
     boxplot.exit().remove();
 
@@ -457,7 +467,7 @@ function buildORTChart(data) {
         }
     }
 
-    svg
+    g
         .on('mouseover', function (d, i) {
             tooltip.data(tooltipData(d, i)).hidden(false);
         })
@@ -468,4 +478,14 @@ function buildORTChart(data) {
             tooltip();
         })
 
+    function resize() {
+        var bounds = getORTChartBounds();
+
+        svg.attr("width", bounds.width)
+           .attr("height", bounds.height);
+
+        boxplot.selectAll("g.nv-x.nv-axis").call(xAxis);
+    }
+
+    d3.select(window).on('resize.ort', resize);
 }

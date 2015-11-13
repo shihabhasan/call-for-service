@@ -78,13 +78,6 @@ dashboard.on(
 dashboard.on('complete', drawMap);
 
 function drawMap() {
-    var width = d3.select("#map-container").node().clientWidth,
-        height = width * 1.15;
-
-    d3.select("#map")
-        .style('width', width + 'px')
-        .style('height', height + 'px');
-
     var northEast = L.latLng(36.13898378070337, -78.75068664550781),
         southWest = L.latLng(35.860952532806905, -79.04937744140625),
         bounds = L.latLngBounds(southWest, northEast);
@@ -98,6 +91,23 @@ function drawMap() {
             maxZoom: 16
         });
 
+    function resize() {
+        var width = d3.select("#map-container").node().clientWidth,
+            height = width * 1.15;
+
+        d3.select("#map")
+            .style('width', width + 'px')
+            .style('height', height + 'px');
+
+        map.invalidateSize();
+    }
+
+    resize();
+
+    d3.select(window).on("resize.map", function () {
+        console.log("hi")
+        resize();
+    });
 
     L.tileLayer(
         'http://tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
@@ -358,3 +368,4 @@ function fmt(val, style) {
         return val;
     }
 }
+
