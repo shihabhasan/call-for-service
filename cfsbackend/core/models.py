@@ -122,6 +122,10 @@ class OfficerActivityOverview:
         if (not self.bounds['max_time'] or not self.bounds['min_time']):
             return []
 
+        activity_type_lookup = {r.officer_activity_type_id: r.descr
+                for r in OfficerActivityType.objects.all()
+        }
+
         # In order for this to show average allocation, we need to know the number 
         # of times each time sample occurs.
         start = self.round_datetime(self.bounds['min_time'])
@@ -138,44 +142,46 @@ class OfficerActivityOverview:
         # We have to strip off the date component by casting to time
         results = self.qs \
                 .extra({'time_hour_minute': 'time_::time'}) \
-                .values('time_hour_minute', 'activity') \
+                .values('time_hour_minute', 'activity_type') \
                 .annotate(avg_volume=Count('*'))
 
         # Make sure we have an entry for each combination of time and
-        # activity.
+        # activity; go ahead and fill out the frequency (number of times
+        # the given time sample occured).
         agg_result = {t: {
             'IN CALL - CITIZEN INITIATED': {
                 'avg_volume': 0,
                 'total': 0,
-                'freq': 0
+                'freq': time_freq[t]
             },
             'IN CALL - SELF INITIATED': {
                 'avg_volume': 0,
                 'total': 0,
-                'freq': 0
+                'freq': time_freq[t]
             },
             'IN CALL - DIRECTED PATROL': {
                 'avg_volume': 0,
                 'total': 0,
-                'freq': 0
+                'freq': time_freq[t]
             },
             'OUT OF SERVICE': {
                 'avg_volume': 0,
                 'total': 0,
-                'freq': 0
+                'freq': time_freq[t]
             },
             'ON DUTY': {
                 'avg_volume': 0,
                 'total': 0,
-                'freq': 0
+                'freq': time_freq[t]
             }
         } for t in time_freq}
 
         for r in results:
             time_ = r['time_hour_minute']
-            activity = r['activity']
-            freq = time_freq[r['time_hour_minute']]
-            agg_result[time_][activity]['freq'] = freq
+            activity = activity_type_lookup[r['activity_type']]
+            freq = agg_result[time_][activity]['freq']
+            #freq = time_freq[r['time_hour_minute']]
+            #agg_result[time_][activity]['freq'] = freq
             agg_result[time_][activity]['total'] = r['avg_volume']
             agg_result[time_][activity]['avg_volume'] = r['avg_volume']
             try:
@@ -653,6 +659,13 @@ class InCallPeriod(models.Model):
         managed = False
         db_table = 'in_call'
 
+class OfficerActivityType(ModelWithDescr):
+    officer_activity_type_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'officer_activity_type'
+
 class OfficerActivity(models.Model):
     officer_activity_id = models.IntegerField(primary_key=True)
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
@@ -660,7 +673,9 @@ class OfficerActivity(models.Model):
                                   related_name="+")
     time = models.DateTimeField(blank=True, null=True,
                                 db_column="time_")
-    activity = models.TextField(blank=True, null=True)
+    activity_type = models.ForeignKey(OfficerActivityType,
+                                db_column="officer_activity_type_id",
+                                related_name="+")
     call = models.ForeignKey(Call, blank=True, null=True,
                              db_column="call_id",
                              related_name="+")

@@ -4,7 +4,8 @@ from django.test import TestCase
 from .test_helpers import assert_list_equiv
 
 from ..models import Call, Beat, Percentiles, Secs, CallVolumeOverview, \
-        CallUnit, OfficerActivity, OfficerActivityOverview, Nature
+        CallUnit, OfficerActivity, OfficerActivityOverview, Nature, \
+        OfficerActivityType
 from datetime import timedelta
 
 
@@ -33,44 +34,120 @@ class OfficerActivityOverviewTest(TestCase):
                             nature=n2)
         cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
         cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
+        at1 = OfficerActivityType.objects.create(
+                officer_activity_type_id=1,
+                descr="IN CALL - CITIZEN INITIATED")
+        at2 = OfficerActivityType.objects.create(
+                officer_activity_type_id=2,
+                descr="OUT OF SERVICE")
+        at3 = OfficerActivityType.objects.create(
+                officer_activity_type_id=3,
+                descr="ON DUTY")
         a1 = OfficerActivity.objects.create(officer_activity_id=1,
-                activity="IN CALL",
+                activity_type=at1,
                 time=dtparse('2014-01-15T9:00'),
                 call_unit=cu1,
                 call=call1)
         a2 = OfficerActivity.objects.create(officer_activity_id=2,
-                activity="IN CALL",
+                activity_type=at1,
                 time=dtparse('2014-01-15T9:10'),
                 call_unit=cu2,
                 call=call1)
         a3 = OfficerActivity.objects.create(officer_activity_id=3,
-                activity="IN CALL",
+                activity_type=at1,
                 time=dtparse('2014-01-15T10:00'),
                 call_unit=cu1,
                 call=call2)
         a4 = OfficerActivity.objects.create(officer_activity_id=4,
-                activity="IN CALL",
+                activity_type=at1,
                 time=dtparse('2014-01-16T9:50'),
                 call_unit=cu2,
                 call=call2)
         a5 = OfficerActivity.objects.create(officer_activity_id=5,
-                activity="OUT OF SERVICE",
+                activity_type=at2,
                 time=dtparse('2014-01-16T10:10'),
                 call_unit=cu1,
                 call=None)
         a6 = OfficerActivity.objects.create(officer_activity_id=6,
-                activity="OUT OF SERVICE",
+                activity_type=at2,
                 time=dtparse('2014-01-18T9:00'),
                 call_unit=cu2,
                 call=None)
 
-    def test_distinguishes_activities(self):
-        "Make sure we pick up on there being two types of activities."
+        # In order for this to be realistic, for every busy activity,
+        # we need to have an on duty activity
+        a7 = OfficerActivity.objects.create(officer_activity_id=7,
+                activity_type=at3,
+                time=dtparse('2014-01-15T9:00'),
+                call_unit=cu1,
+                call=None)
+        a8 = OfficerActivity.objects.create(officer_activity_id=8,
+                activity_type=at3,
+                time=dtparse('2014-01-15T9:10'),
+                call_unit=cu2,
+                call=None)
+        a9 = OfficerActivity.objects.create(officer_activity_id=9,
+                activity_type=at3,
+                time=dtparse('2014-01-15T10:00'),
+                call_unit=cu1,
+                call=None)
+        a10 = OfficerActivity.objects.create(officer_activity_id=10,
+                activity_type=at3,
+                time=dtparse('2014-01-16T9:50'),
+                call_unit=cu2,
+                call=None)
+        a11 = OfficerActivity.objects.create(officer_activity_id=11,
+                activity_type=at3,
+                time=dtparse('2014-01-16T10:10'),
+                call_unit=cu1,
+                call=None)
+        a12 = OfficerActivity.objects.create(officer_activity_id=12,
+                activity_type=at3,
+                time=dtparse('2014-01-18T9:00'),
+                call_unit=cu2,
+                call=None)
+
+    def test_matches_expected_structure(self):
+        """
+        Make sure the results' structure matches our expectations.
+
+        The results should be a dict with string representations of
+        times as keys; each value should be another dict with
+        activity names as keys.  Each of these nested dicts should
+        have another dict as their value; these dicts should
+        have metric names as keys and metric values (integers)
+        as values.
+        """
         overview = OfficerActivityOverview(q(''))
         results = overview.to_dict()['allocation_over_time']
         
-        self.assertEqual(sorted(set([r['activity'] for r in results])),
-                ['IN CALL', 'OUT OF SERVICE'])
+        self.assertEqual(type(results), dict)
+        
+        # Keys should be strings, not datetimes,
+        # so we can transmit them to the client
+        self.assertEqual(type(list(results.keys())[0]), str)
+
+        outer_value = list(results.values())[0]
+        self.assertEqual(type(outer_value), dict)
+
+        self.assertEqual(type(list(outer_value.keys())[0]), str)
+
+        inner_value = list(outer_value.values())[0]
+        self.assertEqual(type(inner_value), dict)
+
+        self.assertEqual(type(list(inner_value.keys())[0]), str)
+        self.assertEqual(type(list(inner_value.values())[0]), int)
+
+
+    def test_distinguishes_activities(self):
+        "Make sure we've covered all the types of activities."
+        overview = OfficerActivityOverview(q(''))
+        results = overview.to_dict()['allocation_over_time']
+        
+        self.assertEqual(sorted(set([k for time in results for k in results[time].keys()])),
+                ['IN CALL - CITIZEN INITIATED', 'IN CALL - DIRECTED PATROL',
+                 'IN CALL - SELF INITIATED', 'ON DUTY', 'OUT OF SERVICE', 'PATROL'
+                 ])
         
     def test_evaluates_no_activity(self):
         # Should return 0 activities
@@ -84,66 +161,47 @@ class OfficerActivityOverviewTest(TestCase):
         overview = OfficerActivityOverview(q('time__gte=2014-01-17'))
         results = overview.to_dict()['allocation_over_time']
 
-        correct_results = [{
-            'activity': 'OUT OF SERVICE',
-            'time_hour_minute': dtparse('9:00').time(),
-            'freq': 1,
-            'total': 1,
-            'avg_volume': 1.0
-        }]
+        correct_results = {
+            str(dtparse('9:00').time()):
+            {
+                'IN CALL - CITIZEN INITIATED': {
+                    'avg_volume': 0,
+                    'total': 0,
+                    'freq': 1
+                },
+                'IN CALL - SELF INITIATED': {
+                    'avg_volume': 0,
+                    'total': 0,
+                    'freq': 1
+                },
+                'IN CALL - DIRECTED PATROL': {
+                    'avg_volume': 0,
+                    'total': 0,
+                    'freq': 1
+                },
+                'OUT OF SERVICE': {
+                    'avg_volume': 1.0,
+                    'total': 1,
+                    'freq': 1
+                },
+                'ON DUTY': {
+                    'avg_volume': 1.0,
+                    'total': 1,
+                    'freq': 1
+                },
+                'PATROL': {
+                    'avg_volume': 0.0,
+                    'total': 0,
+                    'freq': 1
+                }
+            }
+        }
 
+        self.assertEqual(sorted(results.keys()),
+                         sorted(correct_results.keys()))
 
-        self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
-
-    # The concept of overlapping activities is deprecated since we're applying
-    # the conversion from continuous intervals to discrete time points in the
-    # database now.  It doesn't hurt to have these (modified) test cases in here,
-    # though.
-
-    def test_evaluates_two_nonoverlapping_activities(self):
-        # Should return 2 activities (a5, a6) that don't overlap in the
-        # same time period
-        overview = OfficerActivityOverview(q('activity=OUT+OF+SERVICE'))
-        results = overview.to_dict()['allocation_over_time']
-        
-        correct_results = [{
-            'activity': 'OUT OF SERVICE',
-            'time_hour_minute': dtparse('9:00').time(),
-            'freq': 2,
-            'total': 1,
-            'avg_volume': 0.5
-        }, {
-            'activity': 'OUT OF SERVICE',
-            'time_hour_minute': dtparse('10:10').time(),
-            'freq': 2,
-            'total': 1,
-            'avg_volume': 0.5
-        }]
-
-        self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
-
-    def test_evaluates_two_overlapping_activities(self):
-        # Should return 2 activities (a1, a2) that overlap in the same time period
-        overview = OfficerActivityOverview(q('call__nature=1'))
-        results = overview.to_dict()['allocation_over_time']
-        
-        correct_results = [{
-            'activity': 'IN CALL',
-            'time_hour_minute': dtparse('9:00').time(),
-            'freq': 1,
-            'total': 1,
-            'avg_volume': 1.0
-        }, {
-            'activity': 'IN CALL',
-            'time_hour_minute': dtparse('9:10').time(),
-            'freq': 1,
-            'total': 1,
-            'avg_volume': 1.0
-        }]
-
-        self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
-
-
+        self.assertEqual(sorted(results.items()),
+                         sorted(correct_results.items()))
 
 class PercentilesTest(TestCase):
     def setUp(self):

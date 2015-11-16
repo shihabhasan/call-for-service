@@ -4,6 +4,23 @@ being on duty, and/or being out of service.  Note that there could be significan
 overlap here.  We'll use this to drive the officer allocation view.
 */
 
+-- Lookup table for the different types of activity
+DROP TABLE IF EXISTS officer_activity_type CASCADE;
+
+CREATE TABLE officer_activity_type (
+	officer_activity_type_id serial NOT NULL,
+	descr text,
+	
+	CONSTRAINT officer_activity_type_pk PRIMARY KEY (officer_activity_type_id),
+	CONSTRAINT officer_activity_type_descr_uniq UNIQUE (descr)
+);
+
+INSERT INTO officer_activity_type (descr) VALUES ('IN CALL - CITIZEN INITIATED');
+INSERT INTO officer_activity_type (descr) VALUES ('IN CALL - SELF INITIATED');
+INSERT INTO officer_activity_type (descr) VALUES ('IN CALL - DIRECTED PATROL');
+INSERT INTO officer_activity_type (descr) VALUES ('OUT OF SERVICE');
+INSERT INTO officer_activity_type (descr) VALUES ('ON DUTY');
+
 DROP MATERIALIZED VIEW IF EXISTS officer_activity CASCADE;
 
 CREATE MATERIALIZED VIEW officer_activity AS
@@ -21,7 +38,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.call_unit_id AS call_unit_id,
     ic.start_time AS start_time,
     ic.end_time AS end_time,
-    'IN CALL - DIRECTED PATROL' AS activity,
+    (SELECT officer_activity_type_id
+     FROM officer_activity_type
+     WHERE descr='IN CALL - DIRECTED PATROL') AS officer_activity_type_id,
     ic.call_id AS call_id
   FROM
     in_call ic INNER JOIN call c ON ic.call_id = c.call_id
@@ -37,7 +56,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.call_unit_id AS call_unit_id,
     ic.start_time AS start_time,
     ic.end_time AS end_time,
-    'IN CALL - SELF INITIATED' AS activity,
+    (SELECT officer_activity_type_id
+     FROM officer_activity_type
+     WHERE descr='IN CALL - SELF INITIATED') AS officer_activity_type_id,
     ic.call_id AS call_id
   FROM
     in_call ic INNER JOIN call c ON ic.call_id = c.call_id
@@ -55,7 +76,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.call_unit_id AS call_unit_id,
     ic.start_time AS start_time,
     ic.end_time AS end_time,
-    'IN CALL - CITIZEN INITIATED' AS activity,
+    (SELECT officer_activity_type_id
+     FROM officer_activity_type
+     WHERE descr='IN CALL - CITIZEN INITIATED') AS officer_activity_type_id,
     ic.call_id AS call_id
   FROM
     in_call ic INNER JOIN call c ON ic.call_id = c.call_id
@@ -73,7 +96,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     oos.call_unit_id AS call_unit_id,
     oos.start_time AS start_time,
     oos.end_time AS end_time,
-    'OUT OF SERVICE' AS activity,
+    (SELECT officer_activity_type_id
+     FROM officer_activity_type
+     WHERE descr='OUT OF SERVICE') AS officer_activity_type_id,
     NULL AS call_id
    FROM
      out_of_service oos
@@ -88,7 +113,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
      sh.call_unit_id AS call_unit_id,
      sh.in_time AS start_time,
      sh.out_time AS out_time,
-     'ON DUTY' AS activity,
+     (SELECT officer_activity_type_id
+     FROM officer_activity_type
+     WHERE descr='ON DUTY') AS officer_activity_type_id,
      NULL AS call_id
    FROM
      shift_unit sh
@@ -120,7 +147,7 @@ CREATE MATERIALIZED VIEW discrete_officer_activity AS
     ROW_NUMBER() OVER (ORDER BY start_time ASC) AS discrete_officer_activity_id,
     ts.time_,
     oa.call_unit_id,
-    oa.activity,
+    oa.officer_activity_type_id,
     oa.call_id
   FROM
     officer_activity oa,
