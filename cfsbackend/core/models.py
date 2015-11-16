@@ -130,6 +130,11 @@ class OfficerActivityOverview:
         time_freq = Counter((start + timedelta(seconds=x)).time() for x in
                            range(0, total_seconds + 1, self.sample_interval))
 
+        # We have to raise the work_mem for this query so the large
+        # sort isn't performed on disk
+        cursor = connection.cursor()
+        cursor.execute('SET work_mem=\'30MB\';')
+
         # We have to strip off the date component by casting to time
         results = self.qs \
                 .extra({'time_hour_minute': 'time_::time'}) \
@@ -177,6 +182,9 @@ class OfficerActivityOverview:
                 agg_result[time_][activity]['avg_volume'] /= freq
             except ZeroDivisionError:
                 agg_result[time_][activity]['avg_volume'] = 0
+
+        # Set the work_mem back to normal
+        cursor.execute('RESET work_mem;')
 
         # Patrol stats are ON DUTY minus everything else
         for r in agg_result.values():
