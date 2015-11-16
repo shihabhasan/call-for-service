@@ -114,7 +114,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
      oos.call_unit_id IN (SELECT * FROM valid_call_units) AND
      oos.call_unit_id NOT IN (SELECT * FROM sergeants)
    UNION ALL
-   SELECT
+   -- Here, we have to account for multiple officers clocking into the
+   -- same unit; this will double count them unless we only take one row
+   SELECT DISTINCT ON (sh.shift_id)
      sh.call_unit_id AS call_unit_id,
      sh.in_time AS start_time,
      sh.out_time AS out_time,
@@ -128,7 +130,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
      sh.in_time IS NOT NULL AND
      sh.out_time IS NOT NULL AND
      sh.out_time - sh.in_time < interval '1 day' AND
-     sh.call_unit_id NOT IN (SELECT * FROM sergeants)) activity; 
+     sh.call_unit_id NOT IN (SELECT * FROM sergeants)
+   ORDER BY
+     start_time) activity; 
      
 /*
 This view has a row for each instance of officer activity at each 10 minute interval.  It can be used to aggregate activity up based on discrete time intervals instead of a continuous start_time to end_time.
