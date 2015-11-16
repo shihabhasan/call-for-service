@@ -29,7 +29,9 @@ CREATE MATERIALIZED VIEW officer_activity AS
     'B100', 'B200', 'B300', 'B400', 'B500',
     'C100', 'C200', 'C300', 'C400', 'C500',
     'D100', 'D200', 'D300', 'D400', 'D500')
-  )
+  ), 
+  -- we only want call_units that we have shift data for
+  valid_call_units AS (SELECT DISTINCT call_unit_id FROM shift_unit)
   SELECT
     ROW_NUMBER() OVER (ORDER BY start_time ASC) AS officer_activity_id,
     activity.*
@@ -49,6 +51,7 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.end_time IS NOT NULL AND
     ic.end_time - ic.start_time < interval '1 day' AND
     ic.call_unit_id NOT IN (SELECT * FROM sergeants) AND
+    ic.call_unit_id IN (SELECT * FROM valid_call_units) AND
     c.nature_id IN (SELECT nature_id FROM nature WHERE descr IN
     	('DIRECTED PATROL', 'FOOT  PATROL'))
   UNION ALL
@@ -67,6 +70,7 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.end_time IS NOT NULL AND
     ic.end_time - ic.start_time < interval '1 day' AND
     ic.call_unit_id NOT IN (SELECT * FROM sergeants) AND
+    ic.call_unit_id IN (SELECT * FROM valid_call_units) AND
     c.nature_id NOT IN (SELECT nature_id FROM nature WHERE descr IN
     	('DIRECTED PATROL', 'FOOT  PATROL')) AND
     c.call_source_id = (SELECT call_source_id FROM call_source WHERE descr =
@@ -87,6 +91,7 @@ CREATE MATERIALIZED VIEW officer_activity AS
     ic.end_time IS NOT NULL AND
     ic.end_time - ic.start_time < interval '1 day' AND
     ic.call_unit_id NOT IN (SELECT * FROM sergeants) AND
+    ic.call_unit_id IN (SELECT * FROM valid_call_units) AND
     c.nature_id NOT IN (SELECT nature_id FROM nature WHERE descr IN
     	('DIRECTED PATROL', 'FOOT  PATROL')) AND
     c.call_source_id != (SELECT call_source_id FROM call_source WHERE descr =
@@ -106,7 +111,7 @@ CREATE MATERIALIZED VIEW officer_activity AS
      oos.start_time IS NOT NULL AND
      oos.end_time IS NOT NULL AND
      oos.end_time - oos.start_time < interval '1 day' AND
-     oos.call_unit_id IN (SELECT DISTINCT call_unit_id FROM shift_unit) AND
+     oos.call_unit_id IN (SELECT * FROM valid_call_units) AND
      oos.call_unit_id NOT IN (SELECT * FROM sergeants)
    UNION ALL
    SELECT
