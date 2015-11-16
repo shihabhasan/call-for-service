@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'djangobower',
     "compressor",
     'django_extensions',
+    'postgres_stats',
 
     'core',
 )

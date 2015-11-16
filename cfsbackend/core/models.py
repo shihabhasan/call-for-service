@@ -9,13 +9,14 @@
 # into your database.
 
 from __future__ import unicode_literals
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import timedelta
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
-    IntegerField, Sum, Case, When, F, Avg, StdDev
-from django.db.models.expressions import Func
+    IntegerField, Case, When, F, Avg, StdDev
+from postgres_stats import DateTrunc, Extract, Percentile
 
 
 def dictfetchall(cursor):
@@ -25,38 +26,6 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
         ]
-
-class DateTrunc(Func):
-    """
-    Truncates a timestamp. Useful for investigating time series.
-
-    The `by` named parameter can take:
-
-    * microseconds
-    * milliseconds
-    * second
-    * minute
-    * hour
-    * day
-    * week
-    * month
-    * quarter
-    * year
-    * decade
-    * century
-    * millennium
-    """
-
-    function = "DATE_TRUNC"
-    template = "%(function)s('%(by)s', %(expressions)s)"
-
-    def __init__(self, expression, **extra):
-        self.expression = expression
-        try:
-            self.by = extra['by']
-        except KeyError:
-            raise ValueError("by named argument must be specified")
-        super().__init__(expression, **extra)
 
 
 class Percentiles(Aggregate):
@@ -71,35 +40,26 @@ class Percentiles(Aggregate):
                          output_field=DurationField(), **extra)
 
 
-class Extract(Func):
-    function = 'EXTRACT'
-    name = 'extract'
-    template = "%(function)s(%(date_part)s FROM %(expressions)s)"
-
-    def __init__(self, expression, date_part, **extra):
-        super().__init__(expression, date_part=date_part,
-                         output_field=DurationField(), **extra)
-
-
 class Secs(Extract):
     name = 'secs'
 
     def __init__(self, expression, **extra):
-        super().__init__(expression, date_part='EPOCH', **extra)
+        super().__init__(expression, subfield='EPOCH', **extra)
+
 
 class OfficerActivityOverview:
     def __init__(self, filters):
         self._filters = filters
         from .filters import OfficerActivityFilterSet
         self.filter = OfficerActivityFilterSet(data=filters,
-                queryset=OfficerActivity.objects.all())
+                                               queryset=OfficerActivity.objects.all())
         self.bounds = self.qs.aggregate(min_time=Min('time'),
                                         max_time=Max('time'))
 
         # The interval between discrete time samples in the database
         # in secondes
         self.sample_interval = 10 * 60
-        
+
     @property
     def qs(self):
         return self.filter.filter()
@@ -114,8 +74,8 @@ class OfficerActivityOverview:
         This means that round(5, -1) = 0 and round(15, -1) = 20.
         """
         return d - timedelta(minutes=d.minute - round(d.minute, decimals),
-                         seconds=d.second,
-                         microseconds = d.microsecond)
+                             seconds=d.second,
+                             microseconds=d.microsecond)
 
     def allocation_over_time(self):
         # Return an empty list if we didn't get any data
@@ -126,16 +86,15 @@ class OfficerActivityOverview:
         # of times each time sample occurs.
         start = self.round_datetime(self.bounds['min_time'])
         end = self.round_datetime(self.bounds['max_time'])
-        total_seconds = int((end-start).total_seconds())
+        total_seconds = int((end - start).total_seconds())
         time_freq = Counter((start + timedelta(seconds=x)).time() for x in
-                           range(0, total_seconds + 1, self.sample_interval))
-
+                            range(0, total_seconds + 1, self.sample_interval))
 
         # We have to strip off the date component by casting to time
         results = self.qs \
-                .extra({'time_hour_minute': 'time_::time'}) \
-                .values('time_hour_minute', 'activity') \
-                .annotate(avg_volume=Count('*'))
+            .extra({'time_hour_minute': 'time_::time'}) \
+            .values('time_hour_minute', 'activity') \
+            .annotate(avg_volume=Count('*'))
 
         for result in results:
             result['freq'] = time_freq[result['time_hour_minute']]
@@ -153,7 +112,6 @@ class OfficerActivityOverview:
             'bounds': self.bounds,
             'allocation_over_time': self.allocation_over_time(),
         }
-
 
 
 class CallOverview:
@@ -181,7 +139,7 @@ class CallVolumeOverview(CallOverview):
         cursor = connection.cursor()
 
         cte_sql, params = self.qs. \
-            annotate(date=DateTrunc('time_received', by='day')). \
+            annotate(date=DateTrunc('time_received', precision='day')). \
             values('date'). \
             annotate(volume=Count('date')).query.sql_with_params()
         sql = """
@@ -232,7 +190,7 @@ class CallVolumeOverview(CallOverview):
 
     def volume_by_source(self):
         results = self.qs \
-            .annotate(date=DateTrunc('time_received', by='day'),
+            .annotate(date=DateTrunc('time_received', precision='day'),
                       self_initiated=Case(
                           When(call_source__descr="Self Initiated", then=True),
                           default=False,
@@ -272,8 +230,9 @@ class CallResponseTimeOverview(CallOverview):
         results = self.qs.filter(
             officer_response_time__gt=timedelta(0)).aggregate(
             avg=Avg(Secs('officer_response_time')),
-            quartiles=Percentiles(Secs('officer_response_time'),
-                                  [0.25, 0.5, 0.75]),
+            quartiles=Percentile(Secs('officer_response_time'),
+                                 [0.25, 0.5, 0.75],
+                                 output_field=ArrayField(DurationField)),
             max=Max(Secs('officer_response_time')))
 
         quartiles = results['quartiles']
@@ -326,9 +285,9 @@ class MapOverview(CallOverview):
 
     def volume_by_beat(self):
         qs = self.qs \
-                .annotate(name=F('beat__descr')) \
-                .values('name') \
-                .exclude(name=None)
+            .annotate(name=F('beat__descr')) \
+            .values('name') \
+            .exclude(name=None)
 
         return qs.annotate(volume=Count('name'))
 
@@ -339,8 +298,6 @@ class MapOverview(CallOverview):
             'officer_response_time': self.officer_response_time_by_beat(),
             'call_volume': self.volume_by_beat()
         }
-
-
 
 
 class ModelWithDescr(models.Model):
@@ -462,12 +419,14 @@ class OutOfServicePeriod(models.Model):
         managed = False
         db_table = 'out_of_service'
 
+
 class Shift(models.Model):
     shift_id = models.IntegerField(primary_key=True)
 
     class Meta:
         managed = False
         db_table = 'shift'
+
 
 class Officer(models.Model):
     officer_id = models.IntegerField(primary_key=True)
@@ -478,6 +437,7 @@ class Officer(models.Model):
         managed = False
         db_table = 'officer'
 
+
 class Bureau(ModelWithDescr):
     bureau_id = models.IntegerField(primary_key=True)
 
@@ -485,12 +445,14 @@ class Bureau(ModelWithDescr):
         managed = False
         db_table = 'bureau'
 
+
 class Division(ModelWithDescr):
     division_id = models.IntegerField(primary_key=True)
 
     class Meta:
         managed = False
         db_table = 'division'
+
 
 class Unit(ModelWithDescr):
     unit_id = models.IntegerField(primary_key=True)
@@ -514,11 +476,11 @@ class ShiftUnit(models.Model):
                                db_column="bureau_id",
                                related_name="+")
     division = models.ForeignKey(Division, blank=True, null=True,
-                               db_column="division_id",
-                               related_name="+")
+                                 db_column="division_id",
+                                 related_name="+")
     unit = models.ForeignKey(Unit, blank=True, null=True,
-                               db_column="unit_id",
-                               related_name="+")
+                             db_column="unit_id",
+                             related_name="+")
     shift = models.ForeignKey(Shift, blank=True, null=True,
                               db_column="shift_id",
                               related_name="+")
@@ -526,7 +488,6 @@ class ShiftUnit(models.Model):
     class Meta:
         managed = False
         db_table = 'shift_unit'
-
 
 
 # Primary Classes
@@ -583,6 +544,7 @@ class Call(models.Model):
         managed = False
         db_table = 'call'
 
+
 class InCallPeriod(models.Model):
     in_call_id = models.IntegerField(primary_key=True)
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
@@ -601,6 +563,7 @@ class InCallPeriod(models.Model):
         managed = False
         db_table = 'in_call'
 
+
 class OfficerActivity(models.Model):
     officer_activity_id = models.IntegerField(primary_key=True)
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
@@ -616,7 +579,6 @@ class OfficerActivity(models.Model):
     class Meta:
         managed = False
         db_table = 'discrete_officer_activity'
-
 
 
 class Incident(models.Model):
