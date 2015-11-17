@@ -133,11 +133,11 @@ var Filter = Ractive.extend({
                 'top': '',
                 'left': ''
             }).removeClass('fixed');
-        }
+        };
 
         var smallScreen = function () {
             return sizer.width() / $("body").width() > 0.25;
-        }
+        };
 
         $(window).scroll(function () {
             if (stickySidebar.length > 0) {
@@ -246,7 +246,7 @@ function displayValue(fieldName, value) {
     var dValue;
 
     if (field.rel) {
-        var choiceMap = arrayToObj(filterForm.refs[field.rel])
+        var choiceMap = arrayToObj(filterForm.refs[field.rel]);
         dValue = choiceMap[value];
     }
 
@@ -321,7 +321,13 @@ function parseQueryParams(str) {
         first = decodeURIComponent(bit[0]);
         if (first.length == 0) continue;
         second = decodeURIComponent(bit[1]);
-        if (typeof query[first] == "undefined") query[first] = second; else if (query[first] instanceof Array) query[first].push(second); else query[first] = [query[first], second];
+        if (typeof query[first] == "undefined") {
+            query[first] = second;
+        } else if (query[first] instanceof Array) {
+            query[first].push(second);
+        } else {
+            query[first] = [query[first], second];
+        }
     }
     return query;
 }
@@ -344,3 +350,32 @@ function durationFormat(secs) {
     }
 }
 
+function monitorChart(ractive, keypath, fn) {
+    ractive.observe(keypath, function (newData) {
+        if (!ractive.get('loading')) {
+            // If we don't remove the tooltips before updating
+            // the chart, they'll stick around
+            d3.selectAll(".nvtooltip").remove();
+
+            fn(newData);
+        }
+    })
+}
+
+function cloneFilter(ractive) {
+    return _.clone(ractive.findComponent('Filter').get('filter'));
+}
+
+function toggleFilter(ractive, key, value) {
+    var f = cloneFilter(ractive);
+    if (f[key] == value) {
+        delete f[key];
+    } else {
+        f[key] = value;
+    }
+    updateHash(buildQueryParams(f));
+}
+
+function buildURL(url, filter) {
+    return url + "?" + buildQueryParams(filter);
+}

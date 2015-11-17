@@ -1,15 +1,8 @@
 "use strict";
 
 var url = "/api/map_info/";
-var charts = {};
-var outFormats = {
-    "month": "%b %y",
-    "week": "%m/%d/%y",
-    "day": "%a %m/%d",
-    "hour": "%m/%d %H:%M"
-};
 
-var geojson, control;
+var geojson;
 
 var dashboard = new Page(
     {
@@ -21,7 +14,7 @@ var dashboard = new Page(
         },
         filterUpdated: function (filter) {
             d3.json(
-                buildURL(filter), _.bind(
+                buildURL(url, filter), _.bind(
                     function (error, newData) {
                         if (error) throw error;
                         this.set('loading', false);
@@ -334,11 +327,6 @@ function updateMap(data) {
 //// ========================================================================
 //// Functions
 //// ========================================================================
-
-
-function buildURL(filter) {
-    return url + "?" + buildQueryParams(filter);
-}
 
 function ensureMapIsDrawn() {
     var deferred = Q.defer();

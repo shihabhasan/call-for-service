@@ -1,12 +1,13 @@
+from datetime import timedelta
+
 from dateutil.parser import parse as dtparse
 from django.http import QueryDict
 from django.test import TestCase
-from .test_helpers import assert_list_equiv
 
-from ..models import Call, Beat, Secs, CallVolumeOverview, \
-        CallUnit, OfficerActivity, OfficerActivityOverview, Nature, \
-        OfficerActivityType
-from datetime import timedelta
+from core.summaries import OfficerActivityOverview, CallVolumeOverview
+from .test_helpers import assert_list_equiv
+from ..models import Call, Beat, CallUnit, OfficerActivity, Nature, \
+    OfficerActivityType
 
 
 def create_call(**kwargs):
@@ -24,6 +25,7 @@ def create_call(**kwargs):
 def q(string):
     return QueryDict(string)
 
+
 class OfficerActivityOverviewTest(TestCase):
     def setUp(self):
         n1 = Nature.objects.create(nature_id=1, descr='Robbery')
@@ -35,77 +37,77 @@ class OfficerActivityOverviewTest(TestCase):
         cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
         cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
         at1 = OfficerActivityType.objects.create(
-                officer_activity_type_id=1,
-                descr="IN CALL - CITIZEN INITIATED")
+            officer_activity_type_id=1,
+            descr="IN CALL - CITIZEN INITIATED")
         at2 = OfficerActivityType.objects.create(
-                officer_activity_type_id=2,
-                descr="OUT OF SERVICE")
+            officer_activity_type_id=2,
+            descr="OUT OF SERVICE")
         at3 = OfficerActivityType.objects.create(
-                officer_activity_type_id=3,
-                descr="ON DUTY")
+            officer_activity_type_id=3,
+            descr="ON DUTY")
         a1 = OfficerActivity.objects.create(officer_activity_id=1,
-                activity_type=at1,
-                time=dtparse('2014-01-15T9:00'),
-                call_unit=cu1,
-                call=call1)
+                                            activity_type=at1,
+                                            time=dtparse('2014-01-15T9:00'),
+                                            call_unit=cu1,
+                                            call=call1)
         a2 = OfficerActivity.objects.create(officer_activity_id=2,
-                activity_type=at1,
-                time=dtparse('2014-01-15T9:10'),
-                call_unit=cu2,
-                call=call1)
+                                            activity_type=at1,
+                                            time=dtparse('2014-01-15T9:10'),
+                                            call_unit=cu2,
+                                            call=call1)
         a3 = OfficerActivity.objects.create(officer_activity_id=3,
-                activity_type=at1,
-                time=dtparse('2014-01-15T10:00'),
-                call_unit=cu1,
-                call=call2)
+                                            activity_type=at1,
+                                            time=dtparse('2014-01-15T10:00'),
+                                            call_unit=cu1,
+                                            call=call2)
         a4 = OfficerActivity.objects.create(officer_activity_id=4,
-                activity_type=at1,
-                time=dtparse('2014-01-16T9:50'),
-                call_unit=cu2,
-                call=call2)
+                                            activity_type=at1,
+                                            time=dtparse('2014-01-16T9:50'),
+                                            call_unit=cu2,
+                                            call=call2)
         a5 = OfficerActivity.objects.create(officer_activity_id=5,
-                activity_type=at2,
-                time=dtparse('2014-01-16T10:10'),
-                call_unit=cu1,
-                call=None)
+                                            activity_type=at2,
+                                            time=dtparse('2014-01-16T10:10'),
+                                            call_unit=cu1,
+                                            call=None)
         a6 = OfficerActivity.objects.create(officer_activity_id=6,
-                activity_type=at2,
-                time=dtparse('2014-01-18T9:00'),
-                call_unit=cu2,
-                call=None)
+                                            activity_type=at2,
+                                            time=dtparse('2014-01-18T9:00'),
+                                            call_unit=cu2,
+                                            call=None)
 
         # In order for this to be realistic, for every busy activity,
         # we need to have an on duty activity
         a7 = OfficerActivity.objects.create(officer_activity_id=7,
-                activity_type=at3,
-                time=dtparse('2014-01-15T9:00'),
-                call_unit=cu1,
-                call=None)
+                                            activity_type=at3,
+                                            time=dtparse('2014-01-15T9:00'),
+                                            call_unit=cu1,
+                                            call=None)
         a8 = OfficerActivity.objects.create(officer_activity_id=8,
-                activity_type=at3,
-                time=dtparse('2014-01-15T9:10'),
-                call_unit=cu2,
-                call=None)
+                                            activity_type=at3,
+                                            time=dtparse('2014-01-15T9:10'),
+                                            call_unit=cu2,
+                                            call=None)
         a9 = OfficerActivity.objects.create(officer_activity_id=9,
-                activity_type=at3,
-                time=dtparse('2014-01-15T10:00'),
-                call_unit=cu1,
-                call=None)
+                                            activity_type=at3,
+                                            time=dtparse('2014-01-15T10:00'),
+                                            call_unit=cu1,
+                                            call=None)
         a10 = OfficerActivity.objects.create(officer_activity_id=10,
-                activity_type=at3,
-                time=dtparse('2014-01-16T9:50'),
-                call_unit=cu2,
-                call=None)
+                                             activity_type=at3,
+                                             time=dtparse('2014-01-16T9:50'),
+                                             call_unit=cu2,
+                                             call=None)
         a11 = OfficerActivity.objects.create(officer_activity_id=11,
-                activity_type=at3,
-                time=dtparse('2014-01-16T10:10'),
-                call_unit=cu1,
-                call=None)
+                                             activity_type=at3,
+                                             time=dtparse('2014-01-16T10:10'),
+                                             call_unit=cu1,
+                                             call=None)
         a12 = OfficerActivity.objects.create(officer_activity_id=12,
-                activity_type=at3,
-                time=dtparse('2014-01-18T9:00'),
-                call_unit=cu2,
-                call=None)
+                                             activity_type=at3,
+                                             time=dtparse('2014-01-18T9:00'),
+                                             call_unit=cu2,
+                                             call=None)
 
     def test_matches_expected_structure(self):
         """
@@ -120,9 +122,9 @@ class OfficerActivityOverviewTest(TestCase):
         """
         overview = OfficerActivityOverview(q(''))
         results = overview.to_dict()['allocation_over_time']
-        
+
         self.assertEqual(type(results), dict)
-        
+
         # Keys should be strings, not datetimes,
         # so we can transmit them to the client
         self.assertEqual(type(list(results.keys())[0]), str)
@@ -138,17 +140,17 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(type(list(inner_value.keys())[0]), str)
         self.assertEqual(type(list(inner_value.values())[0]), int)
 
-
     def test_distinguishes_activities(self):
         "Make sure we've covered all the types of activities."
         overview = OfficerActivityOverview(q(''))
         results = overview.to_dict()['allocation_over_time']
-        
-        self.assertEqual(sorted(set([k for time in results for k in results[time].keys()])),
-                ['IN CALL - CITIZEN INITIATED', 'IN CALL - DIRECTED PATROL',
-                 'IN CALL - SELF INITIATED', 'ON DUTY', 'OUT OF SERVICE', 'PATROL'
-                 ])
-        
+
+        self.assertEqual(
+            sorted(set([k for time in results for k in results[time].keys()])),
+            ['IN CALL - CITIZEN INITIATED', 'IN CALL - DIRECTED PATROL',
+             'IN CALL - SELF INITIATED', 'ON DUTY', 'OUT OF SERVICE', 'PATROL'
+             ])
+
     def test_evaluates_no_activity(self):
         # Should return 0 activities
         overview = OfficerActivityOverview(q('time__gte=2015-01-01'))
@@ -163,38 +165,38 @@ class OfficerActivityOverviewTest(TestCase):
 
         correct_results = {
             str(dtparse('9:00').time()):
-            {
-                'IN CALL - CITIZEN INITIATED': {
-                    'avg_volume': 0,
-                    'total': 0,
-                    'freq': 1
-                },
-                'IN CALL - SELF INITIATED': {
-                    'avg_volume': 0,
-                    'total': 0,
-                    'freq': 1
-                },
-                'IN CALL - DIRECTED PATROL': {
-                    'avg_volume': 0,
-                    'total': 0,
-                    'freq': 1
-                },
-                'OUT OF SERVICE': {
-                    'avg_volume': 1.0,
-                    'total': 1,
-                    'freq': 1
-                },
-                'ON DUTY': {
-                    'avg_volume': 1.0,
-                    'total': 1,
-                    'freq': 1
-                },
-                'PATROL': {
-                    'avg_volume': 0.0,
-                    'total': 0,
-                    'freq': 1
+                {
+                    'IN CALL - CITIZEN INITIATED': {
+                        'avg_volume': 0,
+                        'total': 0,
+                        'freq': 1
+                    },
+                    'IN CALL - SELF INITIATED': {
+                        'avg_volume': 0,
+                        'total': 0,
+                        'freq': 1
+                    },
+                    'IN CALL - DIRECTED PATROL': {
+                        'avg_volume': 0,
+                        'total': 0,
+                        'freq': 1
+                    },
+                    'OUT OF SERVICE': {
+                        'avg_volume': 1.0,
+                        'total': 1,
+                        'freq': 1
+                    },
+                    'ON DUTY': {
+                        'avg_volume': 1.0,
+                        'total': 1,
+                        'freq': 1
+                    },
+                    'PATROL': {
+                        'avg_volume': 0.0,
+                        'total': 0,
+                        'freq': 1
+                    }
                 }
-            }
         }
 
         self.assertEqual(sorted(results.keys()),
@@ -202,6 +204,7 @@ class OfficerActivityOverviewTest(TestCase):
 
         self.assertEqual(sorted(results.items()),
                          sorted(correct_results.items()))
+
 
 class CallVolumeOverviewTest(TestCase):
     def setUp(self):
