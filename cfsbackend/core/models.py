@@ -11,12 +11,12 @@
 from __future__ import unicode_literals
 from collections import Counter
 from datetime import timedelta
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
-    IntegerField, Case, When, F, Avg, StdDev
+    IntegerField, Case, When, F, Avg, StdDev, Q
 from postgres_stats import DateTrunc, Extract, Percentile
+from url_filter.filtersets import StrictMode
 
 
 def dictfetchall(cursor):
@@ -26,18 +26,6 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
         ]
-
-
-class Percentiles(Aggregate):
-    function = "PERCENTILE_CONT"
-    name = "percentile"
-    template = "%(function)s(%(percentiles)s) WITHIN GROUP (ORDER BY %(expressions)s)"
-
-    def __init__(self, expression, percentiles, **extra):
-        if isinstance(percentiles, (list, tuple)):
-            percentiles = "array%(percentiles)s" % {'percentiles': percentiles}
-        super().__init__(expression, percentiles=percentiles,
-                         output_field=DurationField(), **extra)
 
 
 class Secs(Extract):
@@ -175,7 +163,7 @@ class CallOverview:
     def __init__(self, filters):
         self._filters = filters
         from .filters import CallFilterSet
-        self.filter = CallFilterSet(data=filters, queryset=Call.objects.all())
+        self.filter = CallFilterSet(data=filters, queryset=Call.objects.all(), strict_mode=StrictMode.fail)
         self.bounds = self.qs.aggregate(min_time=Min('time_received'),
                                         max_time=Max('time_received'))
         if self.bounds['max_time'] and self.bounds['min_time']:
@@ -549,7 +537,30 @@ class ShiftUnit(models.Model):
 
 # Primary Classes
 
+class CallQuerySet(models.QuerySet):
+    def squad(self, value):
+        if value:
+            query = Q(primary_unit_id=value) | Q(
+                first_dispatched_id=value) | Q(
+                reporting_unit_id=value)
+            return self.filter(query)
+        else:
+            return self
+
+    def initiated_by(self, value):
+        if value == "Self":
+            return self.filter(
+                call_source=CallSource.objects.get(descr="Self Initiated"))
+        elif value == "Citizen":
+            return self.exclude(
+                call_source=CallSource.objects.get(descr="Self Initiated"))
+        else:
+            return self
+
+
 class Call(models.Model):
+    objects = CallQuerySet.as_manager()
+
     call_id = models.BigIntegerField(primary_key=True)
     year_received = models.IntegerField(blank=True, null=True)
     month_received = models.IntegerField(blank=True, null=True)

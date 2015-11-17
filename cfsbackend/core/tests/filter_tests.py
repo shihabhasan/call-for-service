@@ -157,7 +157,7 @@ class OfficerActivityFilterSetTest(TestCase):
         self.assertIn(self.a6, qs)
         self.assertEqual(3, len(qs))
 
-        filter_set = OfficerActivityFilterSet(data=QueryDict("time__lte=2014-01-16"),
+        filter_set = OfficerActivityFilterSet(data=QueryDict("time__lte=2014-01-15"),
                 queryset=OfficerActivity.objects.all())
         qs = filter_set.filter()
         self.assertIn(self.a1, qs)

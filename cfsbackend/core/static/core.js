@@ -4,35 +4,6 @@ var NavBar = Ractive.extend({
     tripleDelimiters: ['[[[', ']]]']
 });
 
-var filterTypes = {
-    "ModelChoiceField": {
-        options: [{id: "=", name: "is equal to"}],
-        valueType: 'select'
-    },
-    "ChoiceField": {
-        options: [{id: "=", name: "is equal to"}],
-        valueType: 'select'
-    },
-    "NullBooleanField": {
-        options: [{id: "=", name: "is equal to"}],
-        valueType: 'truth'
-    },
-    "DateRangeField": {
-        options: [
-            {id: ">=", name: "is greater than or equal to"},
-            {id: "<=", name: "is less than or equal to"}
-        ],
-        valueType: 'date'
-    },
-    "DurationRangeField": {
-        options: [
-            {id: ">=", name: "is greater than or equal to"},
-            {id: "<=", name: "is less than or equal to"}
-        ],
-        valueType: 'duration'
-    }
-};
-
 var lookupMap = {
     "exact": {id: "=", name: "is equal to"},
     "gte": {id: ">=", name: "is greater than or equal to"},
@@ -61,6 +32,8 @@ var Filter = Ractive.extend({
                         type: "select",
                         options: filterForm.refs[field.rel]
                     };
+                } else if (field.type === "select") {
+                    return {type: field.type, options: field.options}
                 } else {
                     return {type: field.type};
                 }
