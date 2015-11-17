@@ -37,6 +37,6 @@ urlpatterns = [
     url(r'^calls$', views.CallListView.as_view()),
     url(r'^predictive$', views.PredictiveView.as_view()),
     url(r'^map$', views.MapView.as_view()),
-    url(r'^$', views.MapView.as_view())
+    url(r'^$', views.MapView.as_view()),
     url(r'^officer_allocation$', views.OfficerAllocationDashboardView.as_view()),
 ]
