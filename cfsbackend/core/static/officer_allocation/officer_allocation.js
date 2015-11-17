@@ -11,7 +11,7 @@ var dashboard = new Page({
         }
     },
     filterUpdated: function (filter) {
-        d3.json(buildURL(filter), _.bind(function (error, newData) {
+        d3.json(buildURL(url, filter), _.bind(function (error, newData) {
             if (error) throw error;
             this.set('loading', false);
             this.set('initialload', false);
@@ -24,7 +24,7 @@ var dashboard = new Page({
 dashboard.on('filterByDate', function (event, span) {
     var pastSunday = moment().day("Sunday").startOf("day");
 
-    var f = cloneFilter();
+    var f = cloneFilter(dashboard);
     if (span === "7days") {
         f['time__gte'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
         f['time__lte'] = pastSunday.clone().format("YYYY-MM-DD");
@@ -39,20 +39,6 @@ dashboard.on('filterByDate', function (event, span) {
     updateHash(buildQueryParams(f));
     return false;
 });
-
-function cloneFilter() {
-    return _.clone(dashboard.findComponent('Filter').get('filter'));
-}
-
-function toggleFilter(key, value) {
-    var f = cloneFilter();
-    if (f[key] == value) {
-        delete f[key];
-    } else {
-        f[key] = value;
-    }
-    updateHash(buildQueryParams(f));
-}
 
 function cleanupData(data) {
     var indate = d3.time.format("%H:%M:%S");
@@ -110,23 +96,7 @@ function cleanupData(data) {
     return data;
 }
 
-function monitorChart(keypath, fn) {
-    dashboard.observe(keypath, function (newData) {
-        if (!dashboard.get('loading')) {
-            // If we don't remove the tooltips before updating
-            // the chart, they'll stick around
-            d3.selectAll(".nvtooltip").remove();
-
-            fn(newData);
-        }
-    })
-}
-
-monitorChart('data.allocation_over_time', buildAllocationOverTimeChart);
-
-function buildURL(filter) {
-    return url + "?" + buildQueryParams(filter);
-}
+monitorChart(dashboard, 'data.allocation_over_time', buildAllocationOverTimeChart);
 
 function buildAllocationOverTimeChart(data) {
     var parentWidth = d3.select("#allocation-over-time").node().clientWidth;

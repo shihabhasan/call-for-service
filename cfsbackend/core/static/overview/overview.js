@@ -1,7 +1,6 @@
 "use strict";
 
 var url = "/api/call_volume/";
-var charts = {};
 var outFormats = {
     "month": "%b %y",
     "week": "%m/%d/%y",
@@ -28,7 +27,7 @@ var dashboard = new Page(
         },
         filterUpdated: function (filter) {
             d3.json(
-                buildURL(filter), _.bind(
+                buildURL(url, filter), _.bind(
                     function (error, newData) {
                         if (error) throw error;
                         this.set('loading', false);
@@ -43,7 +42,7 @@ dashboard.on(
     'filterByDate', function (event, span) {
         var pastSunday = moment().day("Sunday").startOf("day");
 
-        var f = cloneFilter();
+        var f = cloneFilter(dashboard);
         if (span === "7days") {
             f['time_received__gte'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
             f['time_received__lte'] = pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD");
@@ -58,20 +57,6 @@ dashboard.on(
         updateHash(buildQueryParams(f));
         return false;
     });
-
-function cloneFilter() {
-    return _.clone(dashboard.findComponent('Filter').get('filter'));
-}
-
-function toggleFilter(key, value) {
-    var f = cloneFilter();
-    if (f[key] == value) {
-        delete f[key];
-    } else {
-        f[key] = value;
-    }
-    updateHash(buildQueryParams(f));
-}
 
 
 function cleanupData(data) {
@@ -212,33 +197,15 @@ function cleanupData(data) {
     return data;
 }
 
-function monitorChart(keypath, fn) {
-    dashboard.observe(
-        keypath, function (newData) {
-            if (!dashboard.get('loading')) {
-                // If we don't remove the tooltips before updating
-                // the chart, they'll stick around
-                d3.selectAll(".nvtooltip").remove();
-
-                fn(newData);
-            }
-        })
-}
-
-monitorChart('data.day_hour_heatmap', buildDayHourHeatmap);
-monitorChart('data.volume_by_nature', buildVolumeByNatureChart);
-monitorChart('data.volume_by_date', buildVolumeByDateChart);
-monitorChart('data.volume_by_source', buildVolumeBySourceChart);
-monitorChart('data.volume_by_beat', buildVolumeByBeatChart);
+monitorChart(dashboard, 'data.day_hour_heatmap', buildDayHourHeatmap);
+monitorChart(dashboard, 'data.volume_by_nature', buildVolumeByNatureChart);
+monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
+monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
+monitorChart(dashboard, 'data.volume_by_beat', buildVolumeByBeatChart);
 
 // ========================================================================
 // Functions
 // ========================================================================
-
-function buildURL(filter) {
-    return url + "?" + buildQueryParams(filter);
-}
-
 
 function buildVolumeByDateChart(data) {
     var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
@@ -296,7 +263,7 @@ function buildVolumeByNatureChart(data) {
                     function (d) {
                         return d.volume
                     })
-                .margin({"bottom": 200, "right": 50})
+                .margin({"bottom": 200, "right": 50});
 
             svg.datum([{key: "Call Volume", values: data}]).call(chart);
 
@@ -305,7 +272,7 @@ function buildVolumeByNatureChart(data) {
             chart.discretebar.dispatch.on(
                 'elementClick', function (e) {
                     if (e.data.id) {
-                        toggleFilter("nature", e.data.id);
+                        toggleFilter(dashboard, "nature", e.data.id);
                     }
                 });
 
@@ -380,7 +347,7 @@ function buildVolumeBySourceChart(data) {
                         disableNvFiltering();
                     }
                 }
-            }
+            };
 
             disableNvFiltering();
 
@@ -428,7 +395,7 @@ function buildVolumeByBeatChart(data) {
             svg.selectAll('.nv-bar').style('cursor', 'pointer');
             chart.multibar.dispatch.on(
                 'elementClick', function (e) {
-                    toggleFilter("beat", e.data.id);
+                    toggleFilter(dashboard, "beat", e.data.id);
                 });
 
             nv.utils.windowResize(chart.update);
@@ -633,6 +600,5 @@ function buildDayHourHeatmap(data) {
 }
 
 d3.select(window).on('resize', function () {
-    console.log("resize");
     resizeDayHourHeatmap();
-})
+});

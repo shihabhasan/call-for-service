@@ -1,7 +1,6 @@
 "use strict";
 
 var url = "/api/response_time/";
-var charts = {};
 
 var dashboard = new Page({
     el: $('body').get(),
@@ -13,7 +12,7 @@ var dashboard = new Page({
         data: {}
     },
     filterUpdated: function (filter) {
-        d3.json(buildURL(filter), _.bind(function (error, newData) {
+        d3.json(buildURL(url, filter), _.bind(function (error, newData) {
             if (error) throw error;
             this.set('loading', false);
             this.set('initialload', false);
@@ -48,44 +47,16 @@ function cleanupData(data) {
     return data;
 }
 
-function cloneFilter() {
-    return _.clone(dashboard.findComponent('Filter').get('filter'));
-}
 
-function toggleFilter(key, value) {
-    var f = cloneFilter();
-    if (f[key] == value) {
-        delete f[key];
-    } else {
-        f[key] = value;
-    }
-    updateHash(buildQueryParams(f));
-}
 
-function monitorChart(keypath, fn) {
-    dashboard.observe(keypath, function (newData) {
-        if (!dashboard.get('loading')) {
-            // If we don't remove the tooltips before updating
-            // the chart, they'll stick around
-            d3.selectAll(".nvtooltip").remove();
-
-            fn(newData);
-        }
-    })
-}
-
-monitorChart('data.officer_response_time', buildORTChart);
-monitorChart('data.officer_response_time_by_source', buildORTBySourceChart);
-monitorChart('data.officer_response_time_by_beat', buildORTByBeatChart);
-monitorChart('data.officer_response_time_by_priority', buildORTByPriorityChart);
+monitorChart(dashboard, 'data.officer_response_time', buildORTChart);
+monitorChart(dashboard, 'data.officer_response_time_by_source', buildORTBySourceChart);
+monitorChart(dashboard, 'data.officer_response_time_by_beat', buildORTByBeatChart);
+monitorChart(dashboard, 'data.officer_response_time_by_priority', buildORTByPriorityChart);
 
 // ========================================================================
 // Functions
 // ========================================================================
-
-function buildURL(filter) {
-    return url + "?" + buildQueryParams(filter);
-}
 
 
 function buildORTBySourceChart(data) {
@@ -117,7 +88,7 @@ function buildORTBySourceChart(data) {
 
         chart.discretebar.dispatch.on('elementClick', function (e) {
             if (e.data.id) {
-                toggleFilter("call_source", e.data.id);
+                toggleFilter(dashboard, "call_source", e.data.id);
             }
         });
 
@@ -173,7 +144,7 @@ function buildORTByBeatChart(data) {
 
         chart.discretebar.dispatch.on('elementClick', function (e) {
             if (e.data.id) {
-                toggleFilter("beat", e.data.id);
+                toggleFilter(dashboard, "beat", e.data.id);
             }
         });
 
@@ -226,7 +197,7 @@ function buildORTByPriorityChart(data) {
 
         chart.discretebar.dispatch.on('elementClick', function (e) {
             if (e.data.id) {
-                toggleFilter("priority", e.data.id);
+                toggleFilter(dashboard, "priority", e.data.id);
             }
         });
 
