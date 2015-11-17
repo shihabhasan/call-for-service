@@ -3,7 +3,7 @@ from django.http import QueryDict
 from django.test import TestCase
 from .test_helpers import assert_list_equiv
 
-from ..models import Call, Beat, Percentiles, Secs, CallVolumeOverview, \
+from ..models import Call, Beat, Secs, CallVolumeOverview, \
         CallUnit, OfficerActivity, OfficerActivityOverview, Nature
 from datetime import timedelta
 
@@ -142,31 +142,6 @@ class OfficerActivityOverviewTest(TestCase):
         }]
 
         self.assertEqual(sorted(results, key=lambda x: x['time_hour_minute']), correct_results)
-
-
-
-class PercentilesTest(TestCase):
-    def setUp(self):
-        create_call(call_id=1, time_received='2014-01-15T09:00',
-                    officer_response_time=timedelta(0, 120))
-        create_call(call_id=2, time_received='2015-01-01T09:00',
-                    officer_response_time=timedelta(0, 600))
-        create_call(call_id=3, time_received='2015-01-01T12:30',
-                    officer_response_time=timedelta(0, 900))
-        create_call(call_id=4, time_received='2015-01-08T09:00')
-
-    def test_median(self):
-        results = Call.objects.aggregate(
-            median=Percentiles(Secs('officer_response_time'), 0.5))
-        assert results['median'] == 600
-
-    def test_quartiles(self):
-        results = Call.objects.aggregate(
-            quartiles=Percentiles(Secs('officer_response_time'),
-                                  [0.25, 0.5, 0.75]))
-        assert results['quartiles'][0] == 360
-        assert results['quartiles'][1] == 600
-        assert results['quartiles'][2] == 750
 
 
 class CallVolumeOverviewTest(TestCase):

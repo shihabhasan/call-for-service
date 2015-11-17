@@ -1,12 +1,57 @@
-from django.forms import ModelChoiceField
+import datetime
+from django.db.models.constants import LOOKUP_SEP
 from django import forms
 from url_filter.filtersets import ModelFilterSet
-from url_filter.fields import MultipleValuesField
 from url_filter.filters import Filter
-from django.db.models import Q
+from url_filter.backends.django import DjangoFilterBackend
+from . import models
 
-from .models import Call, CallUnit, Squad, ZipCode, CallSource, Nature, \
-    District, Beat, Sector, Priority, CloseCode, OfficerActivity
+
+class BetterDjangoFilterBackend(DjangoFilterBackend):
+    def prepare_spec(self, spec):
+        if spec.lookup == "exact":
+            return LOOKUP_SEP.join(spec.components)
+        else:
+            return '{}{}{}'.format(
+                LOOKUP_SEP.join(spec.components),
+                LOOKUP_SEP,
+                spec.lookup,
+            )
+
+    def prepare_value(self, spec):
+        if spec.lookup == "lte" and isinstance(spec.value, datetime.date):
+            value = spec.value
+            value = datetime.datetime(year=value.year, month=value.month,
+                                      day=value.day, hour=0, minute=0, second=0)
+            value = value + datetime.timedelta(days=1, microseconds=-1)
+        else:
+            value = spec.value
+
+        return value
+
+    def filter(self):
+        include = {self.prepare_spec(i): self.prepare_value(i) for i in
+                   self.includes}
+        exclude = {self.prepare_spec(i): self.prepare_value(i) for i in
+                   self.excludes}
+
+        qs = self.queryset
+
+        for k, v in include.items():
+            try:
+                qs = getattr(qs, k)(v)
+            except AttributeError:
+                qs = qs.filter(**{k: v})
+        for k, v in exclude.items():
+            try:
+                qs = getattr(qs, k)(v, exclude=True)
+            except AttributeError:
+                qs = qs.exclude(**{k: v})
+
+        return qs
+
+    def bind(self, specs):
+        self.specs = specs
 
 
 def get_form_field_for_type(ftype):
@@ -15,12 +60,13 @@ def get_form_field_for_type(ftype):
         "date": forms.DateField(),
         "duration": forms.DurationField(),
         "boolean": forms.BooleanField(),
+        "select": forms.ChoiceField(),
     }
     return type_map.get(ftype, forms.CharField())
 
 
 def create_rel_filterset(model_name):
-    model = globals()[model_name]
+    model = getattr(models, model_name)
     name = model.__name__ + "FilterSet"
     Meta = type('Meta', (object,),
                 {"model": model, "fields": [model._meta.pk.name]})
@@ -36,7 +82,7 @@ def create_filterset(model, definition, name=None):
 
     attrs = {}
     for f in definition:
-        if f.get("rel"):
+        if f.get("rel") and not f.get("method"):
             try:
                 filter = globals()[f["rel"] + "FilterSet"]()
             except KeyError:
@@ -45,6 +91,8 @@ def create_filterset(model, definition, name=None):
         else:
             ftype = f.get("type", "text")
             form_field = get_form_field_for_type(ftype)
+            if f.get("options"):
+                form_field._set_choices(f.get("options"))
             source = f.get("source", f["name"])
             lookups = f.get("lookups", ["exact"])
             default_lookup = f.get("default_lookup", "exact")
@@ -53,26 +101,21 @@ def create_filterset(model, definition, name=None):
 
         attrs[f["name"]] = filter
 
-
     attrs["Meta"] = Meta
     attrs["definition"] = definition
+    attrs["filter_backend_class"] = BetterDjangoFilterBackend
 
     return type(name, (ModelFilterSet,), attrs)
 
 
-class SquadFilterSet(ModelFilterSet):
-    class Meta:
-        model = Squad
-        fields = ["squad_id"]
-
-
 class CallUnitFilterSet(ModelFilterSet):
     class Meta:
-        model = CallUnit
+        model = models.CallUnit
         fields = ["call_unit_id", "squad"]
 
+
 CallFilterSet = create_filterset(
-    Call,
+    models.Call,
     [
         {"name": "time_received", "type": "date", "lookups": ["gte", "lte"],
          "default_lookup": "gte"},
@@ -96,12 +139,17 @@ CallFilterSet = create_filterset(
         {"name": "primary_unit", "rel": "CallUnit"},
         {"name": "first_dispatched", "rel": "CallUnit"},
         {"name": "reporting_unit", "rel": "CallUnit"},
-        {"name": "cancelled", "type": "boolean"}
+        {"name": "cancelled", "type": "boolean"},
+        {"name": "squad", "rel": "Squad", "method": True, "type": "choice",
+         "lookups": ["exact"]},
+        {"name": "initiated_by", "type": "select", "method": True,
+         "lookups": ["exact"],
+         "options": [["Self", "Self"], ["Citizen", "Citizen"]]}
     ]
 )
 
 OfficerActivityFilterSet = create_filterset(
-    OfficerActivity,
+    models.OfficerActivity,
     [
         {"name": "call_unit", "rel": "CallUnit"},
         {"name": "time", "type": "date", "lookups": ["gte", "lte"],
@@ -111,77 +159,3 @@ OfficerActivityFilterSet = create_filterset(
         {"name": "call", "rel": "Call"}
     ]
 )
-
-
-#     unit = ChoiceMethodFilter(action='filter_unit',
-#                               choices=CallUnit.objects.all().values_list('call_unit_id', 'descr'))
-#     squad = ChoiceMethodFilter(action='filter_squad',
-#                               choices=Squad.objects.all().values_list('squad_id', 'descr'))
-#
-#     initiated_by = ChoiceMethodFilter(label="Initiated by",
-#                                       action="filter_initiated_by",
-#                                       choices=[('Self', 'Self'), ('Citizen', 'Citizen')])
-#
-#     def filter_unit(self, queryset, value):
-#         if value:
-#             query = Q(primary_unit_id=value) | Q(first_dispatched_id=value) | Q(
-#                 reporting_unit_id=value)
-#             return queryset.filter(query)
-#         else:
-#             return queryset
-#
-#     def filter_squad(self, queryset, value):
-#         if value:
-#             query = Q(primary_unit__squad_id=value) | Q(first_dispatched__squad_id=value) | Q(
-#                 reporting_unit__squad_id=value)
-#             return queryset.filter(query)
-#         else:
-#             return queryset
-#
-#     def filter_initiated_by(self, queryset, value):
-#         if value == "Self":
-#             return queryset.filter(call_source=CallSource.objects.get(descr="Self Initiated"))
-#         elif value == "Citizen":
-#             return queryset.exclude(call_source=CallSource.objects.get(descr="Self Initiated"))
-#         else:
-#             return queryset
-#
-
-
-
-# class DurationRangeField(RangeField):
-#     def __init__(self, *args, **kwargs):
-#         fields = (
-#             forms.DurationField(),
-#             forms.DurationField())
-#         super().__init__(fields, *args, **kwargs)
-#
-#
-# class ChoiceMethodFilter(MethodFilter):
-#     field_class = forms.ChoiceField
-#
-#
-# class DurationRangeFilter(RangeFilter):
-#     field_class = DurationRangeField
-#
-#     def filter(self, qs, value):
-#         if value:
-#             if value.start is not None and value.stop is not None:
-#                 lookup = '%s__range' % self.name
-#                 return self.get_method(qs)(
-#                     **{lookup: (value.start, value.stop)})
-#             else:
-#
-#                 if value.start is not None:
-#                     qs = self.get_method(qs)(
-#                         **{'%s__gte' % self.name: value.start})
-#                 if value.stop is not None:
-#                     qs = self.get_method(qs)(
-#                         **{'%s__lte' % self.name: value.stop})
-#         return qs
-
-
-# class SummaryFilter(FilterSet):
-#     class Meta:
-#         model = Call
-#         fields = ['month_received', 'dow_received', 'hour_received']
