@@ -1,14 +1,15 @@
 from django.db.models import Count
-from url_filter.integrations.drf import DjangoFilterBackend
 from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from ..models import Call, Sector, District, Beat, City, \
-    CallSource, CallUnit, Nature, CloseCode, \
-    CallOverview, CallResponseTimeOverview, CallVolumeOverview, \
-    MapOverview, OfficerActivityOverview
-from ..filters import CallFilterSet
+from rest_framework.views import APIView
+from url_filter.integrations.drf import DjangoFilterBackend
+
 from .. import serializers
+from ..filters import CallFilterSet
+from ..models import Call, Sector, District, Beat, City, \
+    CallSource, CallUnit, Nature, CloseCode
+from ..summaries import CallResponseTimeOverview, \
+    CallVolumeOverview, MapOverview
 
 
 class CallViewSet(viewsets.ReadOnlyModelViewSet):
@@ -122,6 +123,7 @@ class CallResponseTimeView(APIView):
     def get(self, request, format=None):
         overview = CallResponseTimeOverview(request.GET)
         return Response(overview.to_dict())
+
 
 class OfficerAllocationView(APIView):
     """
