@@ -4,6 +4,21 @@ var NavBar = Ractive.extend({
     tripleDelimiters: ['[[[', ']]]']
 });
 
+var ChartHeader = Ractive.extend({
+    template: '#chart-header-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    isolated: true,
+    data: {
+        hidden: true
+    },
+    oninit: function () {
+        this.on('toggleExplanation', function () {
+            this.set('hidden', !this.get('hidden'));
+        })
+    }
+});
+
 var lookupMap = {
     "exact": {id: "=", name: "is equal to"},
     "gte": {id: ">=", name: "is greater than or equal to"},
@@ -172,7 +187,7 @@ var Filter = Ractive.extend({
 });
 
 var Page = Ractive.extend({
-    components: {'Filter': Filter, 'NavBar': NavBar},
+    components: {'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader},
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
     data: {
