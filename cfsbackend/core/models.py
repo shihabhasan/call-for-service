@@ -10,7 +10,7 @@
 
 from __future__ import unicode_literals
 from collections import Counter, defaultdict
-from datetime import timedelta
+from datetime import timedelta, time
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, connection
 from django.db.models import Count, Aggregate, DurationField, Min, Max, \
@@ -122,6 +122,10 @@ class OfficerActivityOverview:
         if (not self.bounds['max_time'] or not self.bounds['min_time']):
             return []
 
+        activity_type_lookup = {r.officer_activity_type_id: r.descr
+                for r in OfficerActivityType.objects.all()
+        }
+
         # In order for this to show average allocation, we need to know the number 
         # of times each time sample occurs.
         start = self.round_datetime(self.bounds['min_time'])
@@ -130,22 +134,74 @@ class OfficerActivityOverview:
         time_freq = Counter((start + timedelta(seconds=x)).time() for x in
                            range(0, total_seconds + 1, self.sample_interval))
 
+        # We have to raise the work_mem for this query so the large
+        # sort isn't performed on disk
+        cursor = connection.cursor()
+        cursor.execute('SET work_mem=\'30MB\';')
 
         # We have to strip off the date component by casting to time
         results = self.qs \
                 .extra({'time_hour_minute': 'time_::time'}) \
-                .values('time_hour_minute', 'activity') \
+                .values('time_hour_minute', 'activity_type') \
                 .annotate(avg_volume=Count('*'))
 
-        for result in results:
-            result['freq'] = time_freq[result['time_hour_minute']]
-            result['total'] = result['avg_volume']
-            try:
-                result['avg_volume'] /= result['freq']
-            except ZeroDivisionError:
-                result['avg_volume'] = 0
+        # Make sure we have an entry for each combination of time and
+        # activity; go ahead and fill out the frequency (number of times
+        # the given time sample occured).
+        agg_result = {t: {
+            'IN CALL - CITIZEN INITIATED': {
+                'avg_volume': 0,
+                'total': 0,
+                'freq': time_freq[t]
+            },
+            'IN CALL - SELF INITIATED': {
+                'avg_volume': 0,
+                'total': 0,
+                'freq': time_freq[t]
+            },
+            'IN CALL - DIRECTED PATROL': {
+                'avg_volume': 0,
+                'total': 0,
+                'freq': time_freq[t]
+            },
+            'OUT OF SERVICE': {
+                'avg_volume': 0,
+                'total': 0,
+                'freq': time_freq[t]
+            },
+            'ON DUTY': {
+                'avg_volume': 0,
+                'total': 0,
+                'freq': time_freq[t]
+            }
+        } for t in time_freq}
 
-        return results
+        for r in results:
+            time_ = r['time_hour_minute']
+            activity = activity_type_lookup[r['activity_type']]
+            freq = agg_result[time_][activity]['freq']
+            agg_result[time_][activity]['total'] = r['avg_volume']
+            agg_result[time_][activity]['avg_volume'] = r['avg_volume']
+            try:
+                agg_result[time_][activity]['avg_volume'] /= freq
+            except ZeroDivisionError:
+                agg_result[time_][activity]['avg_volume'] = 0
+
+        # Set the work_mem back to normal
+        cursor.execute('RESET work_mem;')
+
+        # Patrol stats are ON DUTY minus everything else
+        for r in agg_result.values():
+            r['PATROL'] = {
+                'freq': r['ON DUTY']['freq'],
+                'total': r['ON DUTY']['total'] \
+                        - sum([v['total'] for k,v in r.items() if not k == 'ON DUTY']),
+                'avg_volume': r['ON DUTY']['avg_volume'] \
+                        - sum([v['avg_volume'] for k,v in r.items() if not k == 'ON DUTY']),
+            }
+
+        # Keys have to be strings to transmit to the client
+        return {str(k): v for k,v in agg_result.items()}
 
     def to_dict(self):
         return {
@@ -601,6 +657,13 @@ class InCallPeriod(models.Model):
         managed = False
         db_table = 'in_call'
 
+class OfficerActivityType(ModelWithDescr):
+    officer_activity_type_id = models.IntegerField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'officer_activity_type'
+
 class OfficerActivity(models.Model):
     officer_activity_id = models.IntegerField(primary_key=True)
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
@@ -608,7 +671,9 @@ class OfficerActivity(models.Model):
                                   related_name="+")
     time = models.DateTimeField(blank=True, null=True,
                                 db_column="time_")
-    activity = models.TextField(blank=True, null=True)
+    activity_type = models.ForeignKey(OfficerActivityType,
+                                db_column="officer_activity_type_id",
+                                related_name="+")
     call = models.ForeignKey(Call, blank=True, null=True,
                              db_column="call_id",
                              related_name="+")

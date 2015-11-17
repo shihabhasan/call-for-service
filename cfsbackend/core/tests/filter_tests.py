@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from ..filters import create_filterset, create_rel_filterset, OfficerActivityFilterSet
 from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode, \
-        OfficerActivity, Nature
+        OfficerActivity, Nature, OfficerActivityType
 
 
 def test_create_simple_filterset():
@@ -70,33 +70,43 @@ class OfficerActivityFilterSetTest(TestCase):
         self.cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
         self.cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
 
+        self.at1 = OfficerActivityType.objects.create(
+                officer_activity_type_id=1,
+                descr="IN CALL - CITIZEN INITIATED")
+        self.at2 = OfficerActivityType.objects.create(
+                officer_activity_type_id=2,
+                descr="OUT OF SERVICE")
+        self.at3 = OfficerActivityType.objects.create(
+                officer_activity_type_id=3,
+                descr="ON DUTY")
+
         self.a1 = OfficerActivity.objects.create(officer_activity_id=1,
-                activity="IN CALL",
+                activity_type=self.at1,
                 time=dtparse('2014-01-15T9:00'),
                 call_unit=self.cu1,
                 call=self.call1)
         self.a2 = OfficerActivity.objects.create(officer_activity_id=2,
-                activity="IN CALL",
+                activity_type=self.at1,
                 time=dtparse('2014-01-15T9:10'),
                 call_unit=self.cu2,
                 call=self.call1)
         self.a3 = OfficerActivity.objects.create(officer_activity_id=3,
-                activity="IN CALL",
+                activity_type=self.at1,
                 time=dtparse('2014-01-15T10:00'),
                 call_unit=self.cu1,
                 call=self.call2)
         self.a4 = OfficerActivity.objects.create(officer_activity_id=4,
-                activity="IN CALL",
+                activity_type=self.at1,
                 time=dtparse('2014-01-16T9:50'),
                 call_unit=self.cu2,
                 call=self.call2)
         self.a5 = OfficerActivity.objects.create(officer_activity_id=5,
-                activity="OUT OF SERVICE",
+                activity_type=self.at2,
                 time=dtparse('2014-01-16T10:10'),
                 call_unit=self.cu1,
                 call=None)
         self.a6 = OfficerActivity.objects.create(officer_activity_id=6,
-                activity="OUT OF SERVICE",
+                activity_type=self.at2,
                 time=dtparse('2014-01-18T9:00'),
                 call_unit=self.cu2,
                 call=None)
@@ -155,8 +165,8 @@ class OfficerActivityFilterSetTest(TestCase):
         self.assertIn(self.a3, qs)
         self.assertEqual(3, len(qs))
 
-    def test_activity_filter(self):
-        filter_set = OfficerActivityFilterSet(data=QueryDict("activity__exact=IN+CALL"),
+    def test_activity_type_filter(self):
+        filter_set = OfficerActivityFilterSet(data=QueryDict("activity_type=1"),
                 queryset=OfficerActivity.objects.all())
         qs = filter_set.filter()
         self.assertIn(self.a1, qs)
@@ -165,7 +175,7 @@ class OfficerActivityFilterSetTest(TestCase):
         self.assertIn(self.a4, qs)
         self.assertEqual(4, len(qs))
 
-        filter_set = OfficerActivityFilterSet(data=QueryDict("activity__exact!=IN+CALL"),
+        filter_set = OfficerActivityFilterSet(data=QueryDict("activity_type!=1"),
                 queryset=OfficerActivity.objects.all())
         qs = filter_set.filter()
         self.assertIn(self.a5, qs)

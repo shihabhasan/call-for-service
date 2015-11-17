@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+{% endblock %}
+
+{% block content %}
+    <script id="dashboard-template" type="text/html">
+        <NavBar filterHash="[[ filterHash ]]"/>
+        <div class="row dashboard">
+            <div class="large-3 columns">
+                <Filter/>
+            </div>
+            <div class="large-9 columns">
+                <div class="row">
+                    <div class="medium-12 columns">
+                        <div id="allocation-over-time">
+                            <h3 class="chart-title">Average Officer Allocation</h3>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+                        <div class="explanation">
+                            <p>
+                                This chart shows average officer allocation by time
+                                of day
+                                in 10 minute intervals for the selected time
+                                period.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+{% endblock %}
+
+{% block javascript %}
+    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
+    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
+    <script src="{% static 'd3/d3.js' %}"></script>
+    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
+    <script src="{% static 'officer_allocation/officer_allocation.js' %}"></script>
+{% endblock %}
+</body>
+</html>
