@@ -154,8 +154,7 @@ OfficerActivityFilterSet = create_filterset(
         {"name": "call_unit", "rel": "CallUnit"},
         {"name": "time", "type": "date", "lookups": ["gte", "lte"],
          "default_lookup": "gte"},
-        {"name": "activity", "type": "text", "lookups": ["exact"],
-         "default_lookup": "exact"},
+        {"name": "activity_type", "rel": "OfficerActivityType"},
         {"name": "call", "rel": "Call"}
     ]
 )
