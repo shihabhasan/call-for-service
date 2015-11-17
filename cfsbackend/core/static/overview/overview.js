@@ -2,7 +2,7 @@
 
 var url = "/api/call_volume/";
 var outFormats = {
-    "month": "%b %y",
+    "month": "%b %Y",
     "week": "%m/%d/%y",
     "day": "%a %m/%d",
     "hour": "%m/%d %H:%M"
@@ -86,18 +86,6 @@ function cleanupData(data) {
                     obj = _.chain(obj)
                         .selectKeys(["date", "volume"])
                         .renameKeys({"date": "x", "volume": "y"})
-                        .value();
-                    obj.x = indate.parse(obj.x);
-                    return obj;
-                })
-        },
-        {
-            key: "30-Day Average",
-            values: _.map(
-                data.volume_by_date, function (obj) {
-                    obj = _.chain(obj)
-                        .selectKeys(["date", "average"])
-                        .renameKeys({"date": "x", "average": "y"})
                         .value();
                     obj.x = indate.parse(obj.x);
                     return obj;
@@ -230,7 +218,8 @@ function buildVolumeByDateChart(data) {
                 .axisLabel("Date")
                 .tickFormat(
                     function (d) {
-                        return d3.time.format('%x')(new Date(d));
+                        return d3.time.format(outFormats[dashboard.get('data.precision')])(new Date(d));
+                        //return d3.time.format('%x')(new Date(d));
                     });
 
             chart.yAxis
