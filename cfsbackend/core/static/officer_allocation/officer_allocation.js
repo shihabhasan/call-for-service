@@ -58,16 +58,16 @@ function cleanupData(data) {
     var indate = d3.time.format("%H:%M:%S");
     
     var temp_allocation_data = [{
-            key: "Out of Service",
-            values: [],
-        }, {
-            key: "Directed Patrol",
+            key: "Citizen-Initiated Call",
             values: [],
         }, {
             key: "Officer-Initiated Call",
             values: [],
         }, {
-            key: "Citizen-Initiated Call",
+            key: "Out of Service",
+            values: [],
+        }, {
+            key: "Directed Patrol",
             values: [],
         }, {
             key: "Patrol",
@@ -85,19 +85,19 @@ function cleanupData(data) {
 
         temp_allocation_data[0].values.push({
             'x': time,
-            'y': oos,
+            'y': cic,
         });
         temp_allocation_data[1].values.push({
             'x': time,
-            'y': dp,
+            'y': oic,
         });
         temp_allocation_data[2].values.push({
             'x': time,
-            'y': oic,
+            'y': oos,
         });
         temp_allocation_data[3].values.push({
             'x': time,
-            'y': cic,
+            'y': dp,
         });
         temp_allocation_data[4].values.push({
             'x': time,

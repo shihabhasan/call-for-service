@@ -180,8 +180,6 @@ class OfficerActivityOverview:
             time_ = r['time_hour_minute']
             activity = activity_type_lookup[r['activity_type']]
             freq = agg_result[time_][activity]['freq']
-            #freq = time_freq[r['time_hour_minute']]
-            #agg_result[time_][activity]['freq'] = freq
             agg_result[time_][activity]['total'] = r['avg_volume']
             agg_result[time_][activity]['avg_volume'] = r['avg_volume']
             try:
