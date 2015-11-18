@@ -185,15 +185,18 @@ function cleanupData(data) {
     return data;
 }
 
-monitorChart(dashboard, 'data.day_hour_heatmap', buildDayHourHeatmap);
-monitorChart(dashboard, 'data.volume_by_nature', buildVolumeByNatureChart);
-monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
-monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
-monitorChart(dashboard, 'data.volume_by_beat', buildVolumeByBeatChart);
 
 // ========================================================================
 // Functions
 // ========================================================================
+
+
+
+var volumeByBeatChart = new HorizontalBarChart({
+    el: "#volume-by-beat",
+    filter: "beat"
+});
+
 
 function buildVolumeByDateChart(data) {
     var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
@@ -218,7 +221,8 @@ function buildVolumeByDateChart(data) {
                 .axisLabel("Date")
                 .tickFormat(
                     function (d) {
-                        return d3.time.format(outFormats[dashboard.get('data.precision')])(new Date(d));
+                        return d3.time.format(outFormats[dashboard.get('data.precision')])(
+                            new Date(d));
                         //return d3.time.format('%x')(new Date(d));
                     });
 
@@ -408,7 +412,7 @@ function resizeDayHourHeatmap() {
         svg = d3.select("#day-hour-heatmap").select("svg");
 
     svg.attr("width", bounds.width)
-       .attr("height", bounds.height);
+        .attr("height", bounds.height);
 }
 
 function buildDayHourHeatmap(data) {
@@ -421,7 +425,8 @@ function buildDayHourHeatmap(data) {
         buckets = 9,
         colors = colorbrewer.OrRd[9],
         days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-        times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
+        times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12a", "1p",
+            "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12p"];
 
     data.forEach(
         function (d) {
@@ -571,13 +576,18 @@ function buildDayHourHeatmap(data) {
         }).enter().append("g").attr("class", "legend")
         .attr("transform", "translate(" + gridSize + ", 0)");
 
-    legend.append("rect").attr(
-        "x", function (d, i) {
-            return legendElementWidth * i;
-        }).attr("y", gridSize * 9).attr("width", legendElementWidth).attr("height", gridSize / 2).style(
-        "fill", function (d, i) {
-            return colors[i];
-        });
+    legend.append("rect")
+        .attr(
+            "x", function (d, i) {
+                return legendElementWidth * i;
+            })
+        .attr("y", gridSize * 9)
+        .attr("width", legendElementWidth)
+        .attr("height", gridSize / 2)
+        .style(
+            "fill", function (d, i) {
+                return colors[i];
+            });
 
     legend.append("text").attr("class", "mono").text(
         function (d) {
@@ -591,3 +601,10 @@ function buildDayHourHeatmap(data) {
 d3.select(window).on('resize', function () {
     resizeDayHourHeatmap();
 });
+
+monitorChart(dashboard, 'data.day_hour_heatmap', buildDayHourHeatmap);
+monitorChart(dashboard, 'data.volume_by_nature', buildVolumeByNatureChart);
+monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
+monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
+monitorChart(dashboard, 'data.volume_by_beat', volumeByBeatChart.update);
+
