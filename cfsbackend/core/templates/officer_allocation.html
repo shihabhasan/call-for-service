@@ -17,17 +17,15 @@
                 <div class="row">
                     <div class="medium-12 columns">
                         <div id="allocation-over-time">
-                            <h3 class="chart-title">Average Officer Allocation</h3>
+                            <chart-header title="Average Officer Allocation">
+                                <p>
+                                    This chart shows average officer allocation
+                                    by time of day in 10 minute intervals for
+                                    the selected time period.
+                                </p>
+                            </chart-header>
                             {% include "_loading.html" %}
                             <svg></svg>
-                        </div>
-                        <div class="explanation">
-                            <p>
-                                This chart shows average officer allocation by time
-                                of day
-                                in 10 minute intervals for the selected time
-                                period.
-                            </p>
                         </div>
                     </div>
                 </div>
