@@ -1,13 +1,11 @@
 from collections import Counter
 from datetime import timedelta
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection
 from django.db.models import Min, Max, Count, Case, When, IntegerField, F, Avg, \
     DurationField, StdDev
 from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
-
 from .models import OfficerActivity, OfficerActivityType, Call
 from .filters import CallFilterSet, OfficerActivityFilterSet
 
@@ -166,7 +164,7 @@ class CallOverview:
 
 class CallVolumeOverview(CallOverview):
     def precision(self):
-        if self.span >= timedelta(days=365*2):
+        if self.span >= timedelta(days=365 * 2):
             return 'month'
         elif self.span >= timedelta(days=7):
             return 'day'
@@ -175,7 +173,8 @@ class CallVolumeOverview(CallOverview):
 
     def volume_by_date(self):
         results = self.qs \
-            .annotate(date=DateTrunc('time_received', precision=self.precision())) \
+            .annotate(
+            date=DateTrunc('time_received', precision=self.precision())) \
             .values("date") \
             .annotate(volume=Count("date")) \
             .order_by("date")
@@ -221,6 +220,13 @@ class CallVolumeOverview(CallOverview):
 
         return results
 
+    def volume_by_dow(self):
+        results = self.qs \
+            .annotate(id=F('dow_received'), name=F('dow_received')) \
+            .values("id", "name") \
+            .annotate(volume=Count('name'))
+        return results
+
     def volume_by_beat(self):
         qs = self.qs.annotate(name=F('beat__descr'), id=F('beat_id')).values(
             'name', 'id')
@@ -242,6 +248,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature'),
             'volume_by_beat': self.volume_by_field('beat'),
+            'volume_by_dow': self.volume_by_dow(),
             # 'volume_by_close_code': self.volume_by_field('close_code'),
         }
 

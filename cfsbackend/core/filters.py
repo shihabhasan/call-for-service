@@ -140,6 +140,11 @@ CallFilterSet = create_filterset(
         {"name": "first_dispatched", "rel": "CallUnit"},
         {"name": "reporting_unit", "rel": "CallUnit"},
         {"name": "cancelled", "type": "boolean"},
+        {"name": "dow_received", "label": "Day of Week", "type": "select",
+         "options": [
+             [0, "Monday"], [1, "Tuesday"], [2, "Wednesday"], [3, "Thursday"],
+             [4, "Friday"], [5, "Saturday"], [6, "Sunday"]
+         ]},
         {"name": "squad", "rel": "Squad", "method": True, "type": "choice",
          "lookups": ["exact"]},
         {"name": "initiated_by", "type": "select", "method": True,

@@ -182,6 +182,26 @@ function cleanupData(data) {
         }
     ];
 
+    var dow = ['Mon', 'Tue', "Wed", 'Thu', "Fri", 'Sat', 'Sun'];
+    data.volume_by_dow = [
+        {
+            key: "Volume By Day of Week",
+            values: _.chain(data.volume_by_dow)
+                .map(function (d) {
+                    return {
+                        id: d.id,
+                        volume: d.volume,
+                        name: dow[d.id]
+                    }
+                })
+                .sortBy(
+                    function (d) {
+                        return d.id;
+                    })
+                .value()
+        }
+    ]
+
     return data;
 }
 
@@ -190,7 +210,11 @@ function cleanupData(data) {
 // Functions
 // ========================================================================
 
-
+var volumeByDOWChart = new HorizontalBarChart({
+    el: "#volume-by-dow",
+    filter: "dow_received",
+    ratio: 1
+});
 
 var volumeByBeatChart = new HorizontalBarChart({
     el: "#volume-by-beat",
@@ -607,4 +631,6 @@ monitorChart(dashboard, 'data.volume_by_nature', buildVolumeByNatureChart);
 monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
 monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
 monitorChart(dashboard, 'data.volume_by_beat', volumeByBeatChart.update);
+monitorChart(dashboard, 'data.volume_by_dow', volumeByDOWChart.update);
+
 
