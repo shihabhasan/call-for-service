@@ -165,31 +165,21 @@ class CallOverview:
 
 
 class CallVolumeOverview(CallOverview):
+    def precision(self):
+        if self.span >= timedelta(days=365*2):
+            return 'month'
+        elif self.span >= timedelta(days=7):
+            return 'day'
+        else:
+            return 'hour'
+
     def volume_by_date(self):
-        cursor = connection.cursor()
+        results = self.qs \
+            .annotate(date=DateTrunc('time_received', precision=self.precision())) \
+            .values("date") \
+            .annotate(volume=Count("date")) \
+            .order_by("date")
 
-        cte_sql, params = self.qs. \
-            annotate(date=DateTrunc('time_received', precision='day')). \
-            values('date'). \
-            annotate(volume=Count('date')).query.sql_with_params()
-        sql = """
-        WITH daily_stats AS (
-            {cte_sql}
-        )
-        SELECT
-            ds1.date AS date,
-            ds1.volume AS volume,
-            CAST(AVG(ds2.volume) AS INTEGER) AS average
-        FROM daily_stats AS ds1
-        JOIN daily_stats AS ds2
-            ON ds2.date BETWEEN ds1.date - INTERVAL '15 days' AND
-            ds1.date + INTERVAL '15 days'
-        GROUP BY ds1.date, ds1.volume
-        ORDER BY ds1.date;
-        """.format(cte_sql=cte_sql)
-
-        cursor.execute(sql, params)
-        results = dictfetchall(cursor)
         return results
 
     def day_hour_heatmap(self):
@@ -245,6 +235,7 @@ class CallVolumeOverview(CallOverview):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
+            'precision': self.precision(),
             'count': self.count(),
             'volume_by_date': self.volume_by_date(),
             'day_hour_heatmap': self.day_hour_heatmap(),

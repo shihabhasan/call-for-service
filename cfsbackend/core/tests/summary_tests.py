@@ -232,18 +232,18 @@ class CallVolumeOverviewTest(TestCase):
 
         correct_items = [
             {"date": dtparse("2014-01-15"),
-             "volume": 1, "average": 1},
+             "volume": 1},
             {"date": dtparse("2014-11-01"),
-             "volume": 1, "average": 1},
+             "volume": 1},
 
             # Correct avg is 2 instead of 1.5 because
             # postgres' int cast rounds 1.5 up
             {"date": dtparse("2015-01-01"),
-             "volume": 2, "average": 2},
+             "volume": 2},
             {"date": dtparse("2015-01-08"),
-             "volume": 1, "average": 2},
+             "volume": 1},
             {"date": dtparse("2015-02-01"),
-             "volume": 1, "average": 1}]
+             "volume": 1}]
 
         # There's probably a better way to do this,
         # but this works; the order of the results is
@@ -261,13 +261,13 @@ class CallVolumeOverviewTest(TestCase):
     # automatically again
     def test_call_volume_for_day(self):
         overview = CallVolumeOverview(
-            q("time_received__gte=2015-01-01&time_received__lte=2015-01-02"))
+            q("time_received__gte=2015-01-01&time_received__lte=2015-01-01"))
         assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
                                    "max_time": dtparse('2015-01-01T12:30')}
 
         assert_list_equiv(overview.volume_by_date(),
-                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2,
-                            "average": 2}])
+                          [{"date": dtparse("2015-01-01T09:00"), "volume": 1},
+                           {"date": dtparse("2015-01-01T12:00"), "volume": 1}])
 
     def test_call_volume_for_multiple_days(self):
         overview = CallVolumeOverview(
@@ -277,10 +277,8 @@ class CallVolumeOverviewTest(TestCase):
                                    "max_time": dtparse('2015-01-08T09:00')}
 
         assert_list_equiv(results,
-                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2,
-                            "average": 2},
-                           {"date": dtparse("2015-01-08T00:00"), "volume": 1,
-                            "average": 2}])
+                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2},
+                           {"date": dtparse("2015-01-08T00:00"), "volume": 1}])
 
     def test_call_volume_for_month(self):
         overview = CallVolumeOverview(
@@ -289,12 +287,9 @@ class CallVolumeOverviewTest(TestCase):
         assert overview.bounds == {"min_time": dtparse("2015-01-01T09:00"),
                                    "max_time": dtparse('2015-02-01T09:00')}
         assert_list_equiv(results,
-                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2,
-                            'average': 2},
-                           {"date": dtparse("2015-01-08T00:00"), "volume": 1,
-                            'average': 2},
-                           {"date": dtparse("2015-02-01T00:00"), "volume": 1,
-                            'average': 1}])
+                          [{"date": dtparse("2015-01-01T00:00"), "volume": 2},
+                           {"date": dtparse("2015-01-08T00:00"), "volume": 1},
+                           {"date": dtparse("2015-02-01T00:00"), "volume": 1}])
 
     def test_call_volume_for_multiple_months(self):
         overview = CallVolumeOverview(
@@ -304,14 +299,10 @@ class CallVolumeOverviewTest(TestCase):
                                    "max_time": dtparse('2015-02-01T09:00')}
 
         assert_list_equiv(results,
-                          [{"date": dtparse("2014-11-01"), "volume": 1,
-                            "average": 1},
-                           {"date": dtparse("2015-01-01"), "volume": 2,
-                            "average": 2},
-                           {"date": dtparse("2015-01-08"), "volume": 1,
-                            "average": 2},
-                           {"date": dtparse("2015-02-01"), "volume": 1,
-                            "average": 1}])
+                          [{"date": dtparse("2014-11-01"), "volume": 1},
+                           {"date": dtparse("2015-01-01"), "volume": 2},
+                           {"date": dtparse("2015-01-08"), "volume": 1},
+                           {"date": dtparse("2015-02-01"), "volume": 1}])
 
     def test_call_volume_for_year(self):
         overview = CallVolumeOverview(
@@ -321,16 +312,11 @@ class CallVolumeOverviewTest(TestCase):
                                    "max_time": dtparse('2015-02-01T09:00')}
 
         assert_list_equiv(results,
-                          [{"date": dtparse("2014-01-15T00:00"), "volume": 1,
-                            "average": 1},
-                           {"date": dtparse("2014-11-01T00:00"), "volume": 1,
-                            "average": 1},
-                           {"date": dtparse("2015-01-01T00:00"), "volume": 2,
-                            "average": 2},
-                           {"date": dtparse("2015-01-08T00:00"), "volume": 1,
-                            "average": 2},
-                           {"date": dtparse("2015-02-01T00:00"), "volume": 1,
-                            "average": 1}])
+                          [{"date": dtparse("2014-01-15T00:00"), "volume": 1},
+                           {"date": dtparse("2014-11-01T00:00"), "volume": 1},
+                           {"date": dtparse("2015-01-01T00:00"), "volume": 2},
+                           {"date": dtparse("2015-01-08T00:00"), "volume": 1},
+                           {"date": dtparse("2015-02-01T00:00"), "volume": 1}])
 
     def test_day_hour_heatmap(self):
         overview = CallVolumeOverview(
