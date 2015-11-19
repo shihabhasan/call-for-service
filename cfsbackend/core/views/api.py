@@ -9,7 +9,7 @@ from ..filters import CallFilterSet
 from ..models import Call, Sector, District, Beat, City, \
     CallSource, CallUnit, Nature, CloseCode
 from ..summaries import CallResponseTimeOverview, \
-    CallVolumeOverview, MapOverview
+    CallVolumeOverview, MapOverview, OfficerActivityOverview
 
 
 class CallViewSet(viewsets.ReadOnlyModelViewSet):
