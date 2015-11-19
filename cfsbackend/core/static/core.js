@@ -265,6 +265,11 @@ function displayValue(fieldName, value) {
         dValue = choiceMap[value];
     }
 
+    if (field.options) {
+        var choiceMap = arrayToObj(field.options);
+        dValue = choiceMap[value];
+    }
+
     if (!dValue) {
         dValue = value;
     }

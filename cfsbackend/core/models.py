@@ -217,12 +217,22 @@ class CallQuerySet(models.QuerySet):
             return self
 
     def initiated_by(self, value):
-        if value == "Self":
+        if str(value) == "0":
             return self.filter(
                 call_source=CallSource.objects.get(descr="Self Initiated"))
-        elif value == "Citizen":
+        elif str(value) == "1":
             return self.exclude(
                 call_source=CallSource.objects.get(descr="Self Initiated"))
+        else:
+            return self
+
+    def shift(self, value):
+        if str(value) == "0":
+            query = Q(hour_received__gte=6) & Q(hour_received__lt=18)
+            return self.filter(query)
+        elif str(value) == "1":
+            query = Q(hour_received__lt=6) | Q(hour_received__gte=18)
+            return self.filter(query)
         else:
             return self
 
