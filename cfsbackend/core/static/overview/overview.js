@@ -213,7 +213,7 @@ function cleanupData(data) {
 var volumeByDOWChart = new HorizontalBarChart({
     el: "#volume-by-dow",
     filter: "dow_received",
-    ratio: 1
+    ratio: 1.2
 });
 
 var volumeByBeatChart = new HorizontalBarChart({

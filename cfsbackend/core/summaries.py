@@ -164,7 +164,7 @@ class CallOverview:
 
 class CallVolumeOverview(CallOverview):
     def precision(self):
-        if self.span >= timedelta(days=365 * 2):
+        if self.span >= timedelta(days=365):
             return 'month'
         elif self.span >= timedelta(days=7):
             return 'day'
