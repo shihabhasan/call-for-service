@@ -93,78 +93,15 @@ function cleanupData(data) {
         }
     ];
 
-    var volBySrc = data.volume_by_source;
+    var sources = ["Self", "Citizen"];
 
-    var si = _.chain(volBySrc)
-        .filter(
-            function (d) {
-                return d.self_initiated;
-            })
-        .reduce(
-            function (obj, d) {
-                obj[d.date] = d.volume;
-                return obj;
-            }, {})
-        .value();
-
-    var ci = _.chain(volBySrc)
-        .filter(
-            function (d) {
-                return !d.self_initiated;
-            })
-        .reduce(
-            function (obj, d) {
-                obj[d.date] = d.volume;
-                return obj;
-            }, {})
-        .value();
-
-    _.difference(_.keys(ci), _.keys(si)).forEach(
-        function (k) {
-            si[k] = 0;
-        });
-    _.difference(_.keys(si), _.keys(ci)).forEach(
-        function (k) {
-            ci[k] = 0;
-        });
-
-
-    data.volume_by_source = [
-        {
-            key: "Self Initiated",
-            values: _.chain(si)
-                .pairs()
-                .sortBy(
-                    function (d) {
-                        return d[0]
-                    })
-                .map(
-                    function (d) {
-                        return {
-                            x: indate.parse(d[0]),
-                            y: d[1]
-                        }
-                    })
-                .value()
-        },
-        {
-            key: "Citizen Initiated",
-            values: _.chain(ci)
-                .pairs()
-                .sortBy(
-                    function (d) {
-                        return d[0]
-                    })
-                .map(
-                    function (d) {
-                        return {
-                            x: indate.parse(d[0]),
-                            y: d[1]
-                        }
-                    })
-                .value()
+    data.volume_by_source = _.map(data.volume_by_source, function (d) {
+        return {
+            id: d.id,
+            volume: d.volume,
+            name: sources[d.id]
         }
-    ];
+    });
 
     data.volume_by_beat = [
         {
@@ -202,6 +139,26 @@ function cleanupData(data) {
         }
     ]
 
+    var shifts = ['Shift 1', 'Shift 2'];
+    data.volume_by_shift = [
+        {
+            key: "Volume By Shift",
+            values: _.chain(data.volume_by_shift)
+                .map(function (d) {
+                    return {
+                        id: d.id,
+                        volume: d.volume,
+                        name: shifts[d.id]
+                    }
+                })
+                .sortBy(
+                    function (d) {
+                        return d.id;
+                    })
+                .value()
+        }
+    ]
+
     return data;
 }
 
@@ -213,12 +170,18 @@ function cleanupData(data) {
 var volumeByDOWChart = new HorizontalBarChart({
     el: "#volume-by-dow",
     filter: "dow_received",
-    ratio: 1.2
+    ratio: 1.5
 });
 
 var volumeByBeatChart = new HorizontalBarChart({
     el: "#volume-by-beat",
     filter: "beat"
+});
+
+var volumeByShiftChart = new HorizontalBarChart({
+    el: "#volume-by-shift",
+    filter: "shift",
+    ratio: 2.5
 });
 
 
@@ -322,58 +285,30 @@ function buildVolumeByNatureChart(data) {
 function buildVolumeBySourceChart(data) {
     var parentWidth = d3.select("#volume-by-source").node().clientWidth;
     var width = parentWidth,
-        height = width / 2;
+        height = width / 1.5;
 
     var svg = d3.select("#volume-by-source svg");
     svg.attr("width", width).attr("height", height);
 
     nv.addGraph(
         function () {
-            var chart = nv.models.stackedAreaChart()
-                .useInteractiveGuideline(true)
-                .duration(300)
-                .margin({"right": 50});
-
-            chart.xAxis.tickFormat(
-                function (d) {
-                    return d3.time.format('%x')(new Date(d))
-                });
-            chart.yAxis.tickFormat(d3.format(',.1f%'));
-            chart.style('expand');
+            var chart = nv.models.pieChart()
+                .x(function (d) { return d.name })
+                .y(function (d) { return d.volume }); // allow custom CSS for this one svg
+            chart.pie.labelsOutside(true).donut(true);
 
             svg.datum(data).call(chart);
 
-            // Disable the NV default chart filtering
-            var disableNvFiltering = function () {
-                chart.stacked.dispatch.on("areaClick", null);
-                chart.stacked.dispatch.on("areaClick.toggle", null);
+            svg.selectAll('.nv-slice').style('cursor', 'pointer');
 
-                chart.stacked.scatter.dispatch.on("elementClick", null);
-                chart.stacked.scatter.dispatch.on("elementClick.area", null);
-
-                chart.legend.dispatch.on("legendClick", null);
-                chart.legend.dispatch.on("legendDblclick", null);
-                chart.legend.dispatch.on("stateChange", null);
-
-                if (chart.update) {
-
-                    var originalUpdate = chart.update;
-
-                    chart.update = function () {
-                        originalUpdate();
-                        disableNvFiltering();
+            chart.pie.dispatch.on(
+                'elementClick', function (e) {
+                    if (e.data.id || e.data.id === 0) {
+                        toggleFilter(dashboard, "initiated_by", e.data.id);
                     }
-                }
-            };
-
-            disableNvFiltering();
-
+                });
 
             nv.utils.windowResize(chart.update);
-
-            // Since we've disabled filtering in the legend, we want to prevent
-            // it from looking clickable
-            d3.select("#volume-by-source .nv-legend").style('pointer-events', 'none');
 
             return chart;
         });
@@ -632,5 +567,5 @@ monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
 monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
 monitorChart(dashboard, 'data.volume_by_beat', volumeByBeatChart.update);
 monitorChart(dashboard, 'data.volume_by_dow', volumeByDOWChart.update);
-
+monitorChart(dashboard, 'data.volume_by_shift', volumeByShiftChart.update);
 

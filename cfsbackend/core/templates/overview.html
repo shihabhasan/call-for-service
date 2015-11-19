@@ -21,9 +21,6 @@
                                 <p>
                                     This chart shows day-by-day overall call
                                     volume for the current selection of calls.
-                                    It also shows a 30-day running average of
-                                    call volume, calculated from the 15 days
-                                    previous and 15 days after the measured day.
                                 </p>
 
                                 <p>
@@ -51,30 +48,24 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="medium-12 columns">
-                        <div id="day-hour-heatmap">
-                            <chart-header title="Day/Hour Heatmap">
-                                <p>
-                                    This heatmap shows us the average call
-                                    volume for each hour of the day for each day
-                                    of the week. The darker the color, the
-                                    heavier the volume for that time period.
-                                </p>
-                            </chart-header>
-                            {% include "_loading.html" %}
-                        </div>
-
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="large-7 columns">
+                    <div class="large-6 columns">
                         <div id="volume-by-dow">
                             <chart-header title="Call Volume By Day of Week">
                                 <p>
                                     This chart shows us the call volume by the
                                     day of week. You can click any nature here
-                                    to filter the calls to only calls on that
-                                    day of the week.
+                                    to filter the calls to only calls with that
+                                    nature.
+                                </p>
+                            </chart-header>
+                        </div>
+
+                        <div id="volume-by-shift">
+                            <chart-header title="Call Volume By Shift">
+                                <p>
+                                    This chart shows us the call volume by
+                                    shift. Shift 1 is 0600-1800 and shift 2 is
+                                    1800-0600.
                                 </p>
                             </chart-header>
                         </div>
@@ -84,23 +75,20 @@
                                 <p>
                                     This chart shows us the percentage of calls
                                     initiated by an officer versus the
-                                    percentage created by all other means by day
-                                    over the selected time period.
+                                    percentage created by all other means.
                                 </p>
                             </chart-header>
-
                             {% include "_loading.html" %}
                             <svg></svg>
                         </div>
                     </div>
-                    <div class="large-5 columns">
+                    <div class="large-6 columns">
                         <div id="volume-by-beat">
                             <chart-header title="Call Volume By Beat">
                                 This chart shows the call volume by Durham beat.
                                 You can click any beat here to filter the calls
                                 to only that beat's calls.
                             </chart-header>
-                            <h3 class="chart-title"></h3>
                             {% include "_loading.html" %}
                         </div>
                     </div>
@@ -121,9 +109,21 @@
                             {% include "_loading.html" %}
                             <svg></svg>
                         </div>
-                        <explanation>
-
-                        </explanation>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="medium-12 columns">
+                        <div id="day-hour-heatmap">
+                            <chart-header title="Day/Hour Heatmap">
+                                <p>
+                                    This heatmap shows us the average call
+                                    volume for each hour of the day for each day
+                                    of the week. The darker the color, the
+                                    heavier the volume for that time period.
+                                </p>
+                            </chart-header>
+                            {% include "_loading.html" %}
+                        </div>
                     </div>
                 </div>
             </div>

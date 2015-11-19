@@ -149,7 +149,9 @@ CallFilterSet = create_filterset(
          "lookups": ["exact"]},
         {"name": "initiated_by", "type": "select", "method": True,
          "lookups": ["exact"],
-         "options": [["Self", "Self"], ["Citizen", "Citizen"]]}
+         "options": [[0, "Self"], [1, "Citizen"]]},
+        {"name": "shift", "type": "select", "method": True, "lookups": ["exact"],
+         "options": [[0, "Shift 1"], [1, "Shift 2"]]},
     ]
 )
 

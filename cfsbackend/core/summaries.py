@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection
 from django.db.models import Min, Max, Count, Case, When, IntegerField, F, Avg, \
-    DurationField, StdDev
+    DurationField, StdDev, Q
 from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
 from .models import OfficerActivity, OfficerActivityType, Call
@@ -209,14 +209,23 @@ class CallVolumeOverview(CallOverview):
 
     def volume_by_source(self):
         results = self.qs \
-            .annotate(date=DateTrunc('time_received', precision='day'),
-                      self_initiated=Case(
-                          When(call_source__descr="Self Initiated", then=True),
-                          default=False,
-                          output_field=IntegerField())) \
-            .values("date", "self_initiated") \
-            .annotate(volume=Count("self_initiated")) \
-            .order_by("date")
+            .annotate(id=Case(
+            When(call_source__descr="Self Initiated", then=0),
+            default=1,
+            output_field=IntegerField())) \
+            .values("id") \
+            .annotate(volume=Count("id"))
+
+        return results
+
+    def volume_by_shift(self):
+        results = self.qs \
+            .annotate(id=Case(
+            When(Q(hour_received__gte=6) & Q(hour_received__lt=18), then=0),
+            default=1,
+            output_field=IntegerField())) \
+            .values("id") \
+            .annotate(volume=Count("id"))
 
         return results
 
@@ -249,6 +258,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_nature': self.volume_by_field('nature'),
             'volume_by_beat': self.volume_by_field('beat'),
             'volume_by_dow': self.volume_by_dow(),
+            'volume_by_shift': self.volume_by_shift(),
             # 'volume_by_close_code': self.volume_by_field('close_code'),
         }
 
