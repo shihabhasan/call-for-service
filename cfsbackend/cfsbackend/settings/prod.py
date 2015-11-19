@@ -8,7 +8,7 @@ ALLOWED_HOSTS = ['159.203.84.81', 'dpdcfs.rticds.org']
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'handlers': {
         'file': {
             'level': 'DEBUG',
@@ -22,15 +22,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'django.request': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
         'django.db.backends': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
-        },
+        }
     },
 }

@@ -7,6 +7,7 @@ setuid {{ project.user }}
 chdir {{ project.root }}
 env PYTHONPATH={{ django.root }}
 env DJANGO_SETTINGS_MODULE={{ django.settings }}
-export PYTHONPATH DJANGO_SETTINGS_MODULE
+env DJANGO_LOG_LEVEL=DEBUG
+export PYTHONPATH DJANGO_SETTINGS_MODULE DJANGO_LOG_LEVEL
 
 exec {{ project.virtualenv }}/bin/gunicorn --workers 3 -b unix:{{ project.root }}gunicorn.sock {{ django.wsgi }}:application --settings={{ django.settings }}
