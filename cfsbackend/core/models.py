@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.db.models import Q
 from pg.view import MaterializedView
+from django.contrib.postgres.fields import ArrayField
 
 
 class ModelWithDescr(models.Model):
@@ -39,6 +40,7 @@ class Beat(ModelWithDescr):
 
 class Bureau(ModelWithDescr):
     bureau_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'bureau'
@@ -159,6 +161,7 @@ class CallLog(models.Model):
 
 class CallSource(ModelWithDescr):
     call_source_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'call_source'
@@ -183,6 +186,7 @@ class City(ModelWithDescr):
 
 class CloseCode(ModelWithDescr):
     close_code_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'close_code'
@@ -198,6 +202,7 @@ class District(ModelWithDescr):
 
 class Division(ModelWithDescr):
     division_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'division'
@@ -228,9 +233,17 @@ class Sector(ModelWithDescr):
 
 class Nature(ModelWithDescr):
     nature_id = models.AutoField(primary_key=True)
+    nature_group = models.ForeignKey('NatureGroup', blank=True, null=True)
 
     class Meta:
         db_table = 'nature'
+
+
+class NatureGroup(ModelWithDescr):
+    nature_group_id = models.AutoField(primary_key=True)
+
+    class Meta:
+        db_table = 'nature_group'
 
 
 class Note(models.Model):
@@ -254,8 +267,8 @@ class NoteAuthor(models.Model):
 
 class Officer(models.Model):
     officer_id = models.AutoField(primary_key=True)
-    name = models.TextField(blank=True, null=True)
-    name_aka = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True)
+    name_aka = ArrayField(models.CharField(max_length=255), blank=True)
 
     class Meta:
         db_table = 'officer'
@@ -288,6 +301,7 @@ class OfficerActivityType(ModelWithDescr):
 
 class OOSCode(ModelWithDescr):
     oos_code_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'oos_code'
@@ -298,7 +312,7 @@ class OutOfServicePeriod(models.Model):
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
                                   db_column="call_unit_id",
                                   related_name="+")
-    shift_unit_id = models.ForeignKey('ShiftUnit', blank=True, null=True)
+    shift = models.ForeignKey('Shift', blank=True, null=True)
     oos_code = models.ForeignKey('OOSCode', blank=True, null=True,
                                  db_column="oos_code_id",
                                  related_name="+")
@@ -360,15 +374,22 @@ class Squad(ModelWithDescr):
         db_table = 'squad'
 
 
-class Transaction(ModelWithDescr):
+class Transaction(models.Model):
     transaction_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
+    descr = models.TextField("Description", blank=True)
+
+    def __str__(self):
+        return self.code
 
     class Meta:
         db_table = 'transaction'
+        ordering = ['code']
 
 
 class Unit(ModelWithDescr):
     unit_id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'unit'

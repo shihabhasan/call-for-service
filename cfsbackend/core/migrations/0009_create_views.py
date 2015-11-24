@@ -22,7 +22,7 @@ with open(sql_path("call_general_category.sql")) as file:
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('core', '0001_initial'),
+        ('core', '0008_auto_20151130_2311'),
     ]
 
     operations = [

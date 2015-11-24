@@ -139,3 +139,10 @@ cfsbackend/webpack-stats.json
 .direnv/
 .envrc
 cfsbackend/cfsbackend/staticfiles/
+
+# Created by https://www.gitignore.io/api/ipythonnotebook
+
+### IPythonNotebook ###
+# Temporary data
+.ipynb_checkpoints/
+
