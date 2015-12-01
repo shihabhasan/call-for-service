@@ -122,7 +122,7 @@ function buildAllocationOverTimeChart(data) {
             });
 
         chart.yAxis
-            .axisLabel("Officers Allocated")
+            .axisLabel("Average Officers Allocated")
             .tickFormat(d3.format(",.2r"));
 
         // Keep NaNs from showing up in the tooltip header

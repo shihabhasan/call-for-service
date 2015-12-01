@@ -83,7 +83,13 @@ class CallUnit(ModelWithDescr):
     call_unit_id = models.IntegerField(primary_key=True)
     squad = models.ForeignKey(Squad, blank=True, null=True,
                               db_column="squad_id",
-                              related_name="squad")
+                              related_name="+")
+    beat = models.ForeignKey(Beat, blank=True, null=True,
+                             db_column="beat_id",
+                             related_name="+")
+    district = models.ForeignKey(District, blank=True, null=True,
+                             db_column="district_id",
+                             related_name="+")
 
     class Meta:
         managed = False
@@ -320,7 +326,8 @@ class OfficerActivityType(ModelWithDescr):
 
 
 class OfficerActivity(models.Model):
-    officer_activity_id = models.IntegerField(primary_key=True)
+    officer_activity_id = models.IntegerField(primary_key=True,
+                                db_column="discrete_officer_activity_id")
     call_unit = models.ForeignKey(CallUnit, blank=True, null=True,
                                   db_column="call_unit_id",
                                   related_name="+")
