@@ -115,6 +115,7 @@ class ETL:
         self.subsample = subsample
         self.mapping = {}
         self.start_time = None
+        self.batch_size = batch_size
 
     def run(self):
         self.start_time = dt.datetime.now()
