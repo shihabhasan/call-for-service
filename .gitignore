@@ -14,6 +14,8 @@ tabgeohack/
 
 .DS_Store
 
+.ipynb_checkpoints/
+
 webapp_credentials.py
 components/
 cfsbackend/staticfiles/
