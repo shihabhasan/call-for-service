@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, connection
 
 # Create your views here.
 
@@ -35,6 +35,11 @@ class View(models.Model):
         raise NotImplementedError
 
 class MaterializedView(View):
+    @classmethod
+    def update_view(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("REFRESH MATERIALIZED VIEW {}".format(cls._meta.db_table))
+
     class Meta:
         abstract = True
         managed = False

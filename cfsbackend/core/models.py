@@ -15,6 +15,11 @@ from pg.view import MaterializedView
 from django.contrib.postgres.fields import ArrayField
 
 
+def update_materialized_views():
+    for view_cls in MaterializedView.__subclasses__():
+        view_cls.update_view()
+
+
 class ModelWithDescr(models.Model):
     descr = models.TextField("Description", unique=True)
 
@@ -127,12 +132,25 @@ class Call(models.Model):
     officer_response_time = models.DurationField(blank=True, null=True)
     overall_response_time = models.DurationField(blank=True, null=True)
 
+    def update_derived_fields(self):
+        self.month_received = self.time_received.month
+        self.hour_received = self.time_received.hour
+        self.year_received, self.week_received, _ = \
+            self.time_received.isocalendar()
+        self.dow_received = self.time_received.weekday()
+
+        if self.first_unit_arrive is not None and self.time_received is not None:
+            self.overall_response_time = self.first_unit_arrive - self.time_received
+
+        if self.first_unit_arrive is not None and self.first_unit_dispatch is not None:
+            self.officer_response_time = self.first_unit_arrive - self.first_unit_dispatch
+
     class Meta:
         db_table = 'call'
 
 
 class CallGeneralCategory(MaterializedView):
-    call_id = models.OneToOneField('Call', primary_key=True,
+    call = models.OneToOneField('Call', primary_key=True,
                                    related_name="categories")
     gun_related = models.BooleanField()
     gang_related = models.BooleanField()
@@ -321,6 +339,10 @@ class OutOfServicePeriod(models.Model):
     start_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField(blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
+
+    def update_derived_fields(self):
+        if self.start_time and self.end_time:
+            self.duration = self.end_time - self.start_time
 
     class Meta:
         db_table = 'out_of_service'
