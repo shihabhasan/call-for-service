@@ -129,7 +129,7 @@ class Call(models.Model):
     time_closed = models.DateTimeField(blank=True, null=True)
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
-    officer_response_time = models.DurationField(blank=True, null=True)
+    officer_response_time = models.DurationField(blank=True, null=True, db_index=True)
     overall_response_time = models.DurationField(blank=True, null=True)
 
     def update_derived_fields(self):
@@ -147,6 +147,9 @@ class Call(models.Model):
 
     class Meta:
         db_table = 'call'
+        index_together = [
+            ['dow_received', 'hour_received']
+        ]
 
 
 class CallGeneralCategory(MaterializedView):
