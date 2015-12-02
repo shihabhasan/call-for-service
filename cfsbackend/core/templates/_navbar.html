@@ -1,30 +1,17 @@
 <script id="navbar-template" type="text/html">
-    <nav class="top-bar">
-        <ul class="title-area">
-            <li class="name">
-                <h1><a href="/[[ filterHash ]]">DPD CFS</a></h1>
-            </li>
-            <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
-            <li class="toggle-topbar menu-icon">
-                <a href="#"><span>Menu</span></a>
-            </li>
-        </ul>
-        <section class="top-bar-section">
-            <ul class="left">
-                <li><a href="/map[[ filterHash ]]">Map</a></li>
-
-                <li class="has-dropdown">
-                    <a href="#">Dashboards</a>
-                    <ul class="dropdown">
-                        <li><a href="/call_volume[[ filterHash ]]">Call Volume</a></li>
-                        <li><a href="/response_time[[ filterHash ]]">Response Time</a></li>
-                    </ul>
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/[[ filterHash ]]">DPD CFS</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="/call_volume[[ filterHash ]]">Call Volume</a></li>
+                <li><a href="/response_time[[ filterHash ]]">Response Time</a>
                 </li>
-
-                <li><a href="/officer_allocation[[ filterHash ]]">Officer Allocation</a></li>
-                <li><a href="/predictive[[ filterHash ]]">Call Volume
-                    Forecasting (Preview)</a></li>
+                <li><a href="/map[[ filterHash ]]">Map</a></li>
+                <li><a href="/officer_allocation[[ filterHash ]]">Officer
+                    Allocation</a></li>
             </ul>
-        </section>
+        </div>
     </nav>
 </script>

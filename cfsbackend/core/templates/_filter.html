@@ -3,11 +3,11 @@
         <div class="filters">
             <div id="filter-description">
                 [[ #each describeFilter(filter) ]]
-                <div class="filter radius label">
+                <div class="filter btn">
                         <span>
                             [[ displayName(s) ]] [[ v ]] [[ displayValue(s, o) ]]
                         </span>
-                    <i class="fa fa-close clickable"
+                    <i class="icon icon-cross clickable"
                        on-click="removefilter:[[ k ]]"></i>
                 </div>
                 [[ else ]]
@@ -18,49 +18,61 @@
 
         <div>
             <form>
-                <select name="filter_subject"
-                        value="[[ addFilter.field ]]">
-                    [[ #each fields ]]
-                    <option value="[[ name ]]">[[ fieldLabel(.) ]]</option>
-                    [[ /each ]]
-                </select>
+                <div class="form-group">
+                    <select name="filter_subject"
+                            value="[[ addFilter.field ]]"
+                            class="form-control">
+                        [[ #each fields ]]
+                        <option value="[[ name ]]">[[ fieldLabel(.) ]]</option>
+                        [[ /each ]]
+                    </select>
+                </div>
 
-                <select name="filter_verb"
-                        value="[[ addFilter.verb ]]">
-                    [[ #each getLookups(addFilter.field) ]]
-                    <option value="[[ id ]]">[[ name ]]</option>
-                    [[ /each ]]
-                </select>
+                <div class="form-group">
+                    <select name="filter_verb"
+                            value="[[ addFilter.verb ]]"
+                            class="form-control">
+                        [[ #each getLookups(addFilter.field) ]]
+                        <option value="[[ id ]]">[[ name ]]</option>
+                        [[ /each ]]
+                    </select>
+                </div>
 
-                [[ #getFieldType(addFilter.field) ]]
-                [[ #if type == 'select' ]]
-                <select name="filter_object"
-                        value="[[ addFilter.value ]]">
-                    [[ #each options ]]
-                    <option value="[[ 0 ]]">[[ 1 ]]</option>
+                <div class="form-group">
+                    [[ #getFieldType(addFilter.field) ]]
+                    [[ #if type == 'select' ]]
+                    <select name="filter_object"
+                            value="[[ addFilter.value ]]"
+                            class="form-control">
+                        [[ #each options ]]
+                        <option value="[[ 0 ]]">[[ 1 ]]</option>
+                        [[ /each ]]
+                    </select>
+                    [[ elseif type == 'boolean' ]]
+                    <select name="filter_object"
+                            value="[[ addFilter.value ]]"
+                            class="form-control">
+                        <option value="True">True</option>
+                        <option value="False">False</option>
+                    </select>
+                    [[ elseif type == 'date' ]]
+                    <input name="filter_object" type="date"
+                           value="[[ addFilter.value ]]"
+                            class="form-control">
+                    [[ else ]]
+                    <input name="filter_object" type="text"
+                           value="[[ addFilter.value ]]"
+                            class="form-control">
+                    [[ /if ]]
                     [[ /each ]]
-                </select>
-                [[ elseif type == 'boolean' ]]
-                <select name="filter_object"
-                        value="[[ addFilter.value ]]">
-                    <option value="True">True</option>
-                    <option value="False">False</option>
-                </select>
-                [[ elseif type == 'date' ]]
-                <input name="filter_object" type="date"
-                       value="[[ addFilter.value ]]">
-                [[ else ]]
-                <input name="filter_object" type="text"
-                       value="[[ addFilter.value ]]">
-                [[ /if ]]
-                [[ /each ]]
-                <button class="button radius small"
+                </div>
+                <button class="btn btn-default"
                         on-click="addfilter">Add filter
                 </button>
 
                 [[ #loading ]]
                 <div class="loading-spinner">
-                    <i class="fa fa-3x fa-pulse fa-spinner"></i>
+                    <i class="icon icon-circular-graph icon-2x icon-pulse"></i>
                 </div>
                 [[ /loading ]]
             </form>

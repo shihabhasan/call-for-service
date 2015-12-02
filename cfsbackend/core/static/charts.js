@@ -25,7 +25,9 @@ var HorizontalBarChart = function (options) {
                     .y(function (d) { return d.volume })
                     .duration(250)
                     .showControls(false)
-                    .showLegend(false);
+                    .showLegend(false)
+                    .barColor(d3.scale.category20().range());
+
 
                 chart.yAxis.tickFormat(d3.format(",d"));
 

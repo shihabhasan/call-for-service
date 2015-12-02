@@ -6,16 +6,16 @@
     <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block templates %}
     <script id="dashboard-template" type="text/html">
         <NavBar filterHash="[[ filterHash ]]"/>
-        <div class="row dashboard">
-            <div class="large-3 columns">
+        <div class="row">
+            <div class="col-md-3">
                 <Filter/>
             </div>
-            <div class="large-9 columns">
+            <div class="col-md-9">
                 <div class="row">
-                    <div class="large-12 columns">
+                    <div class="col-md-12">
                         <div id="ort">
                             <chart-header title="Officer Response Time">
                                 <p>This chart shows us the median officer
@@ -26,9 +26,8 @@
                             {% include "_loading.html" %}
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="large-6 columns">
+
+                    <div class="col-md-6 col-lg-6">
                         <div id="ort-by-priority">
                             <chart-header
                                     title="Officer Mean Response Time By Priority">
@@ -40,9 +39,7 @@
                             <svg></svg>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="large-12 columns">
+                    <div class="col-md-12 col-lg-6">
                         <div id="ort-by-source">
                             <chart-header
                                     title="Officer Mean Response Time By Source">
@@ -55,9 +52,7 @@
                             <svg></svg>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="large-12 columns">
+                    <div class="col-md-12">
                         <div id="ort-by-beat">
                             <chart-header
                                     title="Officer Mean Response Time By Beat">

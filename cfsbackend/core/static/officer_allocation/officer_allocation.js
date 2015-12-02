@@ -3,7 +3,7 @@
 var url = "/api/officer_allocation/";
 
 var dashboard = new Page({
-    el: $('body').get(),
+    el: $('#dashboard').get(),
     template: "#dashboard-template",
     data: {
         data: {

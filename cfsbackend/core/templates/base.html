@@ -1,39 +1,41 @@
 {% load staticfiles %}
 {% load compress %}
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>CFS</title>
-    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CFS</title>
     {% compress css %}
-        <link type="text/css" rel="stylesheet"
-              href="{% static 'font-awesome/css/font-awesome.css' %}">
-        <link type="text/x-scss" rel="stylesheet"
-              href="{% static 'core.scss' %}">
+        <link rel="stylesheet" href="{% static 'dashboard/toolkit-light.css' %}">
+        <link rel="stylesheet" type="text/x-scss" href="{% static 'core.scss' %}">
         {% block stylesheets %}{% endblock %}
     {% endcompress %}
     {% block head %}{% endblock %}
 </head>
 <body>
+<div class="container-fluid container-max-1800" id="dashboard">
+    {% block content %}
+    {% endblock %}
+    <div class="row">
+        <footer class="col-md-12">RTI 2015</footer>
+    </div>
+</div>
+<!-- end container-fluid -->
 {% include "_navbar.html" %}
 {% include "_filter.html" %}
-{% block content %}
-{% endblock %}
-<div class="row">
-    <footer class="small-12 columns">RTI 2015</footer>
-</div>
+{% block templates %}{% endblock %}
+
 <script id="chart-header-template" type="text/html">
     <h3 class="chart-title">
-        [[ title ]]
-        <i class="fa fa-info-circle clickable" on-click="toggleExplanation"></i>
+        [[ title ]] <i class="fa fa-info-circle clickable"
+                       on-click="toggleExplanation"></i>
     </h3>
     [[ #unless hidden ]]
-        <div class="explanation">
-            [[ >content ]]
-        </div>
+    <div class="explanation">
+        [[ >content ]]
+    </div>
     [[ /unless ]]
 </script>
 
@@ -43,7 +45,7 @@
 </script>
 {% compress js %}
     <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-    <script src="{% static 'foundation/js/foundation.min.js' %}"></script>
+    <script src="{% static 'dashboard/toolkit.js' %}"></script>
     <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'moment/moment.js' %}"></script>
     <script src="{% static 'underscore/underscore.js' %}"></script>

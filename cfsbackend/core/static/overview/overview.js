@@ -10,7 +10,7 @@ var outFormats = {
 
 var dashboard = new Page(
     {
-        el: $('body').get(),
+        el: $('#dashboard').get(),
         template: "#dashboard-template",
         data: {
             'capitalize': function (string) {
@@ -175,7 +175,8 @@ var volumeByDOWChart = new HorizontalBarChart({
 
 var volumeByBeatChart = new HorizontalBarChart({
     el: "#volume-by-beat",
-    filter: "beat"
+    filter: "beat",
+    ratio: 0.75
 });
 
 var volumeByShiftChart = new HorizontalBarChart({
@@ -201,11 +202,11 @@ function buildVolumeByDateChart(data) {
                         margin: {"right": 50},
                         transitionDuration: 300,
                         useInteractiveGuideline: true,
-                        forceY: [0]
+                        forceY: [0],
+                        showLegend: false
                     });
 
             chart.xAxis
-                .axisLabel("Date")
                 .tickFormat(
                     function (d) {
                         return d3.time.format(outFormats[dashboard.get('data.precision')])(
@@ -306,48 +307,6 @@ function buildVolumeBySourceChart(data) {
                     if (e.data.id || e.data.id === 0) {
                         toggleFilter(dashboard, "initiated_by", e.data.id);
                     }
-                });
-
-            nv.utils.windowResize(chart.update);
-
-            return chart;
-        });
-}
-
-
-function buildVolumeByBeatChart(data) {
-    var parentWidth = d3.select("#volume-by-beat").node().clientWidth;
-
-    var width = parentWidth,
-        height = width * 2;
-
-    var svg = d3.select("#volume-by-beat svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(
-        function () {
-            var chart = nv.models.multiBarHorizontalChart()
-                .x(
-                    function (d) {
-                        return d.name
-                    })
-                .y(
-                    function (d) {
-                        return d.volume
-                    })
-                .duration(250)
-                .showControls(false)
-                .showLegend(false);
-
-            chart.yAxis.tickFormat(d3.format(",d"));
-
-            svg.datum(data).call(chart);
-
-            // More click filtering
-            svg.selectAll('.nv-bar').style('cursor', 'pointer');
-            chart.multibar.dispatch.on(
-                'elementClick', function (e) {
-                    toggleFilter(dashboard, "beat", e.data.id);
                 });
 
             nv.utils.windowResize(chart.update);

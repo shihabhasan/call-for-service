@@ -3,7 +3,7 @@
 var url = "/api/response_time/";
 
 var dashboard = new Page({
-    el: $('body').get(),
+    el: $('#dashboard').get(),
     template: "#dashboard-template",
     data: {
         'capitalize': function (string) {

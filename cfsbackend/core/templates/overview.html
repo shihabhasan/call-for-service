@@ -6,16 +6,16 @@
     <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block templates %}
     <script id="dashboard-template" type="text/html">
         <NavBar filterHash="[[ filterHash ]]"/>
-        <div class="row dashboard">
-            <div class="large-3 columns">
+        <div class="row">
+            <div class="col-md-3">
                 <Filter/>
             </div>
-            <div class="large-9 columns">
+            <div class="col-md-9">
                 <div class="row">
-                    <div class="medium-12 columns">
+                    <div class="col-md-12">
                         <div id="volume-by-date">
                             <chart-header title="Call Volume Over Time">
                                 <p>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="large-6 columns">
+                    <div class="col-md-6">
                         <div id="volume-by-dow">
                             <chart-header title="Call Volume By Day of Week">
                                 <p>
@@ -82,7 +82,7 @@
                             <svg></svg>
                         </div>
                     </div>
-                    <div class="large-6 columns">
+                    <div class="col-md-6">
                         <div id="volume-by-beat">
                             <chart-header title="Call Volume By Beat">
                                 This chart shows the call volume by Durham beat.
@@ -94,7 +94,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="medium-12 columns">
+                    <div class="col-md-12">
                         <div id="volume-by-nature">
                             <chart-header title="Call Volume By Nature">
                                 <p>This chart shows the call volume by the
@@ -112,7 +112,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="medium-12 columns">
+                    <div class="col-md-12">
                         <div id="day-hour-heatmap">
                             <chart-header title="Day/Hour Heatmap">
                                 <p>

@@ -7,18 +7,17 @@
     <link rel="stylesheet" href="{% static 'leaflet/dist/leaflet.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block templates %}
     <script id="map-template" type="text/html">
         <NavBar filterHash="[[ filterHash ]]"/>
-        <div class="row dashboard">
-            <div class="large-3 columns">
+        <div class="row">
+            <div class="col-md-3">
                 <Filter/>
             </div>
-            <div class="large-9 columns">
+            <div class="col-md-9">
                 <div id="map-container">
-                    <div id="legend"></div>
                     <div>
-                        <ul class="inline-list">
+                        <ul class="list-inline">
                             [[ #if showing == "call_volume" ]]
                             <li><strong>Call Volume</strong></li>
                             <li><a href="#" on-click="showing:officer_response_time">Officer Response Time</a></li>
@@ -28,6 +27,7 @@
                             [[ /if ]]
                         </ul>
                     </div>
+                    <div id="legend"></div>
                     <div id="map"></div>
                 </div>
             </div>

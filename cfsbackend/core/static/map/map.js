@@ -6,7 +6,7 @@ var geojson;
 
 var dashboard = new Page(
     {
-        el: $('body').get(),
+        el: $('#dashboard').get(),
         template: "#map-template",
         data: {
             showing: 'call_volume',
@@ -226,7 +226,7 @@ function updateMap(data) {
     function updateLegend(legendData) {
         var legend = d3.select('#legend');
         legend.selectAll("ul").remove();
-        var list = legend.append('ul').classed('inline-list', true);
+        var list = legend.append('ul').classed('list-inline', true);
         var keys = list.selectAll('li.key').data(legendData);
         keys.enter()
             .append('li')

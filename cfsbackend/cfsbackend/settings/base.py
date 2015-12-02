@@ -149,7 +149,6 @@ BOWER_INSTALLED_APPS = (
     'colorbrewer#1.0.0',
     'd3#3.5.6',
     'font-awesome#4.4.0',
-    'foundation#5.5.2',
     'jquery#2.1.4',
     'leaflet#0.7.7',
     'moment#2.10.6',
