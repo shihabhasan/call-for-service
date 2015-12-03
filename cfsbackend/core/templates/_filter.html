@@ -1,3 +1,53 @@
+<script id="filter-button-template" type="text/html">
+    <div [[ #if filterValue(field, filter) ]]
+         style="display: inline-block; position: relative; top: 2.15em; margin-top: -2.15em;"
+         [[ else ]]
+         style="display: inline-block;"
+         [[ /if ]]>
+    <div class="btn-group">
+        <button type="button" class="btn [[ buttonClass(field, filter) ]] dropdown-toggle"
+                data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
+            [[ #if filterValue(field, filter) ]]
+                [[ displayName(field) ]]: [[ displayValue(field, filterValue(field, filter)) ]]
+            [[ else ]]
+            [[ displayName(field) ]]
+            [[ /if ]]
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+            [[ #getFieldType(field) ]]
+            [[ #if type == 'select' ]]
+            [[ #each options ]]
+                <li><a href="#" data-value="[[ 0 ]]">[[ 1 ]]</li>
+            [[ /each ]]
+            [[ elseif type == 'boolean' ]]
+                <li><a href="#" data-value="True">True</a></li>
+                <li><a href="#" data-value="False">False</a></li>
+            [[ /if ]]
+            [[ /each ]]
+        </ul>
+    </div>
+    [[ #if filterValue(field, filter) ]]
+    <div style="position: relative; text-align: left;">
+        <a href="#">Clear</a>
+    </div>
+    [[ /if ]]
+    </div>
+
+</script>
+
+<script id="filters-template" type="text/html">
+    <div class="filters m-b text-md-center">
+        <filter-button field="time_received" />
+        <filter-button field="shift" />
+        <filter-button field="dow_received" />
+        <filter-button field="beat" />
+        <filter-button field="initiated_by" />
+        <filter-button field="cancelled" />
+    </div>
+</script>
+
 <script id="filter-template" type="text/html">
     <div class="filter-sidebar">
         <div class="filters">
@@ -58,11 +108,11 @@
                     [[ elseif type == 'date' ]]
                     <input name="filter_object" type="date"
                            value="[[ addFilter.value ]]"
-                            class="form-control">
+                           class="form-control">
                     [[ else ]]
                     <input name="filter_object" type="text"
                            value="[[ addFilter.value ]]"
-                            class="form-control">
+                           class="form-control">
                     [[ /if ]]
                     [[ /each ]]
                 </div>

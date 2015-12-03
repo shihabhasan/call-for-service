@@ -25,6 +25,62 @@ var lookupMap = {
     "lte": {id: "<=", name: "is less than or equal to"}
 };
 
+var FilterButton = Ractive.extend({
+    template: '#filter-button-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    data: function () {
+        return {
+            displayName: displayName,
+            getFieldType: function (fieldName) {
+                var field = findField(fieldName);
+                if (field.rel !== undefined) {
+                    return {
+                        type: "select",
+                        options: filterForm.refs[field.rel]
+                    };
+                } else if (field.type === "select") {
+                    return {type: field.type, options: field.options}
+                } else {
+                    return {type: field.type};
+                }
+            },
+            buttonClass: function (field, filter) {
+                if (filterValue(field, filter)) {
+                    return "btn-success";
+                } else {
+                    return "btn-primary";
+                }
+            },
+            filterValue: filterValue,
+            displayValue: displayValue
+        }
+    }
+});
+
+var Filters = Ractive.extend({
+    components: {'filter-button': FilterButton},
+    template: '#filters-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    data: {
+        filter: {}
+    },
+    oninit: function () {
+        var component = this;
+
+        function updateFilter() {
+            if (window.location.hash) {
+                component.set('filter', parseQueryParams(window.location.hash.slice(1)));
+            } else {
+                component.set('filter', {});
+            }
+        }
+
+        updateFilter();
+        $(window).on("hashchange", updateFilter);
+    },
+});
 
 var Filter = Ractive.extend({
     template: '#filter-template',
@@ -187,7 +243,9 @@ var Filter = Ractive.extend({
 });
 
 var Page = Ractive.extend({
-    components: {'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader},
+    components: {
+        'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader, 'Filters': Filters
+    },
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
     data: {
@@ -275,6 +333,10 @@ function displayValue(fieldName, value) {
     }
 
     return dValue;
+}
+
+function filterValue(fieldName, filter) {
+    return filter[fieldName];
 }
 
 function describeFilter(filter) {
