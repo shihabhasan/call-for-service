@@ -122,8 +122,6 @@ class ETL:
         self.clear_database()
 
         self.calls = self.load_calls()
-        self.call_log = self.load_call_log()
-        self.in_service = self.load_in_service()
 
         self.mapping['City'] = self.create_from_calls(column="citydesc",
                                                       model=City,
@@ -152,7 +150,7 @@ class ETL:
             mapping={"descr": "Description"},
             code_column="code_agcy",
             to_field="call_source_id")
-        self.mapping['CallUnit'] = self.create_call_units()
+        self.mapping['CallUnit'] = self.create_call_units_from_calls()
         self.mapping['CloseCode'] = self.create_from_lookup(
             filename="inmain.closecode.tsv",
             model=CloseCode,
@@ -185,19 +183,26 @@ class ETL:
             to_field="oos_code_id"
         )
         self.mapping['NoteAuthor'] = self.create_note_authors()
-        self.mapping['Shift'] = self.create_shifts()
-        self.mapping['Officer'] = self.create_officers()
-        self.mapping['Transaction'] = self.create_transactions()
-
         self.connect_beats_districts_sectors()
         self.connect_call_unit_squads()
-
         self.create_calls()
+        self.calls = None
 
-        self.shrink_call_log()
+        self.in_service = self.load_in_service()
+        self.mapping['CallUnit'] = self.create_call_units_from_in_service()
+        self.mapping['Shift'] = self.create_shifts()
+        self.mapping['Officer'] = self.create_officers()
         self.create_shift_units()
-        self.create_out_of_service()
+        self.in_service = None
+
+        self.call_log = self.load_call_log()
+        self.shrink_call_log()
+        self.mapping['CallUnit'] = self.create_call_units_from_call_log()
+        self.mapping['Transaction'] = self.create_transactions()
         self.create_call_log()
+        self.call_log = None
+
+        self.create_out_of_service()
 
         self.log("Updating materialized views")
         update_materialized_views()
@@ -256,15 +261,30 @@ class ETL:
             model(code=k, **v) for k, v in model_data.items())
         return dict(model.objects.values_list(from_field, to_field))
 
-    def create_call_units(self):
-        self.log("Creating call units...")
-        units = list(self.calls.primeunit.values) + list(
-            self.calls.firstdisp.values) + list(self.calls.reptaken.values)
-        units += list(self.in_service.unitcode.values)
-        units += list(self.call_log.unitcode.values)
-        unitset = {unit.strip() for unit in units if
+    def create_call_units_from_calls(self):
+        self.log("Creating call units from calls...")
+        return self.create_call_units_from_values(
+            list(self.calls.primeunit.values) +
+            list(self.calls.firstdisp.values) +
+            list(self.calls.reptaken.values))
+
+    def create_call_units_from_in_service(self):
+        self.log("Creating call units from in service...")
+        return self.create_call_units_from_values(
+            list(self.in_service.unitcode.values))
+
+    def create_call_units_from_call_log(self):
+        self.log("Creating call units from call log...")
+        return self.create_call_units_from_values(
+            list(self.call_log.unitcode.values))
+
+    def create_call_units_from_values(self, values):
+        current_unit_descrs = set(
+            CallUnit.objects.values_list('descr', flat=True))
+        unitset = {unit.strip() for unit in values if
                    unit and not isnan(unit) and unit.strip()}
-        CallUnit.objects.bulk_create(CallUnit(descr=unit) for unit in unitset)
+        units_to_create = unitset - current_unit_descrs
+        CallUnit.objects.bulk_create(CallUnit(descr=unit) for unit in units_to_create)
         return dict(CallUnit.objects.values_list('descr', 'call_unit_id'))
 
     def create_note_authors(self):
@@ -603,7 +623,9 @@ class ETL:
 
         groups = unique_clean_values(df['group'])
         NatureGroup.objects.bulk_create(NatureGroup(descr=g) for g in groups)
-        self.mapping['NatureGroup'] = dict(NatureGroup.objects.values_list('descr', 'nature_group_id'))
+        self.mapping['NatureGroup'] = dict(
+            NatureGroup.objects.values_list('descr', 'nature_group_id'))
 
         for idx, row in df.iterrows():
-            Nature.objects.filter(descr=row['nature']).update(nature_group_id=self.map('NatureGroup', row['group']))
+            Nature.objects.filter(descr=row['nature']).update(
+                nature_group_id=self.map('NatureGroup', row['group']))
