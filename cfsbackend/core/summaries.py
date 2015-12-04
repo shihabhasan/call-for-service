@@ -136,11 +136,29 @@ class OfficerActivityOverview:
         # Keys have to be strings to transmit to the client
         return {str(k): v for k, v in agg_result.items()}
 
+    def on_duty_by_beat(self):
+        results = self.qs \
+            .filter(activity_type__descr='ON DUTY') \
+            .annotate(on_duty=Count('call_unit__beat__descr')) \
+            .annotate(beat=F('call_unit__beat__descr')) \
+            .values('beat', 'on_duty')
+        return results
+
+    def on_duty_by_district(self):
+        results = self.qs \
+            .filter(activity_type__descr='ON DUTY') \
+            .annotate(on_duty=Count('call_unit__district__descr')) \
+            .annotate(district=F('call_unit__district__descr')) \
+            .values('district', 'on_duty')
+        return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
             'allocation_over_time': self.allocation_over_time(),
+            'on_duty_by_beat': self.on_duty_by_beat(),
+            'on_duty_by_district': self.on_duty_by_district(),
         }
 
 

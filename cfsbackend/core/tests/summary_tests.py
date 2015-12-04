@@ -5,7 +5,7 @@ from dateutil.parser import parse as dtparse
 from core.summaries import OfficerActivityOverview, CallVolumeOverview
 from .test_helpers import assert_list_equiv, create_call, q, create_officer_activity
 from ..models import Beat, CallUnit, OfficerActivity, Nature, \
-    OfficerActivityType, CallSource, District
+    OfficerActivityType, CallSource, District, Call
 
 
 class OfficerActivityOverviewTest(TestCase):
@@ -136,13 +136,13 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(type(list(inner_value.keys())[0]), str)
         self.assertEqual(type(list(inner_value.values())[0]), int)
 
-    def test_distinguishes_activities(self):
+    def test_allocation_over_time_distinguishes_activities(self):
         "Make sure we've covered all the types of activities."
         overview = OfficerActivityOverview(q(''))
-        results = overview.to_dict()['allocation_over_time']
+        over_time_results = overview.to_dict()['allocation_over_time']
 
         self.assertEqual(
-            sorted(set([k for time in results for k in results[time].keys()])),
+            sorted(set([k for time in over_time_results for k in over_time_results[time].keys()])),
             ['IN CALL - CITIZEN INITIATED', 'IN CALL - DIRECTED PATROL',
              'IN CALL - SELF INITIATED', 'ON DUTY', 'OUT OF SERVICE', 'PATROL'
              ])
@@ -150,16 +150,20 @@ class OfficerActivityOverviewTest(TestCase):
     def test_evaluates_no_activity(self):
         # Should return 0 activities
         overview = OfficerActivityOverview(q('time__gte=2015-01-01'))
-        results = overview.to_dict()['allocation_over_time']
+        over_time_results = overview.to_dict()['allocation_over_time']
+        by_beat_results = overview.to_dict()['on_duty_by_beat']
+        by_district_results = overview.to_dict()['on_duty_by_district']
 
-        self.assertEqual(results, [])
+        self.assertEqual(list(over_time_results), [])
+        self.assertEqual(list(by_beat_results), [])
+        self.assertEqual(list(by_district_results), [])
 
     def test_evaluates_one_activity(self):
-        # Should return 1 activity (a6)
+        # Should return 1 busy activity (a6), 1 on_duty activity (a12)
         overview = OfficerActivityOverview(q('time__gte=2014-01-17'))
-        results = overview.to_dict()['allocation_over_time']
+        over_time_results = overview.to_dict()['allocation_over_time']
 
-        correct_results = {
+        correct_over_time_results = {
             str(dtparse('9:00').time()):
                 {
                     'IN CALL - CITIZEN INITIATED': {
@@ -195,11 +199,31 @@ class OfficerActivityOverviewTest(TestCase):
                 }
         }
 
-        self.assertEqual(sorted(results.keys()),
-                         sorted(correct_results.keys()))
+        self.assertEqual(sorted(over_time_results.keys()),
+                         sorted(correct_over_time_results.keys()))
 
-        self.assertEqual(sorted(results.items()),
-                         sorted(correct_results.items()))
+        self.assertEqual(sorted(over_time_results.values()),
+                         sorted(correct_over_time_results.values()))
+
+        by_beat_results = overview.to_dict()['on_duty_by_beat']
+
+        correct_by_beat_results = [
+            {'beat': '2', 'on_duty': 1},
+        ]
+
+        by_district_results = overview.to_dict()['on_duty_by_district']
+
+        correct_by_district_results = [
+            {'district': 'B', 'on_duty': 1},
+        ]
+
+        for results, correct in (
+                (by_beat_results, correct_by_beat_results),
+                (by_district_results, correct_by_district_results)):
+            for d in correct:
+                self.assertIn(d, results)
+            for d in results:
+                self.assertIn(d, correct)
 
 
 class CallVolumeOverviewTest(TestCase):
