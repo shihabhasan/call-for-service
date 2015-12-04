@@ -1,5 +1,3 @@
--- fairly long runtime, ~137 secs
-
 DROP MATERIALIZED VIEW IF EXISTS call_general_category;
 
 CREATE MATERIALIZED VIEW call_general_category AS
@@ -52,23 +50,6 @@ mentally_ill_ids AS (
     ) OR
     (upper(body) LIKE '%BAKER ACT%')
 ),
-homeless_ids AS (
-  SELECT distinct call_id
-  FROM note
-  WHERE
-    -- can't check for the word "shelter" here because it's used too generally
-    -- ex. women's shelter, animal shelter, a general building as shelter
-    (upper(body) LIKE '%HOMELESS%') OR
-    (upper(body) LIKE '%VAGRANT%') OR
-    (upper(body) LIKE '%DRIFTER%') OR
-    -- apparently "transient" also describes something similar to a stroke
-    (upper(body) LIKE '%TRANSIENT%' AND upper(body) NOT LIKE '%ISCHEMIC%') OR
-    -- big homeless shelter in downtown
-    (upper(body) LIKE '%URBAN MINISTRIES%') OR
-    (upper(body) LIKE '%BEGGING%') OR
-    (upper(body) LIKE '%BEGG[AE]R%') OR 
-    (upper(body) LIKE '%PANHANDL%')
-),    
 officer_citizen_conflict_ids AS (
   SELECT distinct call_id
   FROM note
@@ -128,10 +109,6 @@ SELECT
     WHEN call_id IN (SELECT * FROM mentally_ill_ids) THEN TRUE
     ELSE FALSE
   END AS mental_illness_related,
-  CASE
-    WHEN call_id IN (SELECT * FROM homeless_ids) THEN TRUE
-    ELSE FALSE
-  END AS homeless_related,
   CASE
     WHEN call_id IN (SELECT * FROM officer_citizen_conflict_ids) THEN TRUE
     ELSE FALSE

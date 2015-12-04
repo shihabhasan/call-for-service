@@ -10,6 +10,8 @@
     - "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main"
 - name: Update apt cache
   apt: update_cache=yes
+  tags: apt-cache
+
 - name: Check if packages need to be autoremoved
   command: apt-get --dry-run autoremove
   register: check_autoremove
