@@ -139,17 +139,19 @@ class OfficerActivityOverview:
     def on_duty_by_beat(self):
         results = self.qs \
             .filter(activity_type__descr='ON DUTY') \
-            .annotate(on_duty=Count('call_unit__beat__descr')) \
-            .annotate(beat=F('call_unit__beat__descr')) \
-            .values('beat', 'on_duty')
+            .annotate(beat=F('call_unit__beat__descr'),
+                      beat_id=F('call_unit__beat_id')) \
+            .values('beat', 'beat_id') \
+            .annotate(on_duty=Count('beat'))
         return results
 
     def on_duty_by_district(self):
         results = self.qs \
             .filter(activity_type__descr='ON DUTY') \
-            .annotate(on_duty=Count('call_unit__district__descr')) \
-            .annotate(district=F('call_unit__district__descr')) \
-            .values('district', 'on_duty')
+            .annotate(district=F('call_unit__district__descr'),
+                      district_id=F('call_unit__district_id')) \
+            .values('district', 'district_id') \
+            .annotate(on_duty=Count('district'))
         return results
 
     def to_dict(self):
