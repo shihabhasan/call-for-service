@@ -6,7 +6,7 @@ from django.test import TestCase
 from ..filters import create_filterset, create_rel_filterset, \
     OfficerActivityFilterSet
 from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode, \
-    OfficerActivity, Nature, OfficerActivityType
+        OfficerActivity, Nature, OfficerActivityType, Beat
 
 
 def test_create_simple_filterset():
@@ -70,8 +70,17 @@ class OfficerActivityFilterSetTest(TestCase):
         self.call2 = Call.objects.create(call_id=2,
                                          time_received='2014-03-18T3:00',
                                          nature=self.n2)
-        self.cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
-        self.cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
+
+        self.b1 = Beat.objects.create(beat_id=1, descr='B1')
+        self.b2 = Beat.objects.create(beat_id=2, descr='B2')
+
+        self.d1 = District.objects.create(district_id=1, descr='D1')
+        self.d2 = District.objects.create(district_id=2, descr='D2')
+
+        self.cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1',
+                                           beat=self.b1, district=self.d1)
+        self.cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2',
+                                           beat=self.b2, district=self.d2)
 
         self.at1 = OfficerActivityType.objects.create(
             officer_activity_type_id=1,
@@ -121,78 +130,32 @@ class OfficerActivityFilterSetTest(TestCase):
                                                  call=None)
 
     def test_call_unit_filter(self):
-        filter_set = OfficerActivityFilterSet(data=QueryDict("call_unit=1"),
-                                              queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a1, qs)
-        self.assertIn(self.a3, qs)
-        self.assertIn(self.a5, qs)
-        self.assertEqual(3, len(qs))
+        self._test_query("call_unit=1", [self.a1, self.a3, self.a5])
 
-        filter_set = OfficerActivityFilterSet(data=QueryDict("call_unit!=1"),
-                                              queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a2, qs)
-        self.assertIn(self.a4, qs)
-        self.assertIn(self.a6, qs)
-        self.assertEqual(3, len(qs))
-
-    def test_call_filter(self):
-        # Here we use nature as a proxy for call_id, since we can't filter on
-        # that; we just need to uniquely identify the call for this test case.
-        filter_set = OfficerActivityFilterSet(data=QueryDict("call__nature=1"),
-                                              queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a1, qs)
-        self.assertIn(self.a2, qs)
-        self.assertEqual(2, len(qs))
-
-        filter_set = OfficerActivityFilterSet(data=QueryDict("call__nature!=1"),
-                                              queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a3, qs)
-        self.assertIn(self.a4, qs)
-        self.assertIn(self.a5, qs)
-        self.assertIn(self.a6, qs)
-        self.assertEqual(4, len(qs))
+        self._test_query("call_unit!=1", [self.a2, self.a4, self.a6])
 
     def test_time_filter(self):
-        filter_set = OfficerActivityFilterSet(
-            data=QueryDict("time__gte=2014-01-16"),
-            queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a4, qs)
-        self.assertIn(self.a5, qs)
-        self.assertIn(self.a6, qs)
-        self.assertEqual(3, len(qs))
+        self._test_query("time__gte=2014-01-16", [self.a4, self.a5, self.a6])
+    
+        self._test_query("time__lte=2014-01-15", [self.a1, self.a2, self.a3])
+        
+    def test_call_unit_beat_filter(self):
+        self._test_query("call_unit__beat=1", [self.a1, self.a3, self.a5])
 
-        filter_set = OfficerActivityFilterSet(
-            data=QueryDict("time__lte=2014-01-15"),
-            queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a1, qs)
-        self.assertIn(self.a2, qs)
-        self.assertIn(self.a3, qs)
-        self.assertEqual(3, len(qs))
+        self._test_query("call_unit__beat!=1", [self.a2, self.a4, self.a6])
 
-    def test_activity_type_filter(self):
-        filter_set = OfficerActivityFilterSet(data=QueryDict("activity_type=1"),
-                                              queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a1, qs)
-        self.assertIn(self.a2, qs)
-        self.assertIn(self.a3, qs)
-        self.assertIn(self.a4, qs)
-        self.assertEqual(4, len(qs))
+    def test_call_unit_district_filter(self):
+        self._test_query("call_unit__district=1", [self.a1, self.a3, self.a5])
 
-        filter_set = OfficerActivityFilterSet(
-            data=QueryDict("activity_type!=1"),
-            queryset=OfficerActivity.objects.all())
-        qs = filter_set.filter()
-        self.assertIn(self.a5, qs)
-        self.assertIn(self.a6, qs)
-        self.assertEqual(2, len(qs))
+        self._test_query("call_unit__district!=1", [self.a2, self.a4, self.a6])
 
+    def _test_query(self, query, correct_results):
+        filter_set = OfficerActivityFilterSet(data=QueryDict(query),
+                queryset=OfficerActivity.objects.all())
+        qs = filter_set.filter()
+        for obj in correct_results:
+            self.assertIn(obj, qs)
+        self.assertEqual(len(correct_results), len(qs))
 
 class CallFilterSetTest(TestCase):
     def setUp(self):

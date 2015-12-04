@@ -107,11 +107,16 @@ def create_filterset(model, definition, name=None):
 
     return type(name, (ModelFilterSet,), attrs)
 
+class SquadFilterSet(ModelFilterSet):
+    class Meta:
+        model = models.Squad
+        fields = ["squad_id"]
+
 
 class CallUnitFilterSet(ModelFilterSet):
     class Meta:
         model = models.CallUnit
-        fields = ["call_unit_id", "squad"]
+        fields = ["call_unit_id", "squad", "beat", "district"]
 
 
 CallFilterSet = create_filterset(
@@ -159,9 +164,9 @@ OfficerActivityFilterSet = create_filterset(
     models.OfficerActivity,
     [
         {"name": "call_unit", "rel": "CallUnit"},
+        {"name": "call_unit__beat", "label": "Beat", "rel": "Beat"},
+        {"name": "call_unit__district", "label": "District", "rel": "District"},
         {"name": "time", "type": "date", "lookups": ["gte", "lte"],
          "default_lookup": "gte"},
-        {"name": "activity_type", "rel": "OfficerActivityType"},
-        {"name": "call", "rel": "Call"}
     ]
 )
