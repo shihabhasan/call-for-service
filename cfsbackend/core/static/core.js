@@ -59,7 +59,6 @@ var FilterButton = Ractive.extend({
 
             // todo set up ranges
             var ranges = {
-                "Clear": [null, null],
                 "Last 7 Days": [
                     pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD"),
                     pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD")
@@ -76,9 +75,11 @@ var FilterButton = Ractive.extend({
 
             var options = {
                 locale: {
-                    format: 'YYYY-MM-DD'
+                    format: 'YYYY-MM-DD',
+                    cancelLabel: "Clear"
                 },
-                ranges: ranges
+                ranges: ranges,
+                cancelClass: "btn-danger"
             };
             if (value) {
                 options.startDate = value.gte;
@@ -89,21 +90,21 @@ var FilterButton = Ractive.extend({
 
             $button.on('apply.daterangepicker', function (event, picker) {
                 filter = _.clone(filter);
-                console.log(picker.startDate);
 
-                if (picker.startDate.isValid()) {
-                    var dates = {
-                        gte: picker.startDate.format('YYYY-MM-DD'),
-                        lte: picker.endDate.format('YYYY-MM-DD')
-                    };
+                var dates = {
+                    gte: picker.startDate.format('YYYY-MM-DD'),
+                    lte: picker.endDate.format('YYYY-MM-DD')
+                };
 
-                    filter[field] = dates;
-                } else {
-                    filter = _.omit(filter, field);
-                }
-
+                filter[field] = dates;
                 updateHash(buildQueryParams(filter));
             });
+
+            $button.on('cancel.daterangepicker', function (event, picker) {
+                filter = _.clone(filter);
+                filter = _.omit(filter, field);
+                updateHash(buildQueryParams(filter));
+            })
         }
     }
 });
@@ -414,7 +415,7 @@ function displayValue(fieldName, value) {
         dValue = choiceMap[value];
     }
 
-    if (field.type === "daterange") {
+    if (field.type === "daterange" && typeof value == "object" && value['gte'] && value['lte']) {
         dValue = value['gte'] + " to " + value['lte'];
     }
 
