@@ -193,7 +193,7 @@ class CallUnit(ModelWithDescr):
     squad = models.ForeignKey('Squad', blank=True, null=True,
                               db_column="squad_id",
                               related_name="squad")
-    
+
     class Meta:
         db_table = 'call_unit'
 
