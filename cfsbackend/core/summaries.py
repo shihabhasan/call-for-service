@@ -137,6 +137,7 @@ class OfficerActivityOverview:
         return {str(k): v for k, v in agg_result.items()}
 
     def on_duty_by_beat(self):
+<<<<<<< HEAD
         cursor = connection.cursor()
 
         cte_sql, params = self.qs.query.sql_with_params()
@@ -215,7 +216,6 @@ class OfficerActivityOverview:
     
         cursor.execute(sql, params)
         results = dictfetchall(cursor)
-
         return results
 
     def to_dict(self):
