@@ -4,3 +4,5 @@
 !.gitignore
 # And the readme
 !README.txt
+# And nature groupings
+!nature_grouping.csv

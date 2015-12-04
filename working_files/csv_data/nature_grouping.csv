@@ -1,0 +1,151 @@
+nature,group
+ABANDONED VEHICLE,Traffic-Related Call
+ABANDONMENT,Domestic/Family Call
+ABDOMINAL,Medical/Fire Assist
+ABDUCTION OR KIDNAPPING,Domestic/Family Call
+ABUSE,Domestic/Family Call
+ALARM,Alarm Activity
+ALCOHOL VIOLATION,Quality of Life
+ANIMAL PROBLEM,Quality of Life
+ARMED ROBBERY,In-Progress Violent
+ASSAULT,All Other Violent
+ASSAULT EMS,Medical/Fire Assist
+ASSIST EMS,Medical/Fire Assist
+ASSIST FIRE,Medical/Fire Assist
+ASSIST OTHER AGENCY,General Assistance
+ASSIST PERSON,General Assistance
+ATTEMPT TO LOCATE,General Assistance
+ATTEMPTED SUICIDE,Mental Health
+BANK ALARM,Alarm Activity
+BANK ALARM ATM,Alarm Activity
+BANK ROBBERY,In-Progress Violent
+BARKING DOG,Quality of Life
+BOMB THREAT,In-Progress Violent
+BREAK IN,All Other Property
+BREAK IN IN PROGRESS,In-Progress Property
+BREAK IN VEHICLE,All Other Property
+BREAK IN VEHICLE IN PROGRESS,In-Progress Property
+CARDIAC OR RESP ARREST,Medical/Fire Assist
+CARELESS AND RECKLESS,Traffic-Related Call
+CARJACKING,In-Progress Violent
+CHASE,In-Progress Other
+COMMON LAW ROBBERY,All Other Violent
+CRASH NOTIFICATION,Traffic-Related Call
+CRIME SCENE INVESTIGATION,Police Administrative
+CRISIS,Mental Health
+DAMAGE TO PROPERTY,All Other Property
+DECEASED PERSON PD,Deceased Person
+DIRECT TRAFFIC,Traffic-Related Call
+DIRECTED PATROL,Directed Patrol
+DISTURBANCE,Disturbance Call
+DISTURBANCE WITH WEAPON,Disturbance Call
+DOMESTIC VIOLENCE,Domestic/Family Call
+DOMESTIC WITH A WEAPON,Domestic/Family Call
+DROWNING,Medical/Fire Assist
+DRUGS,Quality of Life
+ESCORT,Traffic-Related Call
+EXPLOSION,Medical/Fire Assist
+EXTRACATION,Medical/Fire Assist
+FALL,Medical/Fire Assist
+FEMS FIELD UNIT EMERGENCY,Medical/Fire Assist
+FIGHT,Disturbance Call
+FLAG DOWN,General Assistance
+FOLLOW UP,Police Administrative
+FOOT  PATROL,Directed Patrol
+FOOT PURSUIT,In-Progress Other
+FOUND PERSON,Domestic/Family Call
+FRAUD,All Other Property
+GAMBLING,Quality of Life
+GUNSHOT WOUND,In-Progress Violent
+GUNSHOT WOUND AT HOSPITAL,All Other Violent
+GUNSHOT WOUND NO EMS,All Other Violent
+HANG UP,Hang Up Call
+HANG UP WIRELESS PHASE 1,Hang Up Call
+HANG UP WIRELESS PHASE 2,Hang Up Call
+HARASSMENT,All Other Violent
+HAZMAT,Medical/Fire Assist
+HIT AND RUN,Traffic-Related Call
+HOLD UP ALARM,Alarm Activity
+HOME INVASION,In-Progress Violent
+HOSTAGE,In-Progress Violent
+INDECENT,Sex Offenses
+INTOXICATED DRIVER,Traffic-Related Call
+INTOXICATED PERSON,Quality of Life
+INVOLUNTARY COMMITMENT,Mental Health
+KNOCK AND TALK,Proactive Policing
+LARCENY,All Other Property
+LARCENY OF VEHICLE,All Other Property
+LICENSE CHECK,Proactive Policing
+LITTER,Quality of Life
+LOCK IN OR LOCK OUT,General Assistance
+LOJACK,All Other Property
+LOST OR FOUND PROPERTY,All Other Property
+MEDICAL ALARM,Medical/Fire Assist
+MISSING PERSON,Domestic/Family Call
+MOTOR VEHICLE ACCIDENT,Traffic-Related Call
+MOTOR VEHICLE ACCIDENT EXTRICA,Traffic-Related Call
+MOTOR VEHICLE COLLISION FIRE,Traffic-Related Call
+NEGLECT,Domestic/Family Call
+NOISE COMPLAINT,Quality of Life
+NOTIFY POLICE,Police Administrative
+OFFICER NEEDS ASSISTANCE,In-Progress Other
+OFFICER STAND BY,Domestic/Family Call
+OVERDOSE,Medical/Fire Assist
+OVERDOSE OR POISONING,Medical/Fire Assist
+PANHANDLING OR SOLICITATION,Quality of Life
+PANIC ALARM,Alarm Activity
+PAPER TRANSPORT ONLY,Mental Health
+PARENTAL OR CUSTODIAL ABDUCTIO,Domestic/Family Call
+PARKING VIOLATION,Traffic-Related Call
+PENETRATING TRAUMA,Medical/Fire Assist
+PROPERTY CHECK,General Assistance
+PROSTITUTION,Quality of Life
+PSYCHIATRIC,Mental Health
+RAID,Proactive Policing
+RAPE KIT,Police Administrative
+RAPE NO EMS,Sex Offenses
+RECOVERED VEHICLE,All Other Property
+ROUND UP,Warrant Service
+RUNAWAY,Domestic/Family Call
+SCHOOL CROSSING,Traffic-Related Call
+SEXUAL ASSAULT,Sex Offenses
+SHOPLIFTER,All Other Property
+SIGNAL 70,In-Progress Violent
+SIGNAL LIGHT MALFUNCTIONING,Traffic-Related Call
+SOUND OF SHOTS,Quality of Life
+STABBED,In-Progress Violent
+STABBING,In-Progress Violent
+STABBING NO EMS,All Other Violent
+STALKING,All Other Violent
+STOLEN VEHICLE,All Other Property
+STRUCTURE FIRE,Medical/Fire Assist
+STRUCTURE FIRE SUBJECT TRAPPED,Medical/Fire Assist
+SUICIDE THREAT,Mental Health
+SUSPICIOUS  ACTIVITY,Disturbance Call
+SUSPICIOUS PACKAGE,In-Progress Violent
+SUSPICIOUS PERSON,Disturbance Call
+SUSPICIOUS PERSON OR ACTIVITY,Proactive Policing
+SUSPICIOUS PERSON WITH WEAPON,In-Progress Violent
+SUSPICIOUS VEHICLE,Disturbance Call
+THREATS,All Other Violent
+TRAFFIC HAZARD,Traffic-Related Call
+TRAFFIC STOP - TRAFFIC,Proactive Policing
+TRAIN OR RAIL COLLISON,Traffic-Related Call
+TRANSPORTATION ACCIDENT,Traffic-Related Call
+TRANSPORTATION ACCIDENT EX,Traffic-Related Call
+TRAPPED NO INJURY,Medical/Fire Assist
+TRESPASS OR UNWANTED,Disturbance Call
+UNAUTHORIZED USE,All Other Property
+UNKNOWN FIRE,Medical/Fire Assist
+UNKNOWN PROBLEM,Unknown Problem
+UNKNOWN PROBLEM EMS,Medical/Fire Assist
+UNKNOWN PROBLEM POLICE,Unknown Problem
+VANDALISM,All Other Property
+VEHICLE ALARM,Alarm Activity
+VEHICLE FIRE SUBJECT TRAPPED,Medical/Fire Assist
+VEHICLE OVERTURNED,Traffic-Related Call
+VEHICLE STOP,Proactive Policing
+WANTED PERSON,Warrant Service
+WARRANT OR SUBPOENA SERVICE,Warrant Service
+WEAPONS VIOLATION,Disturbance Call
+WELFARE CHECK,General Assistance

@@ -14,6 +14,8 @@ tabgeohack/
 
 .DS_Store
 
+.ipynb_checkpoints/
+
 webapp_credentials.py
 components/
 cfsbackend/staticfiles/
@@ -139,3 +141,10 @@ cfsbackend/webpack-stats.json
 .direnv/
 .envrc
 cfsbackend/cfsbackend/staticfiles/
+
+# Created by https://www.gitignore.io/api/ipythonnotebook
+
+### IPythonNotebook ###
+# Temporary data
+.ipynb_checkpoints/
+
