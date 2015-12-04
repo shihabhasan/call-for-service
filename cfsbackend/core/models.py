@@ -190,9 +190,9 @@ class CallSource(ModelWithDescr):
 
 class CallUnit(ModelWithDescr):
     call_unit_id = models.AutoField(primary_key=True)
-    squad = models.ForeignKey('Squad', blank=True, null=True,
-                              db_column="squad_id",
-                              related_name="squad")
+    squad = models.ForeignKey('Squad', blank=True, null=True, related_name="squad")
+    beat = models.ForeignKey("Beat", blank=True, null=True, related_name="+")
+    district = models.ForeignKey("District", blank=True, null=True, related_name="+")
 
     class Meta:
         db_table = 'call_unit'
