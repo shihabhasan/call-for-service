@@ -8,8 +8,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CFS</title>
     {% compress css %}
-        <link rel="stylesheet" href="{% static 'dashboard/toolkit-light.css' %}">
-        <link rel="stylesheet" type="text/x-scss" href="{% static 'core.scss' %}">
+        <link rel="stylesheet"
+              href="{% static 'dashboard/toolkit-light.css' %}">
+        <link rel="stylesheet"
+              href="{% static 'font-awesome/css/font-awesome.css' %}">
+        <link rel="stylesheet"
+              href="{% static "bootstrap-daterangepicker/daterangepicker.css" %}">
+        <link rel="stylesheet" type="text/x-scss"
+              href="{% static 'core.scss' %}">
         {% block stylesheets %}{% endblock %}
     {% endcompress %}
     {% block head %}{% endblock %}
@@ -28,15 +34,17 @@
 {% block templates %}{% endblock %}
 
 <script id="chart-header-template" type="text/html">
-    <h3 class="chart-title">
-        [[ title ]] <i class="fa fa-info-circle clickable"
-                       on-click="toggleExplanation"></i>
-    </h3>
-    [[ #unless hidden ]]
-    <div class="explanation">
-        [[ >content ]]
+    <div>
+        <h3 class="chart-title">
+            [[ title ]] <i class="fa fa-info-circle clickable"
+                           on-click="toggleExplanation"></i>
+        </h3>
+        [[ #unless hidden ]]
+        <div class="explanation well">
+            [[ >content ]]
+        </div>
+        [[ /unless ]]
     </div>
-    [[ /unless ]]
 </script>
 
 <!-- Latest compiled and minified JavaScript -->
@@ -48,6 +56,7 @@
     <script src="{% static 'dashboard/toolkit.js' %}"></script>
     <script src="{% static 'ractive/ractive.js' %}"></script>
     <script src="{% static 'moment/moment.js' %}"></script>
+    <script src="{% static 'bootstrap-daterangepicker/daterangepicker.js' %}"></script>
     <script src="{% static 'underscore/underscore.js' %}"></script>
     <script src="{% static 'polyfills.js' %}"></script>
     <script src="{% static 'core.js' %}"></script>

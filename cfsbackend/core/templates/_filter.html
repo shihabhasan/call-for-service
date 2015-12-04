@@ -1,11 +1,9 @@
 <script id="filter-button-template" type="text/html">
-    <div [[ #if filterValue(field, filter) ]]
-         style="display: inline-block; position: relative; top: 2.15em; margin-top: -2.15em;"
-         [[ else ]]
-         style="display: inline-block;"
-         [[ /if ]]>
     <div class="btn-group">
         <button type="button" class="btn [[ buttonClass(field, filter) ]] dropdown-toggle"
+                id="button_[[ field ]]"
+                data-field="[[ field ]]"
+                data-field-type="[[ getFieldType(field).type ]]"
                 data-toggle="dropdown" aria-haspopup="true"
                 aria-expanded="false">
             [[ #if filterValue(field, filter) ]]
@@ -15,29 +13,33 @@
             [[ /if ]]
             <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu">
-            [[ #getFieldType(field) ]]
-            [[ #if type == 'select' ]]
-            [[ #each options ]]
-                <li><a href="#" data-value="[[ 0 ]]">[[ 1 ]]</li>
-            [[ /each ]]
-            [[ elseif type == 'boolean' ]]
-                <li><a href="#" data-value="True">True</a></li>
-                <li><a href="#" data-value="False">False</a></li>
-            [[ /if ]]
-            [[ /each ]]
-        </ul>
+        [[ #getFieldType(field) ]]
+        [[ #if type == 'select' ]]
+            <ul class="dropdown-menu">
+                [[ #if filterValue(field, filter) ]]
+                    <li><a on-click="removefilter:[[ field ]]">Clear</a></li>
+                    <li role="separator" class="divider"></li>
+                [[ /if ]]
+                [[ #each options ]]
+                    <li><a on-click="addfilter:[[field]],[[ 0 ]]">[[ 1 ]]</li>
+                [[ /each ]]
+            </ul>
+        [[ elseif type == 'boolean' ]]
+            <ul class="dropdown-menu">
+                [[ #if filterValue(field, filter) ]]
+                    <li><a on-click="removefilter:[[ field ]]">Clear</a></li>
+                    <li role="separator" class="divider"></li>
+                [[ /if ]]
+                <li><a on-click="addfilter:[[field]],[[ 'True' ]]">True</a></li>
+                <li><a on-click="addfilter:[[field]],[[ 'False' ]]">False</a></li>
+            </ul>
+        [[ elseif type == 'daterange' ]]
+        [[ /if ]]
+        [[ /each ]]
     </div>
-    [[ #if filterValue(field, filter) ]]
-    <div style="position: relative; text-align: left;">
-        <a href="#">Clear</a>
-    </div>
-    [[ /if ]]
-    </div>
-
 </script>
 
-<script id="filters-template" type="text/html">
+<script id="filter-template" type="text/html">
     <div class="filters m-b text-md-center">
         <filter-button field="time_received" />
         <filter-button field="shift" />
@@ -48,7 +50,7 @@
     </div>
 </script>
 
-<script id="filter-template" type="text/html">
+<script id="old-filter-template" type="text/html">
     <div class="filter-sidebar">
         <div class="filters">
             <div id="filter-description">

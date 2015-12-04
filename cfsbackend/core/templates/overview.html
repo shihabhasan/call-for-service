@@ -11,12 +11,9 @@
         <NavBar filterHash="[[ filterHash ]]"/>
         <div class="row">
             <div class="col-md-12">
-                <Filters />
+                <Filter />
             </div>
-            <div class="col-md-3">
-                <Filter/>
-            </div>
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
                         <div id="volume-by-date">
@@ -37,17 +34,6 @@
                             {% include "_loading.html" %}
                             <svg></svg>
                         </div>
-                        <div class="chart-controls">
-                            <ul class="inline-list">
-                                <li><a href="" on-click="filterByDate:ytd"> Year
-                                    to Date </a></li>
-                                <li><a href="" on-click="filterByDate:28days">
-                                    Past 28 Days </a></li>
-                                <li><a href="" on-click="filterByDate:7days">
-                                    Past 7 Days </a></li>
-                            </ul>
-                        </div>
-
                     </div>
                 </div>
                 <div class="row">

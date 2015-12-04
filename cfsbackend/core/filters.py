@@ -58,8 +58,9 @@ def get_form_field_for_type(ftype):
     type_map = {
         "text": forms.CharField(),
         "date": forms.DateField(),
+        "daterange": forms.DateField(),
         "duration": forms.DurationField(),
-        "boolean": forms.BooleanField(),
+        "boolean": forms.BooleanField(required=False),
         "select": forms.ChoiceField(),
     }
     return type_map.get(ftype, forms.CharField())
@@ -82,6 +83,9 @@ def create_filterset(model, definition, name=None):
 
     attrs = {}
     for f in definition:
+        if f.get("type") == "daterange":
+            f['lookups'] = ["gte", "lte"]
+
         if f.get("rel") and not f.get("method"):
             try:
                 filter = globals()[f["rel"] + "FilterSet"]()
@@ -95,7 +99,7 @@ def create_filterset(model, definition, name=None):
                 form_field._set_choices(f.get("options"))
             source = f.get("source", f["name"])
             lookups = f.get("lookups", ["exact"])
-            default_lookup = f.get("default_lookup", "exact")
+            default_lookup = f.get("default_lookup", lookups[0])
             filter = Filter(source=source, form_field=form_field,
                             lookups=lookups, default_lookup=default_lookup)
 
@@ -122,8 +126,7 @@ class CallUnitFilterSet(ModelFilterSet):
 CallFilterSet = create_filterset(
     models.Call,
     [
-        {"name": "time_received", "type": "date", "lookups": ["gte", "lte"],
-         "default_lookup": "gte"},
+        {"name": "time_received", "type": "daterange"},
         {"name": "time_routed", "type": "date", "lookups": ["gte", "lte"],
          "default_lookup": "gte"},
         {"name": "time_finished", "type": "date", "lookups": ["gte", "lte"],

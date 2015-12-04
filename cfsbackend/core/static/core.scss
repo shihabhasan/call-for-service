@@ -93,15 +93,6 @@ text.axis-worktime {
   fill: #000;
 }
 
-.explanation {
-  @extend .panel;
-  font-size: 0.9rem;
-
-  p {
-    font-size: 0.9rem;
-  }
-}
-
 #volume-by-beat .nv-x .tick line, #volume-by-nature .nv-x .tick line {
   opacity: 0;
 }

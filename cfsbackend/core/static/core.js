@@ -29,8 +29,93 @@ var FilterButton = Ractive.extend({
     template: '#filter-button-template',
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
+    computed: {
+        fieldType: function () {
+            return this.get('getFieldType')(this.get('field')).type;
+        }
+    },
+    oninit: function () {
+        this.on('addfilter', function (event, key, value) {
+            var filter = this.get("filter");
+
+            filter = _.clone(filter);
+            filter[key] = value;
+
+            updateHash(buildQueryParams(filter));
+        });
+
+        this.on('removefilter', function (event, key) {
+            updateHash(buildQueryParams(_.omit(this.get("filter"), key)));
+        });
+    },
+    oncomplete: function () {
+        var field = this.get('field');
+        var filter = this.get('filter');
+
+        if (this.get('fieldType') === "daterange") {
+            var $button = $("#button_" + field);
+            var value = this.get('filterValue')(field, filter);
+            var pastSunday = moment().day("Sunday").startOf("day");
+
+            // todo set up ranges
+            var ranges = {
+                "Clear": [null, null],
+                "Last 7 Days": [
+                    pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD"),
+                    pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD")
+                ],
+                "Last 28 Days": [
+                    pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD"),
+                    pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD")
+                ],
+                "Year to Date": [
+                    moment().clone().startOf("year").format("YYYY-MM-DD"),
+                    moment()
+                ]
+            };
+
+            var options = {
+                locale: {
+                    format: 'YYYY-MM-DD'
+                },
+                ranges: ranges
+            };
+            if (value) {
+                options.startDate = value.gte;
+                options.endDate = value.lte;
+            }
+
+            $button.daterangepicker(options);
+
+            $button.on('apply.daterangepicker', function (event, picker) {
+                filter = _.clone(filter);
+                console.log(picker.startDate);
+
+                if (picker.startDate.isValid()) {
+                    var dates = {
+                        gte: picker.startDate.format('YYYY-MM-DD'),
+                        lte: picker.endDate.format('YYYY-MM-DD')
+                    };
+
+                    filter[field] = dates;
+                } else {
+                    filter = _.omit(filter, field);
+                }
+
+                updateHash(buildQueryParams(filter));
+            });
+        }
+    }
+});
+
+var Filter = Ractive.extend({
+    components: {'filter-button': FilterButton},
+    template: '#filter-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
     data: function () {
         return {
+            filter: {},
             displayName: displayName,
             getFieldType: function (fieldName) {
                 var field = findField(fieldName);
@@ -55,16 +140,14 @@ var FilterButton = Ractive.extend({
             filterValue: filterValue,
             displayValue: displayValue
         }
-    }
-});
-
-var Filters = Ractive.extend({
-    components: {'filter-button': FilterButton},
-    template: '#filters-template',
-    delimiters: ['[[', ']]'],
-    tripleDelimiters: ['[[[', ']]]'],
-    data: {
-        filter: {}
+    },
+    computed: {
+        filterHash: function () {
+            return "#!" + buildQueryParams(this.get('filter'));
+        },
+        fields: function () {
+            return filterForm.fields;
+        }
     },
     oninit: function () {
         var component = this;
@@ -80,10 +163,15 @@ var Filters = Ractive.extend({
         updateFilter();
         $(window).on("hashchange", updateFilter);
     },
+    oncomplete: function () {
+        this.observe('filter', function (filter) {
+            this.fire("filterUpdated", filter);
+        });
+    }
 });
 
-var Filter = Ractive.extend({
-    template: '#filter-template',
+var OldFilter = Ractive.extend({
+    template: '#old-filter-template',
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
 
@@ -244,7 +332,7 @@ var Filter = Ractive.extend({
 
 var Page = Ractive.extend({
     components: {
-        'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader, 'Filters': Filters
+        'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader
     },
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
@@ -321,11 +409,13 @@ function displayValue(fieldName, value) {
     if (field.rel) {
         var choiceMap = arrayToObj(filterForm.refs[field.rel]);
         dValue = choiceMap[value];
-    }
-
-    if (field.options) {
+    } else if (field.options) {
         var choiceMap = arrayToObj(field.options);
         dValue = choiceMap[value];
+    }
+
+    if (field.type === "daterange") {
+        dValue = value['gte'] + " to " + value['lte'];
     }
 
     if (!dValue) {
@@ -373,15 +463,34 @@ function describeFilter(filter) {
     return components;
 }
 
-function buildQueryParams(obj) {
+function buildQueryParams(obj, prefix) {
+    if (typeof prefix === "undefined") {
+        prefix = "";
+    } else {
+        prefix = prefix + "__";
+    }
     var str = "";
     for (var key in obj) {
         if (str != "") {
             str += "&";
         }
-        str += key + "=" + encodeURIComponent(obj[key]);
+        if (_.isObject(obj[key])) {
+            str += buildQueryParams(obj[key], key);
+        } else {
+            str += prefix + key + "=" + encodeURIComponent(obj[key]);
+        }
     }
     return str;
+}
+
+function nest(segments, value) {
+    var retval = {};
+    if (segments.length == 1) {
+        retval[segments[0]] = value;
+    } else {
+        retval[segments[0]] = nest(segments.slice(1), value);
+    }
+    return retval;
 }
 
 function parseQueryParams(str) {
@@ -397,18 +506,25 @@ function parseQueryParams(str) {
     var bit,
         query = {},
         first,
-        second;
+        second,
+        segments;
     for (var i = 0; i < s_length; i++) {
         bit = s[i].split("=");
         first = decodeURIComponent(bit[0]);
         if (first.length == 0) continue;
         second = decodeURIComponent(bit[1]);
-        if (typeof query[first] == "undefined") {
-            query[first] = second;
-        } else if (query[first] instanceof Array) {
-            query[first].push(second);
+
+        segments = first.split("__");
+        if (segments.length == 1) {
+            if (typeof query[first] == "undefined") {
+                query[first] = second;
+            } else if (query[first] instanceof Array) {
+                query[first].push(second);
+            } else {
+                query[first] = [query[first], second];
+            }
         } else {
-            query[first] = [query[first], second];
+            query = $.extend(true, {}, query, nest(segments, second));
         }
     }
     return query;
