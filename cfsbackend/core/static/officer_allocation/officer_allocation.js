@@ -67,7 +67,6 @@ function cleanupData(data) {
             cic = data.allocation_over_time[k]['IN CALL - CITIZEN INITIATED'].avg_volume,
             pat = data.allocation_over_time[k]['PATROL'].avg_volume,
             time = indate.parse(k);
-        console.log(time);
 
         temp_allocation_data[0].values.push({
             'x': time,
@@ -90,13 +89,49 @@ function cleanupData(data) {
             'y': pat,
         });
     });
-    console.log(data);
 
     data.allocation_over_time = temp_allocation_data;
+
+    data.on_duty_by_beat = [
+        {
+            key: "On Duty By Beat",
+            values: _.chain(data.on_duty_by_beat)
+                .filter(
+                    function (d) {
+                        return d.beat;
+                    })
+                .sortBy(
+                    function (d) {
+                        return d.on_duty;
+                    })
+                .value()
+        }
+    ];
+
+    data.on_duty_by_district = [
+        {
+            key: "On Duty By District",
+            values: _.chain(data.on_duty_by_district)
+                .filter(
+                    function (d) {
+                        return d.district;
+                    })
+                .sortBy(
+                    function (d) {
+                        return d.on_duty;
+                    })
+                .value()
+        }
+    ];
+    console.log(data.on_duty_by_beat);
+    console.log(data.on_duty_by_district);
+
     return data;
 }
 
 monitorChart(dashboard, 'data.allocation_over_time', buildAllocationOverTimeChart);
+monitorChart(dashboard, 'data.on_duty_by_beat', buildOnDutyByBeatChart);
+monitorChart(dashboard, 'data.on_duty_by_district', buildOnDutyByDistrictChart);
 
 function buildAllocationOverTimeChart(data) {
     var parentWidth = d3.select("#allocation-over-time").node().clientWidth;
@@ -135,6 +170,82 @@ function buildAllocationOverTimeChart(data) {
 
         svg.datum(data).call(chart);
         nv.utils.windowResize(chart.update);
+        return chart;
+    });
+}
+
+function buildOnDutyByBeatChart(data) {
+    var parentWidth = d3.select("#on-duty-by-beat").node().clientWidth;
+    var width = parentWidth;
+    var height = width * 1.5;
+
+    var svg = d3.select("#on-duty-by-beat svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(
+                function (d) {
+                    return d.beat;
+                })
+            .y(
+                function (d) {
+                    return d.on_duty;
+                })
+            .duration(250)
+            .showControls(false)
+            .showLegend(false);
+
+        chart.yAxis.tickFormat(d3.format(",d"));
+
+        svg.datum(data).call(chart);
+
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        chart.multibar.dispatch.on(
+            'elementClick', function (e) {
+                toggleFilter(dashboard, "call_unit__beat", e.data.beat_id);
+            });
+        
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+}
+
+function buildOnDutyByDistrictChart(data) {
+    var parentWidth = d3.select("#on-duty-by-district").node().clientWidth;
+    var width = parentWidth;
+    var height = width * 1.5;
+
+    var svg = d3.select("#on-duty-by-district svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(
+                function (d) {
+                    return d.district;
+                })
+            .y(
+                function (d) {
+                    return d.on_duty;
+                })
+            .duration(250)
+            .showControls(false)
+            .showLegend(false);
+
+        chart.yAxis.tickFormat(d3.format(",d"));
+
+        svg.datum(data).call(chart);
+
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        chart.multibar.dispatch.on(
+            'elementClick', function (e) {
+                toggleFilter(dashboard, "call_unit__district", e.data.district_id);
+            });
+        
+        nv.utils.windowResize(chart.update);
+
         return chart;
     });
 }
