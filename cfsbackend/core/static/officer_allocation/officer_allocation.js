@@ -2,7 +2,14 @@
 
 var url = "/api/officer_allocation/";
 
+var OfficerAllocationFilter = Filter.extend({
+    template: "#officer-allocation-filter-template"
+});
+
 var dashboard = new Page({
+    components: {
+        'Filter': OfficerAllocationFilter
+    },
     el: $('#dashboard').get(),
     template: "#dashboard-template",
     data: {
