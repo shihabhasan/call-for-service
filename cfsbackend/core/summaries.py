@@ -154,17 +154,17 @@ class OfficerActivityOverview:
               date_trunc('minute', doa.time_) AS time_,
               count(*)
             FROM
-              discrete_officer_activity doa
-                INNER JOIN cur_doa
-                  ON (doa.discrete_officer_activity_id = cur_doa.discrete_officer_activity_id)
+              cur_doa doa
                 INNER JOIN call_unit cu
                   ON (doa.call_unit_id = cu.call_unit_id)
                 INNER JOIN beat b
                   ON (cu.beat_id = b.beat_id)
-                INNER JOIN officer_activity_type oat
-                  ON (doa.officer_activity_type_id = oat.officer_activity_type_id)
             WHERE
-              oat.descr = 'ON DUTY'
+              doa.officer_activity_type_id = (
+                  SELECT officer_activity_type_id
+                  FROM officer_activity_type
+                  WHERE descr = 'ON DUTY'
+              )
             GROUP BY b.descr, b.beat_id, date_trunc('minute', doa.time_)
         ) a
         GROUP BY beat, beat_id;
@@ -195,17 +195,17 @@ class OfficerActivityOverview:
               date_trunc('minute', doa.time_) AS time_,
               count(*)
             FROM
-              discrete_officer_activity doa
-                INNER JOIN cur_doa
-                  ON (doa.discrete_officer_activity_id = cur_doa.discrete_officer_activity_id)
+              cur_doa doa
                 INNER JOIN call_unit cu
                   ON (doa.call_unit_id = cu.call_unit_id)
                 INNER JOIN district d
                   ON (cu.district_id = d.district_id)
-                INNER JOIN officer_activity_type oat
-                  ON (doa.officer_activity_type_id = oat.officer_activity_type_id)
             WHERE
-              oat.descr = 'ON DUTY'
+            doa.officer_activity_type_id = (
+                SELECT officer_activity_type_id
+                FROM officer_activity_type
+                WHERE descr = 'ON DUTY'
+            )
             GROUP BY d.descr, d.district_id, date_trunc('minute', doa.time_)
         ) a
         GROUP BY district, district_id;
