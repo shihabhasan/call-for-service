@@ -16,52 +16,9 @@
             </div>
             <div class="col-md-12">
                 <div class="row">
-                    <div class="col-md-7">
-                        <div id="volume-by-date" class="col-md-12">
-                            <chart-header title="Call Volume Over Time">
-                                <p>
-                                    This chart shows day-by-day overall call
-                                    volume for the current selection of calls.
-                                </p>
-
-                                <p>
-                                    "Past 28 Days" and "Past 7 Days" are based
-                                    from the last full Sunday-Saturday period.
-                                    If today is Wednesday, 10/7, "Past 7 Days"
-                                    shows calls from Sunday, 9/27 to Saturday,
-                                    10/4.
-                                </p>
-                            </chart-header>
-                            {% include "_loading.html" %}
-                            <svg></svg>
-                        </div>
-
-                        <div id="volume-by-dow" class="col-md-6">
-                            <chart-header title="Call Volume By Day of Week">
-                                <p>
-                                    This chart shows us the call volume by the
-                                    day of week. You can click any nature here
-                                    to filter the calls to only calls on that
-                                    day of week.
-                                </p>
-                            </chart-header>
-                        </div>
-
-                        <div id="volume-by-shift" class="col-md-6">
-                            <chart-header title="Call Volume By Shift">
-                                <p>
-                                    This chart shows us the call volume by
-                                    shift. Shift 1 is 0600-1800 and shift 2 is
-                                    1800-0600.
-                                </p>
-                            </chart-header>
-                        </div>
-                    </div>
-
-
-                    <div class="col-md-5">
+                    <div class="col-md-5 col-md-push-7">
                         <chart-header title="Call Volume By Beat">
-                            This chart shows the call volume by Durham beat.
+                            This map shows the call volume by Durham beat.
                             You can click any beat here to filter the calls
                             to only that beat's calls.
                         </chart-header>
@@ -74,9 +31,68 @@
                         {% include "_loading.html" %}
                     </div>
 
+                    <div class="col-md-7 col-md-pull-5">
+                        <div class="row">
+                            <div id="volume-by-date" class="col-md-12">
+                                <chart-header title="Call Volume Over Time">
+                                    <p>
+                                        This chart shows day-by-day overall call
+                                        volume for the current selection of
+                                        calls.
+                                    </p>
 
+                                    <p>
+                                        "Past 28 Days" and "Past 7 Days" are
+                                        based
+                                        from the last full Sunday-Saturday
+                                        period.
+                                        If today is Wednesday, 10/7, "Past 7
+                                        Days"
+                                        shows calls from Sunday, 9/27 to
+                                        Saturday,
+                                        10/4.
+                                    </p>
+                                </chart-header>
+                                {% include "_loading.html" %}
+                                <svg></svg>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div id="volume-by-dow" class="col-md-6">
+                                <chart-header
+                                        title="Call Volume By Day of Week">
+                                    <p>
+                                        This chart shows us the call volume by
+                                        the
+                                        day of week. You can click any nature
+                                        here
+                                        to filter the calls to only calls on
+                                        that
+                                        day of week.
+                                    </p>
+                                </chart-header>
+                            </div>
+
+                            <div id="volume-by-shift" class="col-md-6">
+                                <chart-header title="Call Volume By Shift">
+                                    <p>
+                                        This chart shows us the call volume by
+                                        shift. Shift 1 is 0600-1800 and shift 2
+                                        is
+                                        1800-0600.
+                                    </p>
+                                </chart-header>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
                     <div class="clearfix visible-md-block"></div>
-
+                <div class="row">
                     <div id="volume-by-source" class="col-md-6 col-lg-4">
                         <chart-header title="Call Volume By Source">
                             <p>

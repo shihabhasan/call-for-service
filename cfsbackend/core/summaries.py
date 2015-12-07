@@ -161,6 +161,9 @@ class CallOverview:
     def count(self):
         return self.qs.count()
 
+    def beat_ids(self):
+        return dict(Beat.objects.all().values_list('descr', 'beat_id'))
+
 
 class CallVolumeOverview(CallOverview):
     def precision(self):
@@ -247,8 +250,6 @@ class CallVolumeOverview(CallOverview):
                               id=F(field + "_id")).values('name', 'id')
         return qs.annotate(volume=Count('name'))
 
-    def beat_ids(self):
-        return dict(Beat.objects.all().values_list('descr', 'beat_id'))
 
     def to_dict(self):
         return {
@@ -312,6 +313,7 @@ class CallResponseTimeOverview(CallOverview):
                 'beat'),
             'officer_response_time_by_priority': self.officer_response_time_by_field(
                 'priority'),
+            'beat_ids': self.beat_ids(),
         }
 
 

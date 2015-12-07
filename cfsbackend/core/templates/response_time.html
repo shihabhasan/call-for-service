@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+    <link rel="stylesheet" href="{% static 'leaflet/dist/leaflet.css' %}">
 {% endblock %}
 
 {% block templates %}
@@ -16,54 +17,84 @@
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
-                        <div id="ort">
-                            <chart-header title="Officer Response Time">
-                                <p>This chart shows us the median officer
-                                    response time for the current call
-                                    selection, as well as the range of response
-                                    times by quartile.</p>
-                            </chart-header>
-                            {% include "_loading.html" %}
-                        </div>
-                    </div>
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="row">
+                                    <div id="ort" class="col-md-12">
+                                        <chart-header
+                                                title="Officer Response Time">
+                                            <p>This chart shows us the median
+                                                officer
+                                                response time for the current
+                                                call
+                                                selection, as well as the range
+                                                of
+                                                response
+                                                times by quartile.</p>
+                                        </chart-header>
+                                        {% include "_loading.html" %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="ort-by-priority">
+                                            <chart-header
+                                                    title="Officer Mean Response Time By Priority">
+                                                <p>This chart shows us average
+                                                    officer
+                                                    response
+                                                    time for each priority for
+                                                    the
+                                                    current call
+                                                    selection.</p>
+                                            </chart-header>
+                                            {% include "_loading.html" %}
+                                            <svg></svg>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="ort-by-source">
+                                            <chart-header
+                                                    title="Officer Mean Response Time By Source">
+                                                <p>
+                                                    This chart shows us average
+                                                    officer
+                                                    response
+                                                    time for each call source
+                                                    for the
+                                                    current
+                                                    call selection. </p>
+                                            </chart-header>
+                                            {% include "_loading.html" %}
+                                            <svg></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="col-md-6 col-lg-6">
-                        <div id="ort-by-priority">
-                            <chart-header
-                                    title="Officer Mean Response Time By Priority">
-                                <p>This chart shows us average officer response
-                                    time for each priority for the current call
-                                    selection.</p>
-                            </chart-header>
-                            {% include "_loading.html" %}
-                            <svg></svg>
-                        </div>
-                    </div>
-                    <div class="col-md-12 col-lg-6">
-                        <div id="ort-by-source">
-                            <chart-header
-                                    title="Officer Mean Response Time By Source">
-                                <p>
-                                    This chart shows us average officer response
-                                    time for each call source for the current
-                                    call selection. </p>
-                            </chart-header>
-                            {% include "_loading.html" %}
-                            <svg></svg>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div id="ort-by-beat">
-                            <chart-header
-                                    title="Officer Mean Response Time By Beat">
-                                <p>
-                                    This chart shows us average officer response
-                                    time for each beat for the current call
+                            <div class="col-md-5">
+                                <chart-header
+                                        title="Officer Mean Response Time By Beat">
+                                    This map shows us average officer
+                                    response
+                                    time for each beat for the current
+                                    call
                                     selection.
-                                </p>
-                            </chart-header>
-                            {% include "_loading.html" %}
-                            <svg></svg>
+                                    You can click any beat here to filter the
+                                    calls
+                                    to only that beat's calls.
+
+
+                                </chart-header>
+
+                                <div id="map-container">
+                                    <div id="legend"></div>
+                                    <div id="map"></div>
+                                </div>
+
+                                {% include "_loading.html" %}
+                            </div>
+                        </div>
+                        <div class="row">
+
                         </div>
                     </div>
                 </div>
@@ -79,6 +110,9 @@
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
     <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
+    <script src="{% static 'q/q.js' %}"></script>
+    <script src="{% static 'leaflet/dist/leaflet.js' %}"></script>
+    <script src="{% static 'charts.js' %}"></script>
     <script src="{% static 'overview/response_time.js' %}"></script>
 {% endblock %}
 </body></html>

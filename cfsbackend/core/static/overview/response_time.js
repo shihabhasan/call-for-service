@@ -23,16 +23,11 @@ var dashboard = new Page({
 });
 
 function cleanupData(data) {
-    data.officer_response_time_by_beat =
-        _.chain(data.officer_response_time_by_beat)
-            .filter(function (d) {
-                return d.name;
-            })
-            .sortBy(function (d) {
-                return d.name;
-            })
-            .value();
-
+    data.map_data = _.reduce(
+        data.officer_response_time_by_beat, function (memo, d) {
+            memo[d.name] = d.mean;
+            return memo
+        }, {});
 
     data.officer_response_time_by_priority =
         _.chain(data.officer_response_time_by_priority)
@@ -47,12 +42,18 @@ function cleanupData(data) {
     return data;
 }
 
+var responseTimeMap = new DurhamMap({
+    el: "#map",
+    dashboard: dashboard,
+    colorScheme: colorbrewer.Blues,
+    format: durationFormat
+})
 
 
 monitorChart(dashboard, 'data.officer_response_time', buildORTChart);
 monitorChart(dashboard, 'data.officer_response_time_by_source', buildORTBySourceChart);
-monitorChart(dashboard, 'data.officer_response_time_by_beat', buildORTByBeatChart);
 monitorChart(dashboard, 'data.officer_response_time_by_priority', buildORTByPriorityChart);
+monitorChart(dashboard, 'data.map_data', responseTimeMap.update);
 
 // ========================================================================
 // Functions
@@ -181,12 +182,12 @@ function buildORTByPriorityChart(data) {
 
     nv.addGraph(function () {
         var chart = nv.models.discreteBarChart()
-                .x(function (d) {
-                    return d.name
-                })
-                .y(function (d) {
-                    return Math.round(d.mean);
-                })
+            .x(function (d) {
+                return d.name
+            })
+            .y(function (d) {
+                return Math.round(d.mean);
+            })
             ;
 
         chart.yAxis.tickFormat(durationFormat);
@@ -453,7 +454,7 @@ function buildORTChart(data) {
         var bounds = getORTChartBounds();
 
         svg.attr("width", bounds.width)
-           .attr("height", bounds.height);
+            .attr("height", bounds.height);
 
         boxplot.selectAll("g.nv-x.nv-axis").call(xAxis);
     }
