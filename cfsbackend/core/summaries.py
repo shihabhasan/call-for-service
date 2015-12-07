@@ -6,7 +6,7 @@ from django.db.models import Min, Max, Count, Case, When, IntegerField, F, Avg, 
     DurationField, StdDev, Q
 from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
-from .models import OfficerActivity, OfficerActivityType, Call
+from .models import OfficerActivity, OfficerActivityType, Call, Beat
 from .filters import CallFilterSet, OfficerActivityFilterSet
 
 
@@ -237,14 +237,18 @@ class CallVolumeOverview(CallOverview):
         return results
 
     def volume_by_beat(self):
-        qs = self.qs.annotate(name=F('beat__descr'), id=F('beat_id')).values(
-            'name', 'id')
+        qs = self.qs \
+            .annotate(name=F('beat__descr'), id=F('beat_id')) \
+            .values('name', 'id')
         return qs.annotate(volume=Count('name'))
 
     def volume_by_field(self, field):
         qs = self.qs.annotate(name=F(field + "__descr"),
                               id=F(field + "_id")).values('name', 'id')
         return qs.annotate(volume=Count('name'))
+
+    def beat_ids(self):
+        return dict(Beat.objects.all().values_list('descr', 'beat_id'))
 
     def to_dict(self):
         return {
@@ -259,7 +263,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_beat': self.volume_by_field('beat'),
             'volume_by_dow': self.volume_by_dow(),
             'volume_by_shift': self.volume_by_shift(),
-            # 'volume_by_close_code': self.volume_by_field('close_code'),
+            'beat_ids': self.beat_ids(),
         }
 
 

@@ -100,7 +100,6 @@ function drawMap() {
     }
 
     d3.select(window).on("resize.map", function () {
-        console.log("hi")
         resize();
     });
 

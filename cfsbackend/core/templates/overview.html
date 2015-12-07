@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+    <link rel="stylesheet" href="{% static 'leaflet/dist/leaflet.css' %}">
 {% endblock %}
 
 {% block templates %}
@@ -15,45 +16,64 @@
             </div>
             <div class="col-md-12">
                 <div class="row">
-                    <div id="volume-by-date" class="col-md-12">
-                        <chart-header title="Call Volume Over Time">
-                            <p>
-                                This chart shows day-by-day overall call
-                                volume for the current selection of calls.
-                            </p>
+                    <div class="col-md-7">
+                        <div id="volume-by-date" class="col-md-12">
+                            <chart-header title="Call Volume Over Time">
+                                <p>
+                                    This chart shows day-by-day overall call
+                                    volume for the current selection of calls.
+                                </p>
 
-                            <p>
-                                "Past 28 Days" and "Past 7 Days" are based
-                                from the last full Sunday-Saturday period.
-                                If today is Wednesday, 10/7, "Past 7 Days"
-                                shows calls from Sunday, 9/27 to Saturday,
-                                10/4.
-                            </p>
+                                <p>
+                                    "Past 28 Days" and "Past 7 Days" are based
+                                    from the last full Sunday-Saturday period.
+                                    If today is Wednesday, 10/7, "Past 7 Days"
+                                    shows calls from Sunday, 9/27 to Saturday,
+                                    10/4.
+                                </p>
+                            </chart-header>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+
+                        <div id="volume-by-dow" class="col-md-6">
+                            <chart-header title="Call Volume By Day of Week">
+                                <p>
+                                    This chart shows us the call volume by the
+                                    day of week. You can click any nature here
+                                    to filter the calls to only calls on that
+                                    day of week.
+                                </p>
+                            </chart-header>
+                        </div>
+
+                        <div id="volume-by-shift" class="col-md-6">
+                            <chart-header title="Call Volume By Shift">
+                                <p>
+                                    This chart shows us the call volume by
+                                    shift. Shift 1 is 0600-1800 and shift 2 is
+                                    1800-0600.
+                                </p>
+                            </chart-header>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-5">
+                        <chart-header title="Call Volume By Beat">
+                            This chart shows the call volume by Durham beat.
+                            You can click any beat here to filter the calls
+                            to only that beat's calls.
                         </chart-header>
+
+                        <div id="map-container">
+                            <div id="legend"></div>
+                            <div id="map"></div>
+                        </div>
+
                         {% include "_loading.html" %}
-                        <svg></svg>
                     </div>
 
-                    <div id="volume-by-dow" class="col-md-6 col-lg-4">
-                        <chart-header title="Call Volume By Day of Week">
-                            <p>
-                                This chart shows us the call volume by the
-                                day of week. You can click any nature here
-                                to filter the calls to only calls on that
-                                day of week.
-                            </p>
-                        </chart-header>
-                    </div>
-
-                    <div id="volume-by-shift" class="col-md-6 col-lg-4">
-                        <chart-header title="Call Volume By Shift">
-                            <p>
-                                This chart shows us the call volume by
-                                shift. Shift 1 is 0600-1800 and shift 2 is
-                                1800-0600.
-                            </p>
-                        </chart-header>
-                    </div>
 
                     <div class="clearfix visible-md-block"></div>
 
@@ -68,16 +88,6 @@
                         {% include "_loading.html" %}
                         <svg></svg>
                     </div>
-
-                    <div id="volume-by-beat" class="col-md-6 col-lg-4">
-                        <chart-header title="Call Volume By Beat">
-                            This chart shows the call volume by Durham beat.
-                            You can click any beat here to filter the calls
-                            to only that beat's calls.
-                        </chart-header>
-                        {% include "_loading.html" %}
-                    </div>
-
 
                     <div id="volume-by-nature" class="col-md-12 col-lg-8">
                         <chart-header title="Call Volume By Nature">
@@ -119,6 +129,8 @@
     <script src="{% static 'd3/d3.js' %}"></script>
     <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
     <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
+    <script src="{% static 'q/q.js' %}"></script>
+    <script src="{% static 'leaflet/dist/leaflet.js' %}"></script>
     <script src="{% static 'charts.js' %}"></script>
     <script src="{% static 'overview/overview.js' %}"></script>
 {% endblock %}

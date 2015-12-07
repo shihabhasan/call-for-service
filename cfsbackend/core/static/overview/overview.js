@@ -1,18 +1,21 @@
 "use strict";
 
-var url = "/api/call_volume/";
+var callVolumeURL = "/api/call_volume/";
 var outFormats = {
     "month": "%b %Y",
     "week": "%m/%d/%y",
     "day": "%a %m/%d",
     "hour": "%m/%d %H:%M"
 };
+var geojson;
+
 
 var dashboard = new Page(
     {
         el: $('#dashboard').get(),
         template: "#dashboard-template",
         data: {
+            mapDrawn: false,
             'capitalize': function (string) {
                 return string.charAt(0).toUpperCase() + string.slice(1);
             },
@@ -27,7 +30,7 @@ var dashboard = new Page(
         },
         filterUpdated: function (filter) {
             d3.json(
-                buildURL(url, filter), _.bind(
+                buildURL(callVolumeURL, filter), _.bind(
                     function (error, newData) {
                         if (error) throw error;
                         this.set('loading', false);
@@ -103,6 +106,12 @@ function cleanupData(data) {
         }
     });
 
+    data.map_data = _.reduce(
+        data.volume_by_beat, function (memo, d) {
+            memo[d.name] = d.volume;
+            return memo
+        }, {});
+
     data.volume_by_beat = [
         {
             key: "Volume By Beat",
@@ -171,12 +180,6 @@ var volumeByDOWChart = new HorizontalBarChart({
     el: "#volume-by-dow",
     filter: "dow_received",
     ratio: 1.5
-});
-
-var volumeByBeatChart = new HorizontalBarChart({
-    el: "#volume-by-beat",
-    filter: "beat",
-    ratio: 0.75
 });
 
 var volumeByShiftChart = new HorizontalBarChart({
@@ -516,15 +519,270 @@ function buildDayHourHeatmap(data) {
         }).attr("y", gridSize * 10);
 }
 
+function drawMap() {
+    var northEast = L.latLng(36.13898378070337, -78.75068664550781),
+        southWest = L.latLng(35.860952532806905, -79.04937744140625),
+        bounds = L.latLngBounds(southWest, northEast);
+
+    var map = L.map(
+        'map', {
+            center: [36.0, -78.9],
+            zoom: 12,
+            maxBounds: bounds,
+            minZoom: 11,
+            maxZoom: 16
+        });
+
+    function resize() {
+        var container = d3.select("#map-container").node(),
+            width = container.clientWidth,
+            bounds = container.getBoundingClientRect(),
+            height = width * 1.3;
+            //pTop = bounds.top,
+            //pBottom = window.innerHeight,
+            //height = Math.max(10, pBottom - pTop - 100);
+
+        d3.select("#map")
+            .style('width', width + 'px')
+            .style('height', height + 'px');
+
+        map.invalidateSize();
+    }
+
+    d3.select(window).on("resize.map", function () {
+        resize();
+    });
+
+    L.tileLayer(
+        'http://tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
+        {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+            maxZoom: 18
+        }).addTo(map);
+
+    var info = L.control();
+
+    info.onAdd = function (map) {
+        this._div = L.DomUtil.create('div', 'mapinfo');
+        this.update();
+        return this._div;
+    };
+
+    // method that we will use to update the control based on feature
+    // properties passed
+    info.update = function (props) {
+        if (props) {
+            var call_volume = dashboard.get('data.map_data')[props.LAWBEAT],
+                text;
+
+            if (call_volume === undefined) {
+                text = "No data.";
+            } else {
+                text = "Call Volume " +
+                    fmt(call_volume, 'call_volume');
+            }
+
+            this._div.innerHTML = '<h4>Beat ' + props.LAWBEAT + '</h4>' +
+                "<div>" + text + "</div>";
+        } else {
+            this._div.innerHTML = "<div>Hover over a beat</div>";
+        }
+    };
+
+    info.addTo(map);
+
+    function highlightFeature(e) {
+        var layer = e.target;
+
+        layer.setStyle(
+            {
+                dashArray: '',
+                fillOpacity: 0.5,
+                weight: 3
+            });
+
+        if (!L.Browser.ie && !L.Browser.opera) {
+            layer.bringToFront();
+        }
+
+        info.update(layer.feature.properties);
+    }
+
+    function resetHighlight(e) {
+        var layer = e.target;
+
+        layer.setStyle(
+            {
+                weight: 2,
+                dashArray: '3',
+                fillOpacity: 0.8
+            });
+
+        if (!L.Browser.ie && !L.Browser.opera) {
+            layer.bringToFront();
+        }
+
+        info.update();
+    }
+
+    function toggleBeat(e) {
+        var layer = e.target;
+        toggleFilter(dashboard, 'beat', dashboard.get('data.beat_ids')[layer.feature.properties.LAWBEAT]);
+    }
+
+    function onEachFeature(feature, layer) {
+        layer.on(
+            {
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: toggleBeat
+            });
+    }
+
+    d3.json(
+        "/static/map/beats.json", function (json) {
+            json.features = _(json.features).reject(
+                function (d) {
+                    return d.properties.LAWDIST === "DSO"
+                });
+
+            var myStyle = {
+                color: "white",
+                dashArray: '3',
+                fillColor: "#AAAAAA",
+                opacity: 1,
+                fillOpacity: 0.6,
+                weight: 2
+            };
+
+            geojson = L.geoJson(
+                json, {
+                    style: myStyle,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+
+            resize();
+            dashboard.set('mapDrawn', true);
+        });
+}
+
+function updateMap(data) {
+    function updateLegend(legendData) {
+        var legend = d3.select('#legend');
+        legend.selectAll("ul").remove();
+        var list = legend.append('ul').classed('list-inline', true);
+        var keys = list.selectAll('li.key').data(legendData);
+        keys.enter()
+            .append('li')
+            .classed('key', true)
+            .style('border-left-width', '30px')
+            .style('border-left-style', 'solid')
+            .style('padding', '0 10px')
+            .style(
+                'border-left-color', function (d) {
+                    return d[0]
+                })
+            .text(
+                function (d) {
+                    return d[1];
+                });
+    }
+
+    function update(data, key, numColors, colorScheme) {
+        var minValue = _(data).chain().values().min().value(),
+            maxValue = _(data).chain().values().max().value(),
+            colors;
+
+        numColors = Math.min(numColors, maxValue - minValue + 1);
+
+        if (numColors < 3) {
+            colors = colorScheme[3].slice(3 - numColors);
+        } else {
+            colors = colorScheme[numColors + 1].slice(1);
+        }
+
+        var scale = d3.scale.linear()
+            .domain([minValue, maxValue])
+            .nice()
+            .range([0, numColors]);
+
+        var legendData = _.map(
+            _.range(numColors), function (n) {
+                var start = Math.ceil(scale.invert(n)),
+                    end = Math.floor(scale.invert(n + 1)),
+                    text;
+
+                if (start >= end) {
+                    text = fmt(start);
+                } else {
+                    text = fmt(start) + "-" + fmt(end)
+                }
+
+                return [
+                    colors[n],
+                    text
+                ];
+            });
+
+        updateLegend(legendData);
+
+        var styleFn = function (d) {
+            var n = Math.min(
+                numColors - 1, Math.floor(scale(data[d.properties.LAWBEAT])));
+            return {
+                fillColor: colors[n] || "gray",
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.8
+            }
+        };
+
+        geojson.setStyle(styleFn);
+    }
+
+    update(data, 'volume', 5, colorbrewer.Reds);
+}
+
+function ensureMapIsDrawn() {
+    var deferred = Q.defer();
+
+    function isMapDrawn() {
+        if (dashboard.get('mapDrawn')) {
+            deferred.resolve();
+        } else {
+            setTimeout(isMapDrawn, 30);
+        }
+    }
+
+    isMapDrawn();
+
+    return deferred.promise;
+}
+
+function fmt(val, style) {
+    return d3.format(",.2f")(val).replace(/\.0+$/, "");
+}
+
+
+
 d3.select(window).on('resize', function () {
     resizeDayHourHeatmap();
 });
+
+dashboard.on('complete', drawMap);
+
+dashboard.observe('data.map_data', function (newData) {
+    ensureMapIsDrawn().then(function () {
+        updateMap(newData);
+    })
+})
 
 monitorChart(dashboard, 'data.day_hour_heatmap', buildDayHourHeatmap);
 monitorChart(dashboard, 'data.volume_by_nature', buildVolumeByNatureChart);
 monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
 monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
-monitorChart(dashboard, 'data.volume_by_beat', volumeByBeatChart.update);
 monitorChart(dashboard, 'data.volume_by_dow', volumeByDOWChart.update);
 monitorChart(dashboard, 'data.volume_by_shift', volumeByShiftChart.update);
 
