@@ -137,21 +137,85 @@ class OfficerActivityOverview:
         return {str(k): v for k, v in agg_result.items()}
 
     def on_duty_by_beat(self):
-        results = self.qs \
-            .filter(activity_type__descr='ON DUTY') \
-            .annotate(beat=F('call_unit__beat__descr'),
-                      beat_id=F('call_unit__beat_id')) \
-            .values('beat', 'beat_id') \
-            .annotate(on_duty=Count('beat'))
+        cursor = connection.cursor()
+
+        cte_sql, params = self.qs.query.sql_with_params()
+
+        sql = """
+        WITH cur_doa AS (
+          {cte_sql}
+        )
+        SELECT
+          beat,
+          beat_id,
+          avg(count) AS on_duty
+        FROM (
+            SELECT
+              b.descr AS beat,
+              b.beat_id,
+              date_trunc('minute', doa.time_) AS time_,
+              count(*)
+            FROM
+              discrete_officer_activity doa
+                INNER JOIN cur_doa
+                  ON (doa.discrete_officer_activity_id = cur_doa.discrete_officer_activity_id)
+                INNER JOIN call_unit cu
+                  ON (doa.call_unit_id = cu.call_unit_id)
+                INNER JOIN beat b
+                  ON (cu.beat_id = b.beat_id)
+                INNER JOIN officer_activity_type oat
+                  ON (doa.officer_activity_type_id = oat.officer_activity_type_id)
+            WHERE
+              oat.descr = 'ON DUTY'
+            GROUP BY b.descr, b.beat_id, date_trunc('minute', doa.time_)
+        ) a
+        GROUP BY beat, beat_id;
+        """.format(cte_sql=cte_sql)
+    
+        cursor.execute(sql, params)
+        results = dictfetchall(cursor)
+
         return results
 
     def on_duty_by_district(self):
-        results = self.qs \
-            .filter(activity_type__descr='ON DUTY') \
-            .annotate(district=F('call_unit__district__descr'),
-                      district_id=F('call_unit__district_id')) \
-            .values('district', 'district_id') \
-            .annotate(on_duty=Count('district'))
+        cursor = connection.cursor()
+
+        cte_sql, params = self.qs.query.sql_with_params()
+
+        sql = """
+        WITH cur_doa AS (
+          {cte_sql}
+        )
+        SELECT
+          district,
+          district_id,
+          avg(count) AS on_duty
+        FROM (
+            SELECT
+              d.descr AS district,
+              d.district_id,
+              date_trunc('minute', doa.time_) AS time_,
+              count(*)
+            FROM
+              discrete_officer_activity doa
+                INNER JOIN cur_doa
+                  ON (doa.discrete_officer_activity_id = cur_doa.discrete_officer_activity_id)
+                INNER JOIN call_unit cu
+                  ON (doa.call_unit_id = cu.call_unit_id)
+                INNER JOIN district d
+                  ON (cu.district_id = d.district_id)
+                INNER JOIN officer_activity_type oat
+                  ON (doa.officer_activity_type_id = oat.officer_activity_type_id)
+            WHERE
+              oat.descr = 'ON DUTY'
+            GROUP BY d.descr, d.district_id, date_trunc('minute', doa.time_)
+        ) a
+        GROUP BY district, district_id;
+        """.format(cte_sql=cte_sql)
+    
+        cursor.execute(sql, params)
+        results = dictfetchall(cursor)
+
         return results
 
     def to_dict(self):
