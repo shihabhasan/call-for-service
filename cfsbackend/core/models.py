@@ -110,11 +110,9 @@ class Call(models.Model):
     crossroad2 = models.TextField(blank=True, null=True)
     geox = models.FloatField(blank=True, null=True)
     geoy = models.FloatField(blank=True, null=True)
-    beat = models.ForeignKey(Beat, blank=True, null=True, related_name='+')
-    district = models.ForeignKey('District', blank=True, null=True,
-                                 related_name='+')
-    sector = models.ForeignKey('Sector', blank=True, null=True,
-                               related_name='+')
+    beat = models.ForeignKey(Beat, blank=True, null=True)
+    district = models.ForeignKey('District', blank=True, null=True)
+    sector = models.ForeignKey('Sector', blank=True, null=True)
     business = models.TextField(blank=True, null=True)
     nature = models.ForeignKey('Nature', blank=True, null=True)
     priority = models.ForeignKey('Priority', blank=True, null=True)
