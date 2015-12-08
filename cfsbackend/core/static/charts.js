@@ -310,6 +310,8 @@ var DurhamMap = function (options) {
         var numColors = 5;
 
         function updateLegend(legendData) {
+            if (!legendData) { return; }
+            
             var legend = d3.select('#legend');
             legend.selectAll("ul").remove();
             var list = legend.append('ul').classed('list-inline', true);
