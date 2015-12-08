@@ -110,7 +110,7 @@ function cleanupData(data) {
 
     data.on_duty_by_beat = [
         {
-            key: "On Duty By Beat",
+            key: "Average On Duty",
             values: _.chain(data.on_duty_by_beat)
                 .filter(
                     function (d) {
@@ -126,7 +126,7 @@ function cleanupData(data) {
 
     data.on_duty_by_district = [
         {
-            key: "On Duty By District",
+            key: "Average On Duty",
             values: _.chain(data.on_duty_by_district)
                 .filter(
                     function (d) {
