@@ -31,6 +31,14 @@ $black       : #000000;
   font-family: 'Audiowide', sans-serif;
 }
 
+.leaflet-top, .leaflet-bottom {
+  z-index: 999 !important;
+}
+
+.dropdown-menu {
+  cursor: pointer;
+}
+
 .container-max-1800 {
   max-width: 1800px;
 }

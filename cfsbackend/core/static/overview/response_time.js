@@ -48,7 +48,8 @@ var responseTimeMap = new DurhamMap({
     el: "#map",
     dashboard: dashboard,
     colorScheme: colorbrewer.Blues,
-    format: durationFormat
+    format: durationFormat,
+    dataDescr: "Officer Response Time"
 });
 
 var ortBySourceChart = new DiscreteBarChart({

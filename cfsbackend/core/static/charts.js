@@ -133,9 +133,11 @@ var DurhamMap = function (options) {
     var dashboard = options.dashboard;
     var fmt = options.format;
 
-    this.el = options.el;
+    this.el = options.el || "#map";
+    this.container = options.container || "#map-container";
     this.ratio = options.ratio || 0.77;
     this.colorScheme = options.colorScheme || colorbrewer.Reds;
+    this.dataDescr = options.dataDescr;
 
     this.geojson = null;
     this.drawn = false;
@@ -164,7 +166,7 @@ var DurhamMap = function (options) {
         var map = L.map(
             'map', {
                 center: [36.0, -78.9],
-                zoom: 12,
+                zoom: (d3.select(self.container).node().clientWidth <= 660) ? 11 : 12,
                 maxBounds: bounds,
                 minZoom: 11,
                 maxZoom: 16,
@@ -172,7 +174,7 @@ var DurhamMap = function (options) {
             });
 
         function resize() {
-            var container = d3.select("#map-container").node(),
+            var container = d3.select(self.container).node(),
                 width = container.clientWidth,
                 bounds = container.getBoundingClientRect(),
                 height = width / self.ratio;
@@ -207,14 +209,14 @@ var DurhamMap = function (options) {
         // properties passed
         info.update = function (props) {
             if (props) {
-                var call_volume = dashboard.get('data.map_data')[props.LAWBEAT],
+                var displayData = dashboard.get('data.map_data')[props.LAWBEAT],
                     text;
 
-                if (call_volume === undefined) {
+                if (displayData === undefined) {
                     text = "No data.";
                 } else {
-                    text = "Call Volume " +
-                        fmt(call_volume, 'call_volume');
+                    text = self.dataDescr + " " +
+                        fmt(displayData);
                 }
 
                 self._div.innerHTML = '<h4>Beat ' + props.LAWBEAT + '</h4>' +

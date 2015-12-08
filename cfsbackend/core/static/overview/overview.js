@@ -209,7 +209,8 @@ var volumeMap = new DurhamMap({
     colorScheme: colorbrewer.Reds,
     format: function (val, style) {
         return d3.format(",.2f")(val).replace(/\.0+$/, "");
-    }
+    },
+    dataDescr: "Call Volume"
 });
 
 function buildVolumeByDateChart(data) {

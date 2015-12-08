@@ -45,6 +45,7 @@
         <filter-button field="shift" />
         <filter-button field="dow_received" />
         <filter-button field="beat" />
+        <filter-button field="priority" />
         <filter-button field="initiated_by" />
         <filter-button field="cancelled" />
     </div>
@@ -57,88 +58,4 @@
         <filter-button field="call_unit__beat" />
         <filter-button field="call_unit__district" />
     </div>
-</script>
-
-<script id="old-filter-template" type="text/html">
-    <div class="filter-sidebar">
-        <div class="filters">
-            <div id="filter-description">
-                [[ #each describeFilter(filter) ]]
-                <div class="filter btn">
-                        <span>
-                            [[ displayName(s) ]] [[ v ]] [[ displayValue(s, o) ]]
-                        </span>
-                    <i class="icon icon-cross clickable"
-                       on-click="removefilter:[[ k ]]"></i>
-                </div>
-                [[ else ]]
-                <div>No active filters.</div>
-                [[ /each ]]
-            </div>
-        </div>
-
-        <div>
-            <form>
-                <div class="form-group">
-                    <select name="filter_subject"
-                            value="[[ addFilter.field ]]"
-                            class="form-control">
-                        [[ #each fields ]]
-                        <option value="[[ name ]]">[[ fieldLabel(.) ]]</option>
-                        [[ /each ]]
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <select name="filter_verb"
-                            value="[[ addFilter.verb ]]"
-                            class="form-control">
-                        [[ #each getLookups(addFilter.field) ]]
-                        <option value="[[ id ]]">[[ name ]]</option>
-                        [[ /each ]]
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    [[ #getFieldType(addFilter.field) ]]
-                    [[ #if type == 'select' ]]
-                    <select name="filter_object"
-                            value="[[ addFilter.value ]]"
-                            class="form-control">
-                        [[ #each options ]]
-                        <option value="[[ 0 ]]">[[ 1 ]]</option>
-                        [[ /each ]]
-                    </select>
-                    [[ elseif type == 'boolean' ]]
-                    <select name="filter_object"
-                            value="[[ addFilter.value ]]"
-                            class="form-control">
-                        <option value="True">True</option>
-                        <option value="False">False</option>
-                    </select>
-                    [[ elseif type == 'date' ]]
-                    <input name="filter_object" type="date"
-                           value="[[ addFilter.value ]]"
-                           class="form-control">
-                    [[ else ]]
-                    <input name="filter_object" type="text"
-                           value="[[ addFilter.value ]]"
-                           class="form-control">
-                    [[ /if ]]
-                    [[ /each ]]
-                </div>
-                <button class="btn btn-default"
-                        on-click="addfilter">Add filter
-                </button>
-
-                [[ #loading ]]
-                <div class="loading-spinner">
-                    <i class="icon icon-circular-graph icon-2x icon-pulse"></i>
-                </div>
-                [[ /loading ]]
-            </form>
-        </div>
-    </div>
-    <div id="sidebar-sizer">&nbsp;</div>
-
 </script>
