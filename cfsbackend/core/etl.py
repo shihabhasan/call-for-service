@@ -206,6 +206,8 @@ class ETL:
         self.connect_call_unit_squads()
         self.connect_call_unit_beat_district()
 
+        self.create_officer_activity_types()
+
         self.log("Updating materialized views")
         update_materialized_views()
 
@@ -650,3 +652,15 @@ class ETL:
         for idx, row in df.iterrows():
             Nature.objects.filter(descr=row['nature']).update(
                 nature_group_id=self.map('NatureGroup', row['group']))
+
+    def create_officer_activity_types(self):
+        self.log("Creating officer activity types...")
+        types = [
+            'IN CALL - CITIZEN INITIATED',
+            'IN CALL - SELF INITIATED',
+            'IN CALL - DIRECTED PATROL',
+            'OUT OF SERVICE',
+            'ON DUTY'
+        ]
+        OfficerActivityType.objects.bulk_create(OfficerActivityType(descr=t) for t in types)
+

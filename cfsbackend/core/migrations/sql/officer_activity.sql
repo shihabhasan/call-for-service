@@ -5,22 +5,6 @@ overlap here.  We'll use this to drive the officer allocation view.
 */
 
 -- Lookup table for the different types of activity
-DROP TABLE IF EXISTS officer_activity_type CASCADE;
-
-CREATE TABLE officer_activity_type (
-	officer_activity_type_id serial NOT NULL,
-	descr text,
-	
-	CONSTRAINT officer_activity_type_pk PRIMARY KEY (officer_activity_type_id),
-	CONSTRAINT officer_activity_type_descr_uniq UNIQUE (descr)
-);
-
-INSERT INTO officer_activity_type (descr) VALUES ('IN CALL - CITIZEN INITIATED');
-INSERT INTO officer_activity_type (descr) VALUES ('IN CALL - SELF INITIATED');
-INSERT INTO officer_activity_type (descr) VALUES ('IN CALL - DIRECTED PATROL');
-INSERT INTO officer_activity_type (descr) VALUES ('OUT OF SERVICE');
-INSERT INTO officer_activity_type (descr) VALUES ('ON DUTY');
-
 DROP MATERIALIZED VIEW IF EXISTS officer_activity CASCADE;
 
 CREATE MATERIALIZED VIEW officer_activity AS
