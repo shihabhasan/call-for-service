@@ -153,7 +153,8 @@ class Call(models.Model):
 
 class CallGeneralCategory(MaterializedView):
     call = models.OneToOneField('Call', primary_key=True,
-                                related_name="categories")
+                                related_name="categories",
+                                on_delete=models.DO_NOTHING)
     gun_related = models.BooleanField()
     gang_related = models.BooleanField()
     spanish_related = models.BooleanField()
@@ -237,7 +238,8 @@ class InCallPeriod(MaterializedView):
     shift = models.ForeignKey('Shift', db_column="shift_id",
                               related_name="+")
     call = models.ForeignKey('Call', db_column="call_id",
-                             related_name="+")
+                             related_name="+",
+                             on_delete=models.DO_NOTHING)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
@@ -308,7 +310,8 @@ class OfficerActivity(MaterializedView):
                                       related_name="+")
     call = models.ForeignKey(Call,
                              db_column="call_id",
-                             related_name="+")
+                             related_name="+",
+                             on_delete=models.DO_NOTHING)
 
     class Meta:
         db_table = 'discrete_officer_activity'
@@ -318,7 +321,8 @@ class OfficerActivity(MaterializedView):
     def update_view(cls):
         with connection.cursor() as cursor:
             cursor.execute("REFRESH MATERIALIZED VIEW officer_activity")
-            cursor.execute("REFRESH MATERIALIZED VIEW discrete_officer_activity")
+            cursor.execute(
+                "REFRESH MATERIALIZED VIEW discrete_officer_activity")
 
 
 class OfficerActivityType(ModelWithDescr):
