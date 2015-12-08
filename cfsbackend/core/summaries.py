@@ -184,32 +184,6 @@ class CallVolumeOverview(CallOverview):
 
         return results
 
-    def day_hour_heatmap(self):
-        if self.span == timedelta(0, 0):
-            return []
-
-        # In order for this to show average volume, we need to know the number
-        # of times each day of the week occurs.
-        start = self.bounds['min_time'].date()
-        end = self.bounds['max_time'].date()
-        weekdays = Counter((start + timedelta(days=x)).weekday() for x in
-                           range(0, (end - start).days + 1))
-
-        results = self.qs \
-            .values('dow_received', 'hour_received') \
-            .annotate(volume=Count('dow_received')) \
-            .order_by('dow_received', 'hour_received')
-
-        for result in results:
-            result['freq'] = weekdays[result['dow_received']]
-            result['total'] = result['volume']
-            try:
-                result['volume'] /= result['freq']
-            except ZeroDivisionError:
-                result['volume'] = 0
-
-        return results
-
     def volume_by_source(self):
         results = self.qs \
             .annotate(id=Case(
@@ -258,7 +232,6 @@ class CallVolumeOverview(CallOverview):
             'precision': self.precision(),
             'count': self.count(),
             'volume_by_date': self.volume_by_date(),
-            'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature'),
             'volume_by_beat': self.volume_by_field('beat'),
