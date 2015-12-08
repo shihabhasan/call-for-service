@@ -16,22 +16,7 @@
             </div>
             <div class="col-md-12">
                 <div class="row">
-                    <div class="col-md-5 col-md-push-7">
-                        <chart-header title="Call Volume By Beat">
-                            This map shows the call volume by Durham beat.
-                            You can click any beat here to filter the calls
-                            to only that beat's calls.
-                        </chart-header>
-
-                        <div id="map-container">
-                            <div id="legend"></div>
-                            <div id="map"></div>
-                        </div>
-
-                        {% include "_loading.html" %}
-                    </div>
-
-                    <div class="col-md-7 col-md-pull-5">
+                    <div class="col-md-7">
                         <div class="row">
                             <div id="volume-by-date" class="col-md-12">
                                 <chart-header title="Call Volume Over Time">
@@ -86,12 +71,22 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-5">
+                        <chart-header title="Call Volume By Beat">
+                            This map shows the call volume by Durham beat.
+                            You can click any beat here to filter the calls
+                            to only that beat's calls.
+                        </chart-header>
 
+                        <div id="map-container">
+                            <div id="legend"></div>
+                            <div id="map"></div>
+                        </div>
 
-
-
+                        {% include "_loading.html" %}
+                    </div>
                 </div>
-                    <div class="clearfix visible-md-block"></div>
+                <div class="clearfix visible-md-block"></div>
                 <div class="row">
                     <div id="volume-by-source" class="col-md-6 col-lg-4">
                         <chart-header title="Call Volume By Source">
@@ -118,19 +113,6 @@
                         </chart-header>
                         {% include "_loading.html" %}
                         <svg></svg>
-                    </div>
-
-
-                    <div id="day-hour-heatmap" class="col-md-12 col-lg-9">
-                        <chart-header title="Day/Hour Heatmap">
-                            <p>
-                                This heatmap shows us the average call
-                                volume for each hour of the day for each day
-                                of the week. The darker the color, the
-                                heavier the volume for that time period.
-                            </p>
-                        </chart-header>
-                        {% include "_loading.html" %}
                     </div>
                 </div>
             </div>
