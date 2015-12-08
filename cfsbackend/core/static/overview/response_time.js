@@ -38,8 +38,13 @@ function cleanupData(data) {
                 return d.name == "P" ? "0" : d.name;
             })
             .value();
-    data.officer_response_time_by_priority = [{key: "Officer Response Time", values: data.officer_response_time_by_priority}];
-    data.officer_response_time_by_source = [{key: "Officer Response Time", values: data.officer_response_time_by_source}];
+    data.officer_response_time_by_priority =
+        [{key: "Officer Response Time", values: data.officer_response_time_by_priority}];
+    data.officer_response_time_by_source =
+        [{
+            key: "Officer Response Time",
+            values: _.sortBy(data.officer_response_time_by_source, function (d) { return d.name; })
+        }];
 
     return data;
 }

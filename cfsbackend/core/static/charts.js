@@ -28,7 +28,8 @@ var DiscreteBarChart = function (options) {
             var chart = nv.models.discreteBarChart()
                 .x(getX)
                 .y(getY)
-                .margin({"bottom": 150, "right": 50});
+                .margin({"bottom": 150, "right": 50})
+                .color(["#2171b5"]);
 
             chart.yAxis.tickFormat(fmt);
 
@@ -103,7 +104,7 @@ var HorizontalBarChart = function (options) {
                     .duration(250)
                     .showControls(false)
                     .showLegend(false)
-                    .barColor(d3.scale.category20().range());
+                    .barColor(["#2171b5"]);
 
 
                 chart.yAxis.tickFormat(d3.format(",d"));

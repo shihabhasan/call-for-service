@@ -206,6 +206,7 @@ class ETL:
         self.connect_call_unit_squads()
         self.connect_call_unit_beat_district()
 
+        self.create_nature_groups()
         self.create_officer_activity_types()
 
         self.log("Updating materialized views")

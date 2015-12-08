@@ -111,6 +111,7 @@ def create_filterset(model, definition, name=None):
 
     return type(name, (ModelFilterSet,), attrs)
 
+
 class SquadFilterSet(ModelFilterSet):
     class Meta:
         model = models.Squad
@@ -121,6 +122,12 @@ class CallUnitFilterSet(ModelFilterSet):
     class Meta:
         model = models.CallUnit
         fields = ["call_unit_id", "squad", "beat", "district"]
+
+
+class NatureFilterSet(ModelFilterSet):
+    class Meta:
+        model = models.Nature
+        fields = ["nature_id", "nature_group"]
 
 
 CallFilterSet = create_filterset(
@@ -142,11 +149,9 @@ CallFilterSet = create_filterset(
         {"name": "zip_code", "rel": "ZipCode", "label": "ZIP code"},
         {"name": "call_source", "rel": "CallSource"},
         {"name": "nature", "rel": "Nature"},
+        {"name": "nature__nature_group", "label": "Nature Group", "rel": "NatureGroup"},
         {"name": "priority", "rel": "Priority"},
         {"name": "close_code", "rel": "CloseCode"},
-        {"name": "primary_unit", "rel": "CallUnit"},
-        {"name": "first_dispatched", "rel": "CallUnit"},
-        {"name": "reporting_unit", "rel": "CallUnit"},
         {"name": "cancelled", "type": "boolean"},
         {"name": "dow_received", "label": "Day of Week", "type": "select",
          "options": [
@@ -158,8 +163,9 @@ CallFilterSet = create_filterset(
         {"name": "initiated_by", "type": "select", "method": True,
          "lookups": ["exact"],
          "options": [[0, "Officer"], [1, "Citizen"]]},
-        {"name": "shift", "type": "select", "method": True, "lookups": ["exact"],
-         "options": [[0, "Shift 1"], [1, "Shift 2"]]},
+        {"name": "shift", "type": "select", "method": True,
+         "lookups": ["exact"],
+         "options": [[0, "Shift 1"], [1, "Shift 2"]]}
     ]
 )
 

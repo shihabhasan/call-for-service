@@ -7,8 +7,6 @@ var outFormats = {
     "day": "%a %m/%d",
     "hour": "%m/%d %H:%M"
 };
-var geojson;
-
 
 var dashboard = new Page(
     {
@@ -65,21 +63,11 @@ dashboard.on(
 function cleanupData(data) {
     var indate = d3.time.format("%Y-%m-%dT%H:%M:%S");
 
-    var natureCols = 30;
-    var volumeByNature = _(data.volume_by_nature).sortBy('volume').reverse();
-
-    var allOther = _.chain(volumeByNature)
-        .rest(natureCols)
-        .reduce(
-            function (total, cur) {
-                return {name: "ALL OTHER", volume: total.volume + cur.volume}
-            }, {name: "ALL OTHER", volume: 0})
+    data.volume_by_nature_group = _.chain(data.volume_by_nature_group)
+        .filter(function (d) { return d.name; })
+        .sortBy(function (d) { return d.name; })
         .value();
-
-    volumeByNature = _.first(volumeByNature, natureCols).concat(
-        allOther.volume > 0 ? [allOther] : []);
-
-    data.volume_by_nature = [{key: "Call Volume", values: volumeByNature}];
+    data.volume_by_nature_group = [{key: "Call Volume", values: data.volume_by_nature_group}];
 
     data.volume_by_date = [
         {
@@ -96,15 +84,19 @@ function cleanupData(data) {
         }
     ];
 
-    var sources = ["Self", "Citizen"];
+    var sources = ["Officer", "Citizen"];
 
-    data.volume_by_source = _.map(data.volume_by_source, function (d) {
+    data.volume_by_source = _.chain(data.volume_by_source).map(function (d) {
         return {
             id: d.id,
             volume: d.volume,
             name: sources[d.id]
         }
-    });
+    }).sortBy(function (d) {
+        return d.id;
+    }).value();
+
+    data.volume_by_source = [{key: "Volume by Source", values: data.volume_by_source}];
 
     data.map_data = _.reduce(
         data.volume_by_beat, function (memo, d) {
@@ -168,6 +160,7 @@ function cleanupData(data) {
         }
     ]
 
+
     return data;
 }
 
@@ -194,14 +187,34 @@ var volumeByShiftChart = new HorizontalBarChart({
     y: function (d) { return d.volume }
 });
 
-var volumeByNatureChart = new DiscreteBarChart({
+//var volumeByNatureChart = new DiscreteBarChart({
+//    el: '#volume-by-nature',
+//    dashboard: dashboard,
+//    filter: 'nature',
+//    ratio: 2,
+//    rotateLabels: true,
+//    x: function (d) { return d.name },
+//    y: function (d) { return d.volume }
+//});
+
+var volumeByNatureGroupChart = new DiscreteBarChart({
     el: '#volume-by-nature',
-    filter: 'nature',
+    dashboard: dashboard,
+    filter: 'nature__nature_group',
     ratio: 2,
     rotateLabels: true,
     x: function (d) { return d.name },
     y: function (d) { return d.volume }
-})
+});
+
+var volumeBySourceChart = new HorizontalBarChart({
+    el: "#volume-by-source",
+    filter: "initiated_by",
+    ratio: 2.5,
+    dashboard: dashboard,
+    x: function (d) { return d.name },
+    y: function (d) { return d.volume }
+});
 
 var volumeMap = new DurhamMap({
     el: "#map",
@@ -285,9 +298,9 @@ function buildVolumeBySourceChart(data) {
 }
 
 
-monitorChart(dashboard, 'data.volume_by_nature', volumeByNatureChart.update);
+monitorChart(dashboard, 'data.volume_by_nature_group', volumeByNatureGroupChart.update);
 monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
-monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
+monitorChart(dashboard, 'data.volume_by_source', volumeBySourceChart.update);
 monitorChart(dashboard, 'data.volume_by_dow', volumeByDOWChart.update);
 monitorChart(dashboard, 'data.volume_by_shift', volumeByShiftChart.update);
 monitorChart(dashboard, 'data.map_data', volumeMap.update);
