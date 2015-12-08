@@ -2,6 +2,8 @@ from datetime import timedelta
 from django.test import TestCase
 from django.db.models import Model
 from dateutil.parser import parse as dtparse
+from decimal import Decimal
+
 from core.summaries import OfficerActivityOverview, CallVolumeOverview
 from .test_helpers import assert_list_equiv, create_call, q, create_officer_activity
 from ..models import Beat, CallUnit, OfficerActivity, Nature, \
@@ -208,13 +210,13 @@ class OfficerActivityOverviewTest(TestCase):
         by_beat_results = overview.to_dict()['on_duty_by_beat']
 
         correct_by_beat_results = [
-            {'beat': '2', 'on_duty': 1},
+            {'beat_id': 2, 'beat': '2', 'on_duty': 1.0},
         ]
 
         by_district_results = overview.to_dict()['on_duty_by_district']
 
         correct_by_district_results = [
-            {'district': 'B', 'on_duty': 1},
+            {'district_id': 2, 'district': 'B', 'on_duty': 1.0},
         ]
 
         for results, correct in (
