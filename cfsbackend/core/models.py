@@ -314,6 +314,12 @@ class OfficerActivity(MaterializedView):
         db_table = 'discrete_officer_activity'
         managed = False
 
+    @classmethod
+    def update_view(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("REFRESH MATERIALIZED VIEW officer_activity")
+            cursor.execute("REFRESH MATERIALIZED VIEW discrete_officer_activity")
+
 
 class OfficerActivityType(ModelWithDescr):
     officer_activity_type_id = models.AutoField(primary_key=True)
