@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css?family=Audiowide");
+
 @mixin border-radius($radius) {
   -webkit-border-radius: $radius;
      -moz-border-radius: $radius;
@@ -24,6 +26,10 @@ $tuatara     : #444444;
 $oil         : #333333;
 $jet         : #222222;
 $black       : #000000;
+
+.navbar-brand {
+  font-family: 'Audiowide', sans-serif;
+}
 
 .container-max-1800 {
   max-width: 1800px;
