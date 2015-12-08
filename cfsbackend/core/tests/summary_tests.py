@@ -1,29 +1,11 @@
 from datetime import timedelta
-
-from dateutil.parser import parse as dtparse
-from django.http import QueryDict
 from django.test import TestCase
-
+from django.db.models import Model
+from dateutil.parser import parse as dtparse
 from core.summaries import OfficerActivityOverview, CallVolumeOverview
-from .test_helpers import assert_list_equiv
-from ..models import Call, Beat, CallUnit, OfficerActivity, Nature, \
+from .test_helpers import assert_list_equiv, create_call, q
+from ..models import Beat, CallUnit, OfficerActivity, Nature, \
     OfficerActivityType
-
-
-def create_call(**kwargs):
-    try:
-        time_received = dtparse(kwargs['time_received'])
-    except KeyError:
-        raise ValueError("You must include a time_received value.")
-
-    kwargs['dow_received'] = time_received.weekday()
-    kwargs['hour_received'] = time_received.hour
-
-    return Call.objects.create(**kwargs)
-
-
-def q(string):
-    return QueryDict(string)
 
 
 class OfficerActivityOverviewTest(TestCase):
@@ -286,17 +268,3 @@ class CallVolumeOverviewTest(TestCase):
                            {"date": dtparse("2014-11-01T00:00"), "volume": 1},
                            {"date": dtparse("2015-01-01T00:00"), "volume": 3},
                            {"date": dtparse("2015-02-01T00:00"), "volume": 1}])
-
-    def test_day_hour_heatmap(self):
-        overview = CallVolumeOverview(
-            q("time_received__gte=2015-01-01&time_received__lte=2015-02-02"))
-        results = overview.to_dict()['day_hour_heatmap']
-
-        assert_list_equiv(results, [
-            {'dow_received': 3, 'hour_received': 9, 'volume': 0.4, 'freq': 5,
-             'total': 2},
-            {'dow_received': 3, 'hour_received': 12, 'volume': 0.2, 'freq': 5,
-             'total': 1},
-            {'dow_received': 6, 'hour_received': 9, 'volume': 0.2, 'freq': 5,
-             'total': 1},
-        ])

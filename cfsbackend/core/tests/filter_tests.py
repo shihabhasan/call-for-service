@@ -6,7 +6,8 @@ from django.test import TestCase
 from ..filters import create_filterset, create_rel_filterset, \
     OfficerActivityFilterSet
 from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode, \
-        OfficerActivity, Nature, OfficerActivityType, Beat
+    OfficerActivity, Nature, OfficerActivityType, Beat
+from .test_helpers import create_call
 
 
 def test_create_simple_filterset():
@@ -64,12 +65,12 @@ class OfficerActivityFilterSetTest(TestCase):
     def setUp(self):
         self.n1 = Nature.objects.create(nature_id=1, descr='Robbery')
         self.n2 = Nature.objects.create(nature_id=2, descr='Homicide')
-        self.call1 = Call.objects.create(call_id=1,
-                                         time_received='2014-01-15T9:00',
-                                         nature=self.n1)
-        self.call2 = Call.objects.create(call_id=2,
-                                         time_received='2014-03-18T3:00',
-                                         nature=self.n2)
+        self.call1 = create_call(call_id=1,
+                                 time_received='2014-01-15T9:00',
+                                 nature=self.n1)
+        self.call2 = create_call(call_id=2,
+                                 time_received='2014-03-18T3:00',
+                                 nature=self.n2)
 
         self.b1 = Beat.objects.create(beat_id=1, descr='B1')
         self.b2 = Beat.objects.create(beat_id=2, descr='B2')
@@ -136,9 +137,9 @@ class OfficerActivityFilterSetTest(TestCase):
 
     def test_time_filter(self):
         self._test_query("time__gte=2014-01-16", [self.a4, self.a5, self.a6])
-    
+
         self._test_query("time__lte=2014-01-15", [self.a1, self.a2, self.a3])
-        
+
     def test_call_unit_beat_filter(self):
         self._test_query("call_unit__beat=1", [self.a1, self.a3, self.a5])
 
@@ -151,11 +152,12 @@ class OfficerActivityFilterSetTest(TestCase):
 
     def _test_query(self, query, correct_results):
         filter_set = OfficerActivityFilterSet(data=QueryDict(query),
-                queryset=OfficerActivity.objects.all())
+                                              queryset=OfficerActivity.objects.all())
         qs = filter_set.filter()
         for obj in correct_results:
             self.assertIn(obj, qs)
         self.assertEqual(len(correct_results), len(qs))
+
 
 class CallFilterSetTest(TestCase):
     def setUp(self):

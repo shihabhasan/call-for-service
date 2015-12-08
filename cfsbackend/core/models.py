@@ -127,7 +127,8 @@ class Call(models.Model):
     time_closed = models.DateTimeField(blank=True, null=True)
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
-    officer_response_time = models.DurationField(blank=True, null=True, db_index=True)
+    officer_response_time = models.DurationField(blank=True, null=True,
+                                                 db_index=True)
     overall_response_time = models.DurationField(blank=True, null=True)
 
     def update_derived_fields(self):
@@ -152,7 +153,7 @@ class Call(models.Model):
 
 class CallGeneralCategory(MaterializedView):
     call = models.OneToOneField('Call', primary_key=True,
-                                   related_name="categories")
+                                related_name="categories")
     gun_related = models.BooleanField()
     gang_related = models.BooleanField()
     spanish_related = models.BooleanField()
@@ -188,9 +189,11 @@ class CallSource(ModelWithDescr):
 
 class CallUnit(ModelWithDescr):
     call_unit_id = models.AutoField(primary_key=True)
-    squad = models.ForeignKey('Squad', blank=True, null=True, related_name="squad")
+    squad = models.ForeignKey('Squad', blank=True, null=True,
+                              related_name="squad")
     beat = models.ForeignKey("Beat", blank=True, null=True, related_name="+")
-    district = models.ForeignKey("District", blank=True, null=True, related_name="+")
+    district = models.ForeignKey("District", blank=True, null=True,
+                                 related_name="+")
 
     class Meta:
         db_table = 'call_unit'
@@ -294,7 +297,8 @@ class Officer(models.Model):
 
 
 class OfficerActivity(MaterializedView):
-    officer_activity_id = models.IntegerField(primary_key=True)
+    officer_activity_id = models.IntegerField(primary_key=True,
+                                              db_column="discrete_officer_activity_id")
     call_unit = models.ForeignKey('CallUnit',
                                   db_column="call_unit_id",
                                   related_name="+")
