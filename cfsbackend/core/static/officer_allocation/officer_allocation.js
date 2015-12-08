@@ -6,6 +6,15 @@ var OfficerAllocationFilter = Filter.extend({
     template: "#officer-allocation-filter-template"
 });
 
+// Beats and districts both need to access the same colors
+var districtColors = {
+    '1': '#9edae5',
+    '2': '#17becf',
+    '3': '#dbdb8d',
+    '4': '#bcbd22',
+    '5': '#c7c7c7',
+}
+
 var dashboard = new Page({
     components: {
         'Filter': OfficerAllocationFilter
@@ -109,7 +118,7 @@ function cleanupData(data) {
                     })
                 .sortBy(
                     function (d) {
-                        return d.on_duty;
+                        return d.beat;
                     })
                 .value()
         }
@@ -125,13 +134,11 @@ function cleanupData(data) {
                     })
                 .sortBy(
                     function (d) {
-                        return d.on_duty;
+                        return d.district;
                     })
                 .value()
         }
     ];
-    console.log(data.on_duty_by_beat);
-    console.log(data.on_duty_by_district);
 
     return data;
 }
@@ -197,13 +204,16 @@ function buildOnDutyByBeatChart(data) {
                 })
             .y(
                 function (d) {
-                    return d.on_duty;
+                    return d3.round(d.on_duty, 2);
                 })
             .duration(250)
+            .barColor(function (d) {
+                return districtColors[d.beat.substring(0,1)];
+            })
             .showControls(false)
             .showLegend(false);
 
-        chart.yAxis.tickFormat(d3.format(",d"));
+        chart.yAxis.tickFormat(d3.format(".,2r"));
 
         svg.datum(data).call(chart);
 
@@ -235,13 +245,16 @@ function buildOnDutyByDistrictChart(data) {
                 })
             .y(
                 function (d) {
-                    return d.on_duty;
+                    return d3.round(d.on_duty, 2);
                 })
             .duration(250)
+            .barColor(function (d) {
+                return districtColors[d.district.substring(1,2)];
+            })
             .showControls(false)
             .showLegend(false);
 
-        chart.yAxis.tickFormat(d3.format(",d"));
+        chart.yAxis.tickFormat(d3.format(".,2r"));
 
         svg.datum(data).call(chart);
 
