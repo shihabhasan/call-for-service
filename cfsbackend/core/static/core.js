@@ -50,11 +50,11 @@ var FilterButton = Ractive.extend({
     },
     oncomplete: function () {
         var field = this.get('field');
-        var filter = this.get('filter');
+        var self = this;
 
         if (this.get('fieldType') === "daterange") {
             var $button = $("#button_" + field);
-            var value = this.get('filterValue')(field, filter);
+            var value = this.get('filterValue')(field, this.get('filter'));
             var pastSunday = moment().day("Sunday").startOf("day");
 
             // todo set up ranges
@@ -89,6 +89,8 @@ var FilterButton = Ractive.extend({
             $button.daterangepicker(options);
 
             $button.on('apply.daterangepicker', function (event, picker) {
+                var filter = self.get('filter');
+
                 filter = _.clone(filter);
 
                 var dates = {
@@ -495,6 +497,8 @@ function nest(segments, value) {
 }
 
 function parseQueryParams(str) {
+    var comparators = ['lte', 'gte'];
+
     if (typeof str != "string") return {};
     if (str.charAt(0) === "!") {
         str = str.slice(1);
@@ -516,6 +520,16 @@ function parseQueryParams(str) {
         second = decodeURIComponent(bit[1]);
 
         segments = first.split("__");
+
+        if (segments.length > 1) {
+            var lastSegment = segments[segments.length - 1];
+            if (comparators.indexOf(lastSegment) != -1) {
+                segments = [segments.slice(0, -1).join("__"), segments[segments.length - 1]];
+            } else {
+                segments = [segments.join("__")];
+            }
+        }
+
         if (segments.length == 1) {
             if (typeof query[first] == "undefined") {
                 query[first] = second;
