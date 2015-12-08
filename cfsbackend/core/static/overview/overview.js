@@ -187,22 +187,13 @@ var volumeByShiftChart = new HorizontalBarChart({
     y: function (d) { return d.volume }
 });
 
-//var volumeByNatureChart = new DiscreteBarChart({
-//    el: '#volume-by-nature',
-//    dashboard: dashboard,
-//    filter: 'nature',
-//    ratio: 2,
-//    rotateLabels: true,
-//    x: function (d) { return d.name },
-//    y: function (d) { return d.volume }
-//});
-
 var volumeByNatureGroupChart = new DiscreteBarChart({
     el: '#volume-by-nature',
     dashboard: dashboard,
     filter: 'nature__nature_group',
     ratio: 2,
     rotateLabels: true,
+    fmt: d3.format(",d"),
     x: function (d) { return d.name },
     y: function (d) { return d.volume }
 });
@@ -260,39 +251,6 @@ function buildVolumeByDateChart(data) {
 
             svg.datum(data).call(chart);
             nv.utils.windowResize(chart.update);
-            return chart;
-        });
-}
-
-
-function buildVolumeBySourceChart(data) {
-    var parentWidth = d3.select("#volume-by-source").node().clientWidth;
-    var width = parentWidth,
-        height = width / 1.5;
-
-    var svg = d3.select("#volume-by-source svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(
-        function () {
-            var chart = nv.models.pieChart()
-                .x(function (d) { return d.name })
-                .y(function (d) { return d.volume }); // allow custom CSS for this one svg
-            chart.pie.labelsOutside(true).donut(true);
-
-            svg.datum(data).call(chart);
-
-            svg.selectAll('.nv-slice').style('cursor', 'pointer');
-
-            chart.pie.dispatch.on(
-                'elementClick', function (e) {
-                    if (e.data.id || e.data.id === 0) {
-                        toggleFilter(dashboard, "initiated_by", e.data.id);
-                    }
-                });
-
-            nv.utils.windowResize(chart.update);
-
             return chart;
         });
 }
