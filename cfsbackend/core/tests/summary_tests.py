@@ -3,6 +3,7 @@ from datetime import timedelta
 from dateutil.parser import parse as dtparse
 from django.http import QueryDict
 from django.test import TestCase
+from decimal import Decimal
 
 from core.summaries import OfficerActivityOverview, CallVolumeOverview
 from .test_helpers import assert_list_equiv
@@ -218,13 +219,13 @@ class OfficerActivityOverviewTest(TestCase):
         by_beat_results = overview.to_dict()['on_duty_by_beat']
 
         correct_by_beat_results = [
-            {'beat': '2', 'on_duty': 1},
+            {'beat_id': 2, 'beat': '2', 'on_duty': 1.0},
         ]
 
         by_district_results = overview.to_dict()['on_duty_by_district']
 
         correct_by_district_results = [
-            {'district': 'B', 'on_duty': 1},
+            {'district_id': 2, 'district': 'B', 'on_duty': 1.0},
         ]
 
         for results, correct in (
