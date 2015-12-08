@@ -79,7 +79,7 @@ function cleanupData(data) {
     volumeByNature = _.first(volumeByNature, natureCols).concat(
         allOther.volume > 0 ? [allOther] : []);
 
-    data.volume_by_nature = volumeByNature;
+    data.volume_by_nature = [{key: "Call Volume", values: volumeByNature}];
 
     data.volume_by_date = [
         {
@@ -180,15 +180,28 @@ var volumeByDOWChart = new HorizontalBarChart({
     el: "#volume-by-dow",
     filter: "dow_received",
     ratio: 1.5,
-    dashboard: dashboard
+    dashboard: dashboard,
+    x: function (d) { return d.name },
+    y: function (d) { return d.volume }
 });
 
 var volumeByShiftChart = new HorizontalBarChart({
     el: "#volume-by-shift",
     filter: "shift",
     ratio: 2.5,
-    dashboard: dashboard
+    dashboard: dashboard,
+    x: function (d) { return d.name },
+    y: function (d) { return d.volume }
 });
+
+var volumeByNatureChart = new DiscreteBarChart({
+    el: '#volume-by-nature',
+    filter: 'nature',
+    ratio: 2,
+    rotateLabels: true,
+    x: function (d) { return d.name },
+    y: function (d) { return d.volume }
+})
 
 var volumeMap = new DurhamMap({
     el: "#map",
@@ -238,64 +251,6 @@ function buildVolumeByDateChart(data) {
 }
 
 
-function buildVolumeByNatureChart(data) {
-    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
-    var width = parentWidth;
-    var height = width / 2;
-
-    var svg = d3.select("#volume-by-nature svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(
-        function () {
-            var chart = nv.models.discreteBarChart()
-                .x(
-                    function (d) {
-                        return d.name
-                    })
-                .y(
-                    function (d) {
-                        return d.volume
-                    })
-                .margin({"bottom": 200, "right": 50});
-
-            svg.datum([{key: "Call Volume", values: data}]).call(chart);
-
-            svg.selectAll('.nv-bar').style('cursor', 'pointer');
-
-            chart.discretebar.dispatch.on(
-                'elementClick', function (e) {
-                    if (e.data.id) {
-                        toggleFilter(dashboard, "nature", e.data.id);
-                    }
-                });
-
-            // Have to call this both during creation and after updating the chart
-            // when the window is resized.
-            var rotateLabels = function () {
-                var xTicks = d3.select('#volume-by-nature .nv-x.nv-axis > g').selectAll('g');
-
-                xTicks.selectAll('text')
-                    .style("text-anchor", "start")
-                    .attr("dx", "0.25em")
-                    .attr("dy", "0.75em")
-                    .attr("transform", "rotate(45 0,0)");
-            };
-
-            rotateLabels();
-
-            nv.utils.windowResize(
-                function () {
-                    chart.update();
-                    rotateLabels();
-
-                });
-
-            return chart;
-        })
-}
-
-
 function buildVolumeBySourceChart(data) {
     var parentWidth = d3.select("#volume-by-source").node().clientWidth;
     var width = parentWidth,
@@ -328,25 +283,8 @@ function buildVolumeBySourceChart(data) {
         });
 }
 
-function getDayHourHeatmapBounds() {
-    var parent = d3.select("#day-hour-heatmap"),
-        parentWidth = parent.node().clientWidth,
-        ratio = 2.5 / 1,
-        width = parentWidth,
-        height = width / ratio;
 
-    return {width: width, height: height};
-}
-
-function resizeDayHourHeatmap() {
-    var bounds = getDayHourHeatmapBounds(),
-        svg = d3.select("#day-hour-heatmap").select("svg");
-
-    svg.attr("width", bounds.width)
-        .attr("height", bounds.height);
-}
-
-monitorChart(dashboard, 'data.volume_by_nature', buildVolumeByNatureChart);
+monitorChart(dashboard, 'data.volume_by_nature', volumeByNatureChart.update);
 monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
 monitorChart(dashboard, 'data.volume_by_source', buildVolumeBySourceChart);
 monitorChart(dashboard, 'data.volume_by_dow', volumeByDOWChart.update);

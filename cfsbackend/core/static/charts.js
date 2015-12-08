@@ -1,6 +1,82 @@
+var DiscreteBarChart = function (options) {
+    var self = this;
+    var dashboard = options.dashboard;
+    var fmt = options.fmt || function (x) { return x; };
+    var rotateLabels = options.rotateLabels || false;
+    var getX = options.x;
+    var getY = options.y;
+
+    this.el = options.el;
+    this.filter = options.filter;
+    this.ratio = options.ratio || 1.25;
+
+
+    this.create = function () {
+        var container = d3.select(this.el);
+        var width = container.node().clientWidth;
+        var height = width / self.ratio;
+
+        var svg = container
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+    };
+
+    this.update = function (data) {
+        var svg = d3.select(self.el).select("svg");
+        nv.addGraph(function () {
+            var chart = nv.models.discreteBarChart()
+                .x(getX)
+                .y(getY)
+                .margin({"bottom": 150, "right": 50});
+
+            chart.yAxis.tickFormat(fmt);
+
+            svg.datum(data).call(chart);
+
+            svg.selectAll('.nv-bar').style('cursor', 'pointer');
+
+            chart.discretebar.dispatch.on('elementClick', function (e) {
+                if (e.data.id) {
+                    toggleFilter(dashboard, self.filter, e.data.id);
+                }
+            });
+
+            if (rotateLabels) {
+                // Have to call this both during creation and after updating the chart
+                // when the window is resized.
+                var doRotateLabels = function () {
+                    var xTicks = d3.select(self.el + ' .nv-x.nv-axis > g').selectAll('g');
+
+                    xTicks.selectAll('text')
+                        .style("text-anchor", "start")
+                        .attr("dx", "0.25em")
+                        .attr("dy", "0.75em")
+                        .attr("transform", "rotate(45 0,0)");
+                };
+
+                doRotateLabels();
+            }
+
+            nv.utils.windowResize(function () {
+                chart.update();
+                if (rotateLabels) {
+                    doRotateLabels();
+                }
+            });
+
+            return chart;
+        })
+    }
+
+    this.create();
+}
+
 var HorizontalBarChart = function (options) {
     var self = this;
     var dashboard = options.dashboard;
+    var getX = options.x;
+    var getY = options.y;
 
     this.el = options.el;
     this.filter = options.filter;
@@ -22,8 +98,8 @@ var HorizontalBarChart = function (options) {
         nv.addGraph(
             function () {
                 var chart = nv.models.multiBarHorizontalChart()
-                    .x(function (d) { return d.name })
-                    .y(function (d) { return d.volume })
+                    .x(getX)
+                    .y(getY)
                     .duration(250)
                     .showControls(false)
                     .showLegend(false)
