@@ -174,9 +174,17 @@ var Filter = Ractive.extend({
     }
 });
 
+var LoadingIndicator = Ractive.extend({
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    template: '#loading-template',
+    isolated: true
+})
+
 var Page = Ractive.extend({
     components: {
-        'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader
+        'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader,
+        'LoadingIndicator': LoadingIndicator
     },
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],

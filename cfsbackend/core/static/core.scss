@@ -27,6 +27,16 @@ $oil         : #333333;
 $jet         : #222222;
 $black       : #000000;
 
+#loading {
+  position: fixed;
+  top: 0;
+  right: 0;
+  @include border-radius(0 0 0 10px);
+  padding: 10px;
+  background-color: $ghost;
+  z-index: 9999;
+}
+
 .navbar-brand {
   font-family: 'Audiowide', sans-serif;
 }
