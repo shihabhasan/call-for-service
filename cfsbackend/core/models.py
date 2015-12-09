@@ -55,6 +55,15 @@ class Bureau(ModelWithDescr):
 class CallQuerySet(models.QuerySet):
     def squad(self, value):
         if value:
+            query = Q(primary_unit__squad_id=value) | Q(
+                first_dispatched__squad_id=value) | Q(
+                reporting_unit__squad_id=value)
+            return self.filter(query)
+        else:
+            return self
+
+    def unit(self, value):
+        if value:
             query = Q(primary_unit_id=value) | Q(
                 first_dispatched_id=value) | Q(
                 reporting_unit_id=value)

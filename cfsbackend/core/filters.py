@@ -160,6 +160,8 @@ CallFilterSet = create_filterset(
          ]},
         {"name": "squad", "rel": "Squad", "method": True, "type": "choice",
          "lookups": ["exact"]},
+        {"name": "unit", "rel": "CallUnit", "method": True, "type": "choice",
+         "lookups": ["exact"]},
         {"name": "initiated_by", "type": "select", "method": True,
          "lookups": ["exact"],
          "options": [[0, "Officer"], [1, "Citizen"]]},
