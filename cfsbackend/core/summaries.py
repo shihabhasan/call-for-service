@@ -119,6 +119,7 @@ class OfficerActivityOverview:
 
         # Set the work_mem back to normal
         cursor.execute('RESET work_mem;')
+        cursor.close()
 
         # Patrol stats are ON DUTY minus everything else
         for r in agg_result.values():

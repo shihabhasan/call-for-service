@@ -318,7 +318,7 @@ class OfficerActivity(MaterializedView):
     activity_type = models.ForeignKey('OfficerActivityType',
                                       db_column="officer_activity_type_id",
                                       related_name="+")
-    call = models.ForeignKey(Call,
+    call = models.ForeignKey(Call, blank=True, null=True,
                              db_column="call_id",
                              related_name="+",
                              on_delete=models.DO_NOTHING)
