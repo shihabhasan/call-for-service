@@ -394,4 +394,4 @@ var DurhamMap = function (options) {
     dashboard.on('complete', function () {
         self.create();
     });
-}
+};
