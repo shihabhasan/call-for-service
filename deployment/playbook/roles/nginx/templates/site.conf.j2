@@ -1,5 +1,20 @@
 server {
-    listen                  80;
+    listen 80;
+    server_name
+    {% for name in nginx.servernames %}
+        {{name}}
+    {%endfor%}
+    ;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen                  443 ssl;
+    ssl_certificate         /var/lib/acme/live/dpdcfs.rticds.org/cert;
+    ssl_certificate_key     /var/lib/acme/live/dpdcfs.rticds.org/privkey;
+    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
     server_name
     {% for name in nginx.servernames %}
         {{name}}
@@ -51,6 +66,10 @@ server {
         autoindex off;
     }
 
+    location /.well-known/acme-challenge/ {
+      proxy_pass http://acmetool;
+    }
+
     location / {
         proxy_set_header Host $http_host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -60,4 +79,8 @@ server {
 
         proxy_pass http://unix:{{ project.root }}gunicorn.sock;
     }
+}
+
+upstream acmetool {
+    server 127.0.0.1:402;
 }

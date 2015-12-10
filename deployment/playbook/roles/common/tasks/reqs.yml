@@ -39,3 +39,12 @@
   apt: name=nodejs state=present
 - name: Install bower
   npm: name=bower global=yes
+- name: Download ACME
+  get_url: url=https://github.com/hlandau/acme/releases/download/v0.0.20/acmetool-v0.0.20-linux_amd64.tar.gz dest=/root/acmetool-v0.0.20.tar.gz
+  tags: acme
+- name: Unzip ACME
+  command: tar zxf /root/acmetool-v0.0.20.tar.gz chdir=/root/ creates=/root/acmetool-v0.0.20-linux_amd64/bin/acmetool
+  tags: acme
+- name: Link ACME
+  command: ln -s /root/acmetool-v0.0.20-linux_amd64/bin/acmetool /usr/local/bin/acmetool creates=/usr/local/bin/acmetool
+  tags: acme
