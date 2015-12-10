@@ -216,6 +216,8 @@ class OfficerActivityOverview:
         cursor.execute(sql, params)
         results = dictfetchall(cursor)
 
+        return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,

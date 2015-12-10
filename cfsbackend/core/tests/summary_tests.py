@@ -218,6 +218,7 @@ class OfficerActivityOverviewTest(TestCase):
         correct_by_district_results = [
             {'district_id': 2, 'district': 'B', 'on_duty': 1.0},
         ]
+
         for results, correct in (
                 (by_beat_results, correct_by_beat_results),
                 (by_district_results, correct_by_district_results)):
