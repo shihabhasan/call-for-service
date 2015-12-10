@@ -191,7 +191,7 @@ function buildAllocationOverTimeChart(data) {
 function buildOnDutyByBeatChart(data) {
     var parentWidth = d3.select("#on-duty-by-beat").node().clientWidth;
     var width = parentWidth;
-    var height = width * 1.5;
+    var height = width;
 
     var svg = d3.select("#on-duty-by-beat svg");
     svg.attr("width", width).attr("height", height);
@@ -232,7 +232,7 @@ function buildOnDutyByBeatChart(data) {
 function buildOnDutyByDistrictChart(data) {
     var parentWidth = d3.select("#on-duty-by-district").node().clientWidth;
     var width = parentWidth;
-    var height = width * 1.5;
+    var height = width;
 
     var svg = d3.select("#on-duty-by-district svg");
     svg.attr("width", width).attr("height", height);
