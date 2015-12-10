@@ -10,6 +10,7 @@
 
 from __future__ import unicode_literals
 from django.db import models
+from django.db import connection
 from django.db.models import Q
 from pg.view import MaterializedView
 from django.contrib.postgres.fields import ArrayField
@@ -53,6 +54,15 @@ class Bureau(ModelWithDescr):
 
 class CallQuerySet(models.QuerySet):
     def squad(self, value):
+        if value:
+            query = Q(primary_unit__squad_id=value) | Q(
+                first_dispatched__squad_id=value) | Q(
+                reporting_unit__squad_id=value)
+            return self.filter(query)
+        else:
+            return self
+
+    def unit(self, value):
         if value:
             query = Q(primary_unit_id=value) | Q(
                 first_dispatched_id=value) | Q(
@@ -110,11 +120,9 @@ class Call(models.Model):
     crossroad2 = models.TextField(blank=True, null=True)
     geox = models.FloatField(blank=True, null=True)
     geoy = models.FloatField(blank=True, null=True)
-    beat = models.ForeignKey(Beat, blank=True, null=True, related_name='+')
-    district = models.ForeignKey('District', blank=True, null=True,
-                                 related_name='+')
-    sector = models.ForeignKey('Sector', blank=True, null=True,
-                               related_name='+')
+    beat = models.ForeignKey(Beat, blank=True, null=True)
+    district = models.ForeignKey('District', blank=True, null=True)
+    sector = models.ForeignKey('Sector', blank=True, null=True)
     business = models.TextField(blank=True, null=True)
     nature = models.ForeignKey('Nature', blank=True, null=True)
     priority = models.ForeignKey('Priority', blank=True, null=True)
@@ -129,7 +137,8 @@ class Call(models.Model):
     time_closed = models.DateTimeField(blank=True, null=True)
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
-    officer_response_time = models.DurationField(blank=True, null=True, db_index=True)
+    officer_response_time = models.DurationField(blank=True, null=True,
+                                                 db_index=True)
     overall_response_time = models.DurationField(blank=True, null=True)
 
     def update_derived_fields(self):
@@ -154,7 +163,8 @@ class Call(models.Model):
 
 class CallGeneralCategory(MaterializedView):
     call = models.OneToOneField('Call', primary_key=True,
-                                   related_name="categories")
+                                related_name="categories",
+                                on_delete=models.DO_NOTHING)
     gun_related = models.BooleanField()
     gang_related = models.BooleanField()
     spanish_related = models.BooleanField()
@@ -191,8 +201,10 @@ class CallSource(ModelWithDescr):
 class CallUnit(ModelWithDescr):
     call_unit_id = models.AutoField(primary_key=True)
     squad = models.ForeignKey('Squad', blank=True, null=True,
-                              db_column="squad_id",
                               related_name="squad")
+    beat = models.ForeignKey("Beat", blank=True, null=True, related_name="+")
+    district = models.ForeignKey("District", blank=True, null=True,
+                                 related_name="+")
 
     class Meta:
         db_table = 'call_unit'
@@ -236,7 +248,8 @@ class InCallPeriod(MaterializedView):
     shift = models.ForeignKey('Shift', db_column="shift_id",
                               related_name="+")
     call = models.ForeignKey('Call', db_column="call_id",
-                             related_name="+")
+                             related_name="+",
+                             on_delete=models.DO_NOTHING)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
@@ -296,7 +309,8 @@ class Officer(models.Model):
 
 
 class OfficerActivity(MaterializedView):
-    officer_activity_id = models.IntegerField(primary_key=True)
+    officer_activity_id = models.IntegerField(primary_key=True,
+                                              db_column="discrete_officer_activity_id")
     call_unit = models.ForeignKey('CallUnit',
                                   db_column="call_unit_id",
                                   related_name="+")
@@ -304,13 +318,21 @@ class OfficerActivity(MaterializedView):
     activity_type = models.ForeignKey('OfficerActivityType',
                                       db_column="officer_activity_type_id",
                                       related_name="+")
-    call = models.ForeignKey(Call,
+    call = models.ForeignKey(Call, blank=True, null=True,
                              db_column="call_id",
-                             related_name="+")
+                             related_name="+",
+                             on_delete=models.DO_NOTHING)
 
     class Meta:
         db_table = 'discrete_officer_activity'
         managed = False
+
+    @classmethod
+    def update_view(cls):
+        with connection.cursor() as cursor:
+            cursor.execute("REFRESH MATERIALIZED VIEW officer_activity")
+            cursor.execute(
+                "REFRESH MATERIALIZED VIEW discrete_officer_activity")
 
 
 class OfficerActivityType(ModelWithDescr):

@@ -6,7 +6,8 @@ from django.db.models import Min, Max, Count, Case, When, IntegerField, F, Avg, 
     DurationField, StdDev, Q
 from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
-from .models import OfficerActivity, OfficerActivityType, Call
+from .models import OfficerActivity, OfficerActivityType, Call, Beat, \
+    NatureGroup
 from .filters import CallFilterSet, OfficerActivityFilterSet
 
 
@@ -118,6 +119,7 @@ class OfficerActivityOverview:
 
         # Set the work_mem back to normal
         cursor.execute('RESET work_mem;')
+        cursor.close()
 
         # Patrol stats are ON DUTY minus everything else
         for r in agg_result.values():
@@ -145,6 +147,7 @@ class OfficerActivityOverview:
 class CallOverview:
     def __init__(self, filters):
         self._filters = filters
+        print(filters)
         self.filter = CallFilterSet(data=filters, queryset=Call.objects.all(),
                                     strict_mode=StrictMode.fail)
         self.bounds = self.qs.aggregate(min_time=Min('time_received'),
@@ -160,6 +163,9 @@ class CallOverview:
 
     def count(self):
         return self.qs.count()
+
+    def beat_ids(self):
+        return dict(Beat.objects.all().values_list('descr', 'beat_id'))
 
 
 class CallVolumeOverview(CallOverview):
@@ -181,32 +187,6 @@ class CallVolumeOverview(CallOverview):
 
         return results
 
-    def day_hour_heatmap(self):
-        if self.span == timedelta(0, 0):
-            return []
-
-        # In order for this to show average volume, we need to know the number
-        # of times each day of the week occurs.
-        start = self.bounds['min_time'].date()
-        end = self.bounds['max_time'].date()
-        weekdays = Counter((start + timedelta(days=x)).weekday() for x in
-                           range(0, (end - start).days + 1))
-
-        results = self.qs \
-            .values('dow_received', 'hour_received') \
-            .annotate(volume=Count('dow_received')) \
-            .order_by('dow_received', 'hour_received')
-
-        for result in results:
-            result['freq'] = weekdays[result['dow_received']]
-            result['total'] = result['volume']
-            try:
-                result['volume'] /= result['freq']
-            except ZeroDivisionError:
-                result['volume'] = 0
-
-        return results
-
     def volume_by_source(self):
         results = self.qs \
             .annotate(id=Case(
@@ -216,7 +196,17 @@ class CallVolumeOverview(CallOverview):
             .values("id") \
             .annotate(volume=Count("id"))
 
-        return results
+        return self.merge_data(results, [0, 1])
+
+    def merge_data(self, src_data, all_ids):
+        src_data = list(src_data)
+        all_ids = set(all_ids)
+        present_ids = set(x['id'] for x in src_data)
+
+        for id in all_ids.difference(present_ids):
+            src_data.append({"id": id, "volume": 0})
+
+        return src_data
 
     def volume_by_shift(self):
         results = self.qs \
@@ -227,24 +217,58 @@ class CallVolumeOverview(CallOverview):
             .values("id") \
             .annotate(volume=Count("id"))
 
-        return results
+        return self.merge_data(results, [0, 1])
 
     def volume_by_dow(self):
         results = self.qs \
             .annotate(id=F('dow_received'), name=F('dow_received')) \
             .values("id", "name") \
             .annotate(volume=Count('name'))
-        return results
 
-    def volume_by_beat(self):
-        qs = self.qs.annotate(name=F('beat__descr'), id=F('beat_id')).values(
-            'name', 'id')
-        return qs.annotate(volume=Count('name'))
+        return self.merge_data(results, range(0, 7))
 
     def volume_by_field(self, field):
+        field_model = getattr(self.qs.model, field).field.related_model
+        all_in_field = field_model.objects.annotate(
+            name=F("descr"),
+            id=F(field + "_id")).values('name', 'id')
         qs = self.qs.annotate(name=F(field + "__descr"),
                               id=F(field + "_id")).values('name', 'id')
-        return qs.annotate(volume=Count('name'))
+        qs = qs.annotate(volume=Count('name'))
+
+        results = list(qs)
+
+        present_ids = set(x['id'] for x in results)
+
+        for row in all_in_field:
+            if row['id'] not in present_ids:
+                row.update({"volume": 0})
+                results.append(row)
+
+        return results
+
+    def volume_by_nature_group(self):
+        all_in_field = NatureGroup.objects.annotate(
+            name=F("descr"),
+            id=F("nature_group_id")).values('name', 'id')
+
+        results = self.qs \
+            .annotate(id=F("nature__nature_group_id"),
+                      name=F("nature__nature_group__descr")) \
+            .values("name", "id") \
+            .annotate(volume=Count('name'))
+
+        results = list(results)
+
+        present_ids = set(x['id'] for x in results)
+
+        for row in all_in_field:
+            if row['id'] not in present_ids:
+                row.update({"volume": 0})
+                results.append(row)
+
+        return results
+
 
     def to_dict(self):
         return {
@@ -253,13 +277,13 @@ class CallVolumeOverview(CallOverview):
             'precision': self.precision(),
             'count': self.count(),
             'volume_by_date': self.volume_by_date(),
-            'day_hour_heatmap': self.day_hour_heatmap(),
             'volume_by_source': self.volume_by_source(),
             'volume_by_nature': self.volume_by_field('nature'),
+            'volume_by_nature_group': self.volume_by_nature_group(),
             'volume_by_beat': self.volume_by_field('beat'),
             'volume_by_dow': self.volume_by_dow(),
             'volume_by_shift': self.volume_by_shift(),
-            # 'volume_by_close_code': self.volume_by_field('close_code'),
+            'beat_ids': self.beat_ids(),
         }
 
 
@@ -286,14 +310,27 @@ class CallResponseTimeOverview(CallOverview):
             return {}
 
     def officer_response_time_by_field(self, field):
+        field_model = getattr(self.qs.model, field).field.related_model
+        all_in_field = field_model.objects.annotate(
+            name=F("descr"),
+            id=F(field + "_id")).values('name', 'id')
+
         results = self.qs \
             .annotate(id=F(field + "_id"),
                       name=F(field + '__descr')) \
             .values("id", "name") \
             .exclude(id=None) \
-            .annotate(mean=Avg(Secs("officer_response_time")),
-                      stddev=StdDev(Secs("officer_response_time"))) \
+            .annotate(mean=Avg(Secs("officer_response_time"))) \
             .order_by("-mean")
+
+        results = list(results)
+        present_ids = set(x['id'] for x in results)
+
+        for row in all_in_field:
+            if row['id'] not in present_ids:
+                row.update({"mean": 0})
+                results.append(row)
+
         return results
 
     def to_dict(self):
@@ -308,6 +345,7 @@ class CallResponseTimeOverview(CallOverview):
                 'beat'),
             'officer_response_time_by_priority': self.officer_response_time_by_field(
                 'priority'),
+            'beat_ids': self.beat_ids(),
         }
 
 

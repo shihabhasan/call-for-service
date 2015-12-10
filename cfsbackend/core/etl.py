@@ -184,7 +184,6 @@ class ETL:
         )
         self.mapping['NoteAuthor'] = self.create_note_authors()
         self.connect_beats_districts_sectors()
-        self.connect_call_unit_squads()
         self.create_calls()
         self.calls = None
 
@@ -203,6 +202,12 @@ class ETL:
         self.call_log = None
 
         self.create_out_of_service()
+
+        self.connect_call_unit_squads()
+        self.connect_call_unit_beat_district()
+
+        self.create_nature_groups()
+        self.create_officer_activity_types()
 
         self.log("Updating materialized views")
         update_materialized_views()
@@ -444,6 +449,25 @@ class ETL:
             CallUnit.objects.filter(descr__regex=regex).update(
                 squad_id=self.map('Squad', squad))
 
+    def connect_call_unit_beat_district(self):
+        self.log("Connecting call units with beats and districts...")
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                UPDATE call_unit cu
+                SET beat_id = (
+                        SELECT beat_id
+                        FROM beat b
+                        WHERE b.descr = substring(cu.descr FROM 2 FOR 3)
+                    ),
+                    district_id = (
+                        SELECT district_id
+                        FROM district d
+                        WHERE d.descr = 'D' || substring(cu.descr FROM 2 FOR 1)
+                    )
+                WHERE cu.descr ~ '[A-D][1-5][0-9][0-9]'
+                  AND NOT cu.descr ~ '[A-D][1-5]00';
+        """)
+
     def load_in_service(self):
         self.log("Loading in service data...")
         filename = os.path.join(self.dir, "cfs_2014_unitper.csv")
@@ -629,3 +653,15 @@ class ETL:
         for idx, row in df.iterrows():
             Nature.objects.filter(descr=row['nature']).update(
                 nature_group_id=self.map('NatureGroup', row['group']))
+
+    def create_officer_activity_types(self):
+        self.log("Creating officer activity types...")
+        types = [
+            'IN CALL - CITIZEN INITIATED',
+            'IN CALL - SELF INITIATED',
+            'IN CALL - DIRECTED PATROL',
+            'OUT OF SERVICE',
+            'ON DUTY'
+        ]
+        OfficerActivityType.objects.bulk_create(OfficerActivityType(descr=t) for t in types)
+

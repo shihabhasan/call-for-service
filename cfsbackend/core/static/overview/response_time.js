@@ -3,7 +3,7 @@
 var url = "/api/response_time/";
 
 var dashboard = new Page({
-    el: $('body').get(),
+    el: $('#dashboard').get(),
     template: "#dashboard-template",
     data: {
         'capitalize': function (string) {
@@ -23,16 +23,11 @@ var dashboard = new Page({
 });
 
 function cleanupData(data) {
-    data.officer_response_time_by_beat =
-        _.chain(data.officer_response_time_by_beat)
-            .filter(function (d) {
-                return d.name;
-            })
-            .sortBy(function (d) {
-                return d.name;
-            })
-            .value();
-
+    data.map_data = _.reduce(
+        data.officer_response_time_by_beat, function (memo, d) {
+            memo[d.name] = d.mean;
+            return memo
+        }, {});
 
     data.officer_response_time_by_priority =
         _.chain(data.officer_response_time_by_priority)
@@ -43,171 +38,53 @@ function cleanupData(data) {
                 return d.name == "P" ? "0" : d.name;
             })
             .value();
+    data.officer_response_time_by_priority =
+        [{key: "Officer Response Time", values: data.officer_response_time_by_priority}];
+    data.officer_response_time_by_source =
+        [{
+            key: "Officer Response Time",
+            values: _.sortBy(data.officer_response_time_by_source, function (d) { return d.name; })
+        }];
 
     return data;
 }
 
+var responseTimeMap = new DurhamMap({
+    el: "#map",
+    dashboard: dashboard,
+    colorScheme: colorbrewer.Blues,
+    format: durationFormat,
+    dataDescr: "Officer Response Time"
+});
 
+var ortBySourceChart = new DiscreteBarChart({
+    dashboard: dashboard,
+    el: '#ort-by-source',
+    filter: 'call_source',
+    fmt: durationFormat,
+    rotateLabels: true,
+    x: function (d) { return d.name },
+    y: function (d) { return Math.round(d.mean) }
+});
+
+var ortByPriorityChart = new DiscreteBarChart({
+    dashboard: dashboard,
+    el: '#ort-by-priority',
+    filter: 'priority',
+    fmt: durationFormat,
+    x: function (d) { return d.name },
+    y: function (d) { return Math.round(d.mean) }
+});
 
 monitorChart(dashboard, 'data.officer_response_time', buildORTChart);
-monitorChart(dashboard, 'data.officer_response_time_by_source', buildORTBySourceChart);
-monitorChart(dashboard, 'data.officer_response_time_by_beat', buildORTByBeatChart);
-monitorChart(dashboard, 'data.officer_response_time_by_priority', buildORTByPriorityChart);
+monitorChart(dashboard, 'data.officer_response_time_by_source', ortBySourceChart.update);
+monitorChart(dashboard, 'data.officer_response_time_by_priority', ortByPriorityChart.update);
+monitorChart(dashboard, 'data.map_data', responseTimeMap.update);
 
 // ========================================================================
 // Functions
 // ========================================================================
 
-
-function buildORTBySourceChart(data) {
-    var parentWidth = d3.select("#ort-by-source").node().clientWidth;
-    var width = parentWidth;
-    var height = width * 0.8;
-
-    var svg = d3.select("#ort-by-source svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(function () {
-        var chart = nv.models.discreteBarChart()
-            .x(function (d) {
-                return d.name
-            })
-            .y(function (d) {
-                return Math.round(d.mean);
-            })
-            .margin({"bottom": 150, "right": 50});
-
-        chart.yAxis.tickFormat(function (secs) {
-            return d3.format("d")(Math.round(secs / 60)) + ":" +
-                d3.format("02d")(Math.round(secs % 60));
-        });
-
-        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
-
-        svg.selectAll('.nv-bar').style('cursor', 'pointer');
-
-        chart.discretebar.dispatch.on('elementClick', function (e) {
-            if (e.data.id) {
-                toggleFilter(dashboard, "call_source", e.data.id);
-            }
-        });
-
-        // Have to call this both during creation and after updating the chart
-        // when the window is resized.
-        var rotateLabels = function () {
-            var xTicks = d3.select('#ort-by-source .nv-x.nv-axis > g').selectAll('g');
-
-            xTicks.selectAll('text')
-                .style("text-anchor", "start")
-                .attr("dx", "0.25em")
-                .attr("dy", "0.75em")
-                .attr("transform", "rotate(45 0,0)");
-        };
-
-        rotateLabels();
-
-        nv.utils.windowResize(function () {
-            chart.update();
-            rotateLabels();
-        });
-
-        return chart;
-    })
-}
-
-function buildORTByBeatChart(data) {
-    var parentWidth = d3.select("#ort-by-beat").node().clientWidth;
-    var width = parentWidth;
-    var height = width * 0.8;
-
-    var svg = d3.select("#ort-by-beat svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(function () {
-        var chart = nv.models.discreteBarChart()
-            .x(function (d) {
-                return d.name
-            })
-            .y(function (d) {
-                return Math.round(d.mean);
-            })
-            .margin({"bottom": 150, "right": 50});
-
-        chart.yAxis.tickFormat(function (secs) {
-            return d3.format("d")(Math.round(secs / 60)) + ":" +
-                d3.format("02d")(Math.round(secs % 60));
-        });
-
-        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
-
-        svg.selectAll('.nv-bar').style('cursor', 'pointer');
-
-        chart.discretebar.dispatch.on('elementClick', function (e) {
-            if (e.data.id) {
-                toggleFilter(dashboard, "beat", e.data.id);
-            }
-        });
-
-        // Have to call this both during creation and after updating the chart
-        // when the window is resized.
-        var rotateLabels = function () {
-            var xTicks = d3.select('#ort-by-beat .nv-x.nv-axis > g').selectAll('g');
-
-            xTicks.selectAll('text')
-                .style("text-anchor", "start")
-                .attr("dx", "0.25em")
-                .attr("dy", "0.75em")
-                .attr("transform", "rotate(45 0,0)");
-        };
-
-        rotateLabels();
-
-        nv.utils.windowResize(function () {
-            chart.update();
-            rotateLabels();
-        });
-
-        return chart;
-    })
-}
-
-function buildORTByPriorityChart(data) {
-    var parentWidth = d3.select("#ort-by-priority").node().clientWidth;
-    var width = parentWidth;
-    var height = width * 1.2;
-
-    var svg = d3.select("#ort-by-priority svg");
-    svg.attr("width", width).attr("height", height);
-
-    nv.addGraph(function () {
-        var chart = nv.models.discreteBarChart()
-                .x(function (d) {
-                    return d.name
-                })
-                .y(function (d) {
-                    return Math.round(d.mean);
-                })
-            ;
-
-        chart.yAxis.tickFormat(durationFormat);
-
-        svg.datum([{key: "Officer Response Time", values: data}]).call(chart);
-
-        svg.selectAll('.nv-bar').style('cursor', 'pointer');
-
-        chart.discretebar.dispatch.on('elementClick', function (e) {
-            if (e.data.id) {
-                toggleFilter(dashboard, "priority", e.data.id);
-            }
-        });
-
-        nv.utils.windowResize(function () {
-            chart.update();
-        });
-
-        return chart;
-    })
-}
 
 function getORTChartBounds() {
     var parent = d3.select("#ort"),
@@ -343,15 +220,9 @@ function buildORTChart(data) {
 
     boxplot.selectAll("line.whisker-left")
         .attr("x1", function (d) {
-            console.log("hi");
-            console.log(d);
-            console.log(xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5)))
             return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5))
         })
         .attr("x2", function (d) {
-            console.log("hi");
-            console.log(d);
-            console.log(d.quartiles[0])
             return xScale(d.quartiles[0])
         })
         .style({"stroke": colors[0], "stroke-width": 3});
@@ -453,7 +324,7 @@ function buildORTChart(data) {
         var bounds = getORTChartBounds();
 
         svg.attr("width", bounds.width)
-           .attr("height", bounds.height);
+            .attr("height", bounds.height);
 
         boxplot.selectAll("g.nv-x.nv-axis").call(xAxis);
     }

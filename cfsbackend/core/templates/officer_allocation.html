@@ -9,13 +9,14 @@
 {% block content %}
     <script id="dashboard-template" type="text/html">
         <NavBar filterHash="[[ filterHash ]]"/>
+        <LoadingIndicator loading="[[ loading ]]" />
         <div class="row dashboard">
-            <div class="large-3 columns">
+            <div class="col-md-12">
                 <Filter/>
             </div>
-            <div class="large-9 columns">
+            <div class="col-md-12">
                 <div class="row">
-                    <div class="medium-12 columns">
+                    <div class="col-md-12">
                         <div id="allocation-over-time">
                             <chart-header title="Average Officer Allocation">
                                 <p>

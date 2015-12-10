@@ -58,8 +58,9 @@ def get_form_field_for_type(ftype):
     type_map = {
         "text": forms.CharField(),
         "date": forms.DateField(),
+        "daterange": forms.DateField(),
         "duration": forms.DurationField(),
-        "boolean": forms.BooleanField(),
+        "boolean": forms.BooleanField(required=False),
         "select": forms.ChoiceField(),
     }
     return type_map.get(ftype, forms.CharField())
@@ -82,6 +83,9 @@ def create_filterset(model, definition, name=None):
 
     attrs = {}
     for f in definition:
+        if f.get("type") == "daterange":
+            f['lookups'] = ["gte", "lte"]
+
         if f.get("rel") and not f.get("method"):
             try:
                 filter = globals()[f["rel"] + "FilterSet"]()
@@ -95,7 +99,7 @@ def create_filterset(model, definition, name=None):
                 form_field._set_choices(f.get("options"))
             source = f.get("source", f["name"])
             lookups = f.get("lookups", ["exact"])
-            default_lookup = f.get("default_lookup", "exact")
+            default_lookup = f.get("default_lookup", lookups[0])
             filter = Filter(source=source, form_field=form_field,
                             lookups=lookups, default_lookup=default_lookup)
 
@@ -106,6 +110,7 @@ def create_filterset(model, definition, name=None):
     attrs["filter_backend_class"] = BetterDjangoFilterBackend
 
     return type(name, (ModelFilterSet,), attrs)
+
 
 class SquadFilterSet(ModelFilterSet):
     class Meta:
@@ -119,11 +124,16 @@ class CallUnitFilterSet(ModelFilterSet):
         fields = ["call_unit_id", "squad", "beat", "district"]
 
 
+class NatureFilterSet(ModelFilterSet):
+    class Meta:
+        model = models.Nature
+        fields = ["nature_id", "nature_group"]
+
+
 CallFilterSet = create_filterset(
     models.Call,
     [
-        {"name": "time_received", "type": "date", "lookups": ["gte", "lte"],
-         "default_lookup": "gte"},
+        {"name": "time_received", "type": "daterange"},
         {"name": "time_routed", "type": "date", "lookups": ["gte", "lte"],
          "default_lookup": "gte"},
         {"name": "time_finished", "type": "date", "lookups": ["gte", "lte"],
@@ -139,11 +149,9 @@ CallFilterSet = create_filterset(
         {"name": "zip_code", "rel": "ZipCode", "label": "ZIP code"},
         {"name": "call_source", "rel": "CallSource"},
         {"name": "nature", "rel": "Nature"},
+        {"name": "nature__nature_group", "label": "Nature Group", "rel": "NatureGroup"},
         {"name": "priority", "rel": "Priority"},
         {"name": "close_code", "rel": "CloseCode"},
-        {"name": "primary_unit", "rel": "CallUnit"},
-        {"name": "first_dispatched", "rel": "CallUnit"},
-        {"name": "reporting_unit", "rel": "CallUnit"},
         {"name": "cancelled", "type": "boolean"},
         {"name": "dow_received", "label": "Day of Week", "type": "select",
          "options": [
@@ -152,11 +160,14 @@ CallFilterSet = create_filterset(
          ]},
         {"name": "squad", "rel": "Squad", "method": True, "type": "choice",
          "lookups": ["exact"]},
+        {"name": "unit", "rel": "CallUnit", "method": True, "type": "choice",
+         "lookups": ["exact"]},
         {"name": "initiated_by", "type": "select", "method": True,
          "lookups": ["exact"],
-         "options": [[0, "Self"], [1, "Citizen"]]},
-        {"name": "shift", "type": "select", "method": True, "lookups": ["exact"],
-         "options": [[0, "Shift 1"], [1, "Shift 2"]]},
+         "options": [[0, "Officer"], [1, "Citizen"]]},
+        {"name": "shift", "type": "select", "method": True,
+         "lookups": ["exact"],
+         "options": [[0, "Shift 1"], [1, "Shift 2"]]}
     ]
 )
 
@@ -166,7 +177,6 @@ OfficerActivityFilterSet = create_filterset(
         {"name": "call_unit", "rel": "CallUnit"},
         {"name": "call_unit__beat", "label": "Beat", "rel": "Beat"},
         {"name": "call_unit__district", "label": "District", "rel": "District"},
-        {"name": "time", "type": "date", "lookups": ["gte", "lte"],
-         "default_lookup": "gte"},
+        {"name": "time", "type": "daterange"},
     ]
 )

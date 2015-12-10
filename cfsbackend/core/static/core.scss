@@ -1,37 +1,82 @@
-@import "settings";
-@import "mixins";
-@import "foundation/scss/foundation.scss";
-
-body {
-  margin-top: 0px;
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+      -ms-border-radius: $radius;
+          border-radius: $radius;
 }
 
-.content {
-  margin-top: 10px;
+$white       : #FFFFFF;
+$ghost       : #FAFAFA;
+$snow        : #F9F9F9;
+$vapor       : #F6F6F6;
+$white-smoke : #F5F5F5;
+$silver      : #EFEFEF;
+$smoke       : #EEEEEE;
+$gainsboro   : #DDDDDD;
+$iron        : #CCCCCC;
+$base        : #AAAAAA;
+$aluminum    : #999999;
+$jumbo       : #888888;
+$monsoon     : #777777;
+$steel       : #666666;
+$charcoal    : #555555;
+$tuatara     : #444444;
+$oil         : #333333;
+$jet         : #222222;
+$black       : #000000;
+
+#loading {
+  position: fixed;
+  top: 0;
+  right: 0;
+  @include border-radius(0 0 0 10px);
+  padding: 10px;
+  background-color: $ghost;
+  z-index: 9999;
+}
+
+.navbar-brand {
+  font-family: 'Audiowide', sans-serif;
+}
+
+.leaflet-top, .leaflet-bottom {
+  z-index: 999 !important;
+}
+
+.dropdown-menu {
+  cursor: pointer;
+}
+
+.container-max-1800 {
+  max-width: 1800px;
 }
 
 .filter-sidebar {
   background-color: $jet;
   color: $ghost;
-  @include radius(5px);
-  padding: 20px 10px 5px 10px;
+  @include border-radius(5px);
+  padding: 20px 10px;
 }
 
 .filters {
   margin-bottom: 50px;
 }
 
-.filter.label {
+.filter.btn {
   background-color: $smoke;
   color: $jet;
-  font-size: 0.9rem;
   width: 100%;
   margin-bottom: 5px;
   text-align: left;
+  cursor: default;
 
   i {
     float: right;
   }
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 .filter-form {
@@ -41,8 +86,6 @@ body {
   padding: 10px 5px;
   border: 5px solid $ghost;
 }
-
-
 
 .loading {
   text-align: center;
@@ -70,37 +113,6 @@ text.axis-workweek {
 
 text.axis-worktime {
   fill: #000;
-}
-
-h3.chart-title {
-  font-size: 120%;
-}
-
-.explanation {
-  @extend .panel;
-  font-size: 0.9rem;
-
-  p {
-    font-size: 0.9rem;
-  }
-}
-
-.call-record {
-  border-bottom: 1px solid #777788;
-  padding: 1rem 0;
-  margin: 1rem 0;
-
-  dt, dd { display: inline; margin: 0; }
-
-  dt {
-    width: 100px;
-    text-align: right;
-  }
-
-  dd:after {
-	content: '\A';
-	white-space: pre;
-  }
 }
 
 #volume-by-beat .nv-x .tick line, #volume-by-nature .nv-x .tick line {
@@ -132,11 +144,50 @@ h3.chart-title {
   padding: 5px;
 
   h4 {
-    font-size: 0.8rem;
+    font-size: 100%;
     font-weight: bold;
   }
+}
 
-  div {
-    font-size: 0.8rem;
+// Icons
+
+.icon-2x {
+  font-size: 200%;
+}
+.icon-3x {
+  font-size: 300%;
+}
+.icon-4x {
+  font-size: 400%;
+}
+.icon-5x {
+  font-size: 500%;
+}
+.icon-spin {
+  -webkit-animation: icon-spin 2s infinite linear;
+  animation: icon-spin 2s infinite linear;
+}
+.icon-pulse {
+  -webkit-animation: icon-spin 1s infinite steps(8);
+  animation: icon-spin 1s infinite steps(8);
+}
+@-webkit-keyframes icon-spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
+  }
+}
+@keyframes icon-spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+    transform: rotate(359deg);
   }
 }

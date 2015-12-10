@@ -25,21 +25,102 @@ var lookupMap = {
     "lte": {id: "<=", name: "is less than or equal to"}
 };
 
+var FilterButton = Ractive.extend({
+    template: '#filter-button-template',
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    computed: {
+        fieldType: function () {
+            return this.get('getFieldType')(this.get('field')).type;
+        }
+    },
+    oninit: function () {
+        this.on('addfilter', function (event, key, value) {
+            var filter = this.get("filter");
+
+            filter = _.clone(filter);
+            filter[key] = value;
+
+            updateHash(buildQueryParams(filter));
+        });
+
+        this.on('removefilter', function (event, key) {
+            updateHash(buildQueryParams(_.omit(this.get("filter"), key)));
+        });
+    },
+    oncomplete: function () {
+        var field = this.get('field');
+        var self = this;
+
+        if (this.get('fieldType') === "daterange") {
+            var $button = $("#button_" + field);
+            var value = this.get('filterValue')(field, this.get('filter'));
+            var pastSunday = moment().day("Sunday").startOf("day");
+
+            // todo set up ranges
+            var ranges = {
+                "Last 7 Days": [
+                    pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD"),
+                    pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD")
+                ],
+                "Last 28 Days": [
+                    pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD"),
+                    pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD")
+                ],
+                "Year to Date": [
+                    moment().clone().startOf("year").format("YYYY-MM-DD"),
+                    moment()
+                ]
+            };
+
+            var options = {
+                locale: {
+                    format: 'YYYY-MM-DD',
+                    cancelLabel: "Clear"
+                },
+                ranges: ranges,
+                cancelClass: "btn-danger"
+            };
+            if (value) {
+                options.startDate = value.gte;
+                options.endDate = value.lte;
+            }
+
+            $button.daterangepicker(options);
+
+            $button.on('apply.daterangepicker', function (event, picker) {
+                var filter = self.get('filter');
+
+                filter = _.clone(filter);
+
+                var dates = {
+                    gte: picker.startDate.format('YYYY-MM-DD'),
+                    lte: picker.endDate.format('YYYY-MM-DD')
+                };
+
+                filter[field] = dates;
+                updateHash(buildQueryParams(filter));
+            });
+
+            $button.on('cancel.daterangepicker', function (event, picker) {
+                var filter = self.get('filter');
+                filter = _.clone(filter);
+                filter = _.omit(filter, field);
+                updateHash(buildQueryParams(filter));
+            })
+        }
+    }
+});
 
 var Filter = Ractive.extend({
+    components: {'filter-button': FilterButton},
     template: '#filter-template',
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
-
     data: function () {
         return {
             filter: {},
-            addFilter: {},
-            editing: false,
             displayName: displayName,
-            displayValue: displayValue,
-            describeFilter: describeFilter,
-            getLookups: getLookups,
             getFieldType: function (fieldName) {
                 var field = findField(fieldName);
                 if (field.rel !== undefined) {
@@ -53,9 +134,15 @@ var Filter = Ractive.extend({
                     return {type: field.type};
                 }
             },
-            fieldLabel: function (field) {
-                return field.label || humanize(field.name);
-            }
+            buttonClass: function (field, filter) {
+                if (filterValue(field, filter)) {
+                    return "btn-success";
+                } else {
+                    return "btn-primary";
+                }
+            },
+            filterValue: filterValue,
+            displayValue: displayValue
         }
     },
     computed: {
@@ -69,42 +156,6 @@ var Filter = Ractive.extend({
     oninit: function () {
         var component = this;
 
-        this.on('editfilter', function (event, action) {
-            if (action === "start") {
-                this.set('editing', true);
-            } else if (action === "stop") {
-                this.set('editing', false);
-            }
-        });
-
-        this.on('removefilter', function (event, key) {
-            updateHash(buildQueryParams(_.omit(this.get("filter"), key)));
-        });
-
-        this.on('addfilter', function (event) {
-            var field = this.get("addFilter.field");
-            var verb = this.get("addFilter.verb");
-            var value = this.get("addFilter.value");
-            var filter = this.get("filter");
-
-            var key = field;
-            if (verb === ">=") {
-                key += "__gte";
-            } else if (verb === "<=") {
-                key += "__lte";
-            } else if (verb === "!=") {
-                key += "!";
-            }
-
-            filter = _.clone(filter);
-            filter[key] = value;
-
-            updateHash(buildQueryParams(filter));
-
-            // prevent default
-            return false;
-        });
-
         function updateFilter() {
             if (window.location.hash) {
                 component.set('filter', parseQueryParams(window.location.hash.slice(1)));
@@ -117,77 +168,24 @@ var Filter = Ractive.extend({
         $(window).on("hashchange", updateFilter);
     },
     oncomplete: function () {
-        // This is here to set addFilter.value to the default value in a select
-        // box. Without this, there would be no value on submit.
-        this.observe("addFilter.field", function (_) {
-            var self = this;
-
-            // We use setTimeout to move this to further down in the event loop.
-            // The page has to render first before this will work.
-            setTimeout(function () {
-                self.set("addFilter.value", $("select[name=filter_object]").val());
-            }, 0)
-        }, {defer: true});
-
         this.observe('filter', function (filter) {
             this.fire("filterUpdated", filter);
-        });
-
-        var stickySidebar = $('.filter-sidebar');
-        var sizer = $("#sidebar-sizer");
-
-        if (stickySidebar.length > 0) {
-            var sidebarTop = stickySidebar.offset().top,
-                sidebarLeft = stickySidebar.offset().left,
-                stickyStyles = stickySidebar.attr('style');
-        }
-
-        var resetSidebar = function () {
-            stickySidebar.attr('style', stickyStyles).css({
-                'position': '',
-                'top': '',
-                'left': ''
-            }).removeClass('fixed');
-        };
-
-        var smallScreen = function () {
-            return sizer.width() / $("body").width() > 0.25;
-        };
-
-        $(window).scroll(function () {
-            if (stickySidebar.length > 0) {
-                if (!smallScreen()) {
-                    var scrollTop = $(window).scrollTop();
-
-                    if (sidebarTop < scrollTop) {
-                        stickySidebar.css({
-                            position: 'fixed',
-                            top: 0,
-                            left: sizer.offset().left,
-                            minWidth: 0,
-                            width: sizer.outerWidth() + 'px'
-                        }).addClass('fixed');
-                    } else {
-                        resetSidebar();
-                    }
-                }
-            }
-        });
-
-        $(window).resize(function () {
-            if (smallScreen()) {
-                resetSidebar();
-            }
-            stickySidebar.css({
-                left: sizer.offset().left,
-                width: sizer.outerWidth() + 'px'
-            })
         });
     }
 });
 
+var LoadingIndicator = Ractive.extend({
+    delimiters: ['[[', ']]'],
+    tripleDelimiters: ['[[[', ']]]'],
+    template: '#loading-template',
+    isolated: true
+})
+
 var Page = Ractive.extend({
-    components: {'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader},
+    components: {
+        'Filter': Filter, 'NavBar': NavBar, 'chart-header': ChartHeader,
+        'LoadingIndicator': LoadingIndicator
+    },
     delimiters: ['[[', ']]'],
     tripleDelimiters: ['[[[', ']]]'],
     data: {
@@ -263,11 +261,13 @@ function displayValue(fieldName, value) {
     if (field.rel) {
         var choiceMap = arrayToObj(filterForm.refs[field.rel]);
         dValue = choiceMap[value];
-    }
-
-    if (field.options) {
+    } else if (field.options) {
         var choiceMap = arrayToObj(field.options);
         dValue = choiceMap[value];
+    }
+
+    if (field.type === "daterange" && typeof value == "object" && value['gte'] && value['lte']) {
+        dValue = value['gte'] + " to " + value['lte'];
     }
 
     if (!dValue) {
@@ -275,6 +275,10 @@ function displayValue(fieldName, value) {
     }
 
     return dValue;
+}
+
+function filterValue(fieldName, filter) {
+    return filter[fieldName];
 }
 
 function describeFilter(filter) {
@@ -311,18 +315,39 @@ function describeFilter(filter) {
     return components;
 }
 
-function buildQueryParams(obj) {
+function buildQueryParams(obj, prefix) {
+    if (typeof prefix === "undefined") {
+        prefix = "";
+    } else {
+        prefix = prefix + "__";
+    }
     var str = "";
     for (var key in obj) {
         if (str != "") {
             str += "&";
         }
-        str += key + "=" + encodeURIComponent(obj[key]);
+        if (_.isObject(obj[key])) {
+            str += buildQueryParams(obj[key], key);
+        } else {
+            str += prefix + key + "=" + encodeURIComponent(obj[key]);
+        }
     }
     return str;
 }
 
+function nest(segments, value) {
+    var retval = {};
+    if (segments.length == 1) {
+        retval[segments[0]] = value;
+    } else {
+        retval[segments[0]] = nest(segments.slice(1), value);
+    }
+    return retval;
+}
+
 function parseQueryParams(str) {
+    var comparators = ['lte', 'gte'];
+
     if (typeof str != "string") return {};
     if (str.charAt(0) === "!") {
         str = str.slice(1);
@@ -335,18 +360,35 @@ function parseQueryParams(str) {
     var bit,
         query = {},
         first,
-        second;
+        second,
+        segments;
     for (var i = 0; i < s_length; i++) {
         bit = s[i].split("=");
         first = decodeURIComponent(bit[0]);
         if (first.length == 0) continue;
         second = decodeURIComponent(bit[1]);
-        if (typeof query[first] == "undefined") {
-            query[first] = second;
-        } else if (query[first] instanceof Array) {
-            query[first].push(second);
+
+        segments = first.split("__");
+
+        if (segments.length > 1) {
+            var lastSegment = segments[segments.length - 1];
+            if (comparators.indexOf(lastSegment) != -1) {
+                segments = [segments.slice(0, -1).join("__"), segments[segments.length - 1]];
+            } else {
+                segments = [segments.join("__")];
+            }
+        }
+
+        if (segments.length == 1) {
+            if (typeof query[first] == "undefined") {
+                query[first] = second;
+            } else if (query[first] instanceof Array) {
+                query[first].push(second);
+            } else {
+                query[first] = [query[first], second];
+            }
         } else {
-            query[first] = [query[first], second];
+            query = $.extend(true, {}, query, nest(segments, second));
         }
     }
     return query;

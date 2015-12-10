@@ -1,112 +1,108 @@
 from datetime import timedelta
-
-from dateutil.parser import parse as dtparse
-from django.http import QueryDict
 from django.test import TestCase
-
+from django.db.models import Model
+from dateutil.parser import parse as dtparse
 from core.summaries import OfficerActivityOverview, CallVolumeOverview
-from .test_helpers import assert_list_equiv
-from ..models import Call, Beat, CallUnit, OfficerActivity, Nature, \
-    OfficerActivityType
-
-
-def create_call(**kwargs):
-    try:
-        time_received = dtparse(kwargs['time_received'])
-    except KeyError:
-        raise ValueError("You must include a time_received value.")
-
-    kwargs['dow_received'] = time_received.weekday()
-    kwargs['hour_received'] = time_received.hour
-
-    return Call.objects.create(**kwargs)
-
-
-def q(string):
-    return QueryDict(string)
+from .test_helpers import assert_list_equiv, create_call, q, create_officer_activity
+from ..models import Beat, CallUnit, OfficerActivity, Nature, \
+    OfficerActivityType, CallSource, District
 
 
 class OfficerActivityOverviewTest(TestCase):
     def setUp(self):
-        n1 = Nature.objects.create(nature_id=1, descr='Robbery')
-        n2 = Nature.objects.create(nature_id=2, descr='Homicide')
-        call1 = create_call(call_id=1, time_received='2014-01-15T9:00',
-                            nature=n1)
-        call2 = create_call(call_id=2, time_received='2014-03-18T3:00',
-                            nature=n2)
-        cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1')
-        cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2')
-        at1 = OfficerActivityType.objects.create(
+        cs1 = CallSource.objects.create(call_source_id=1,
+                descr='Citizen Initiated', code='C')
+        cs2 = CallSource.objects.create(call_source_id=2,
+                descr='Self Initiated', code='S')
+        self.n1 = Nature.objects.create(nature_id=1, descr='Robbery')
+        self.n2 = Nature.objects.create(nature_id=2, descr='Homicide')
+        self.call1 = create_call(call_id=1,
+                                 time_received='2014-01-15T9:00',
+                                 nature=self.n1,
+                                 call_source=cs1)
+        self.call2 = create_call(call_id=2,
+                                 time_received='2014-03-18T3:00',
+                                 nature=self.n2,
+                                 call_source=cs1)
+
+        self.b1 = Beat.objects.create(beat_id=1, descr='B1')
+        self.b2 = Beat.objects.create(beat_id=2, descr='B2')
+
+        self.d1 = District.objects.create(district_id=1, descr='D1')
+        self.d2 = District.objects.create(district_id=2, descr='D2')
+
+        self.cu1 = CallUnit.objects.create(call_unit_id=1, descr='A1',
+                                           beat=self.b1, district=self.d1)
+        self.cu2 = CallUnit.objects.create(call_unit_id=2, descr='B2',
+                                           beat=self.b2, district=self.d2)
+
+        self.at1 = OfficerActivityType.objects.create(
             officer_activity_type_id=1,
             descr="IN CALL - CITIZEN INITIATED")
-        at2 = OfficerActivityType.objects.create(
+        self.at2 = OfficerActivityType.objects.create(
             officer_activity_type_id=2,
             descr="OUT OF SERVICE")
-        at3 = OfficerActivityType.objects.create(
+        self.at3 = OfficerActivityType.objects.create(
             officer_activity_type_id=3,
             descr="ON DUTY")
-        a1 = OfficerActivity.objects.create(officer_activity_id=1,
-                                            activity_type=at1,
-                                            time=dtparse('2014-01-15T9:00'),
-                                            call_unit=cu1,
-                                            call=call1)
-        a2 = OfficerActivity.objects.create(officer_activity_id=2,
-                                            activity_type=at1,
-                                            time=dtparse('2014-01-15T9:10'),
-                                            call_unit=cu2,
-                                            call=call1)
-        a3 = OfficerActivity.objects.create(officer_activity_id=3,
-                                            activity_type=at1,
-                                            time=dtparse('2014-01-15T10:00'),
-                                            call_unit=cu1,
-                                            call=call2)
-        a4 = OfficerActivity.objects.create(officer_activity_id=4,
-                                            activity_type=at1,
-                                            time=dtparse('2014-01-16T9:50'),
-                                            call_unit=cu2,
-                                            call=call2)
-        a5 = OfficerActivity.objects.create(officer_activity_id=5,
-                                            activity_type=at2,
-                                            time=dtparse('2014-01-16T10:10'),
-                                            call_unit=cu1,
-                                            call=None)
-        a6 = OfficerActivity.objects.create(officer_activity_id=6,
-                                            activity_type=at2,
-                                            time=dtparse('2014-01-18T9:00'),
-                                            call_unit=cu2,
-                                            call=None)
+
+
+        self.a1 = create_officer_activity(activity_type=self.at1,
+                                                 time=dtparse(
+                                                     '2014-01-15T9:00'),
+                                                 call_unit=self.cu1,
+                                                 call=self.call1)
+        self.a2 = create_officer_activity(activity_type=self.at1,
+                                                 time=dtparse(
+                                                     '2014-01-15T9:10'),
+                                                 call_unit=self.cu2,
+                                                 call=self.call1)
+        self.a3 = create_officer_activity(activity_type=self.at1,
+                                                 time=dtparse(
+                                                     '2014-01-15T10:00'),
+                                                 call_unit=self.cu1,
+                                                 call=self.call2)
+        self.a4 = create_officer_activity(activity_type=self.at1,
+                                                 time=dtparse(
+                                                     '2014-01-16T9:50'),
+                                                 call_unit=self.cu2,
+                                                 call=self.call2)
+        self.a5 = create_officer_activity(activity_type=self.at2,
+                                                 time=dtparse(
+                                                     '2014-01-16T10:10'),
+                                                 call_unit=self.cu1,
+                                                 call=None)
+        self.a6 = create_officer_activity(activity_type=self.at2,
+                                                 time=dtparse(
+                                                     '2014-01-18T9:00'),
+                                                 call_unit=self.cu2,
+                                                 call=None)
 
         # In order for this to be realistic, for every busy activity,
         # we need to have an on duty activity
-        a7 = OfficerActivity.objects.create(officer_activity_id=7,
-                                            activity_type=at3,
+        self.a7 = create_officer_activity(activity_type=self.at3,
                                             time=dtparse('2014-01-15T9:00'),
-                                            call_unit=cu1,
+                                            call_unit=self.cu1,
                                             call=None)
-        a8 = OfficerActivity.objects.create(officer_activity_id=8,
-                                            activity_type=at3,
+        self.a8 = create_officer_activity(activity_type=self.at3,
                                             time=dtparse('2014-01-15T9:10'),
-                                            call_unit=cu2,
+                                            call_unit=self.cu2,
                                             call=None)
-        a9 = OfficerActivity.objects.create(officer_activity_id=9,
-                                            activity_type=at3,
+        self.a9 = create_officer_activity(activity_type=self.at3,
                                             time=dtparse('2014-01-15T10:00'),
-                                            call_unit=cu1,
+                                            call_unit=self.cu1,
                                             call=None)
-        a10 = OfficerActivity.objects.create(officer_activity_id=10,
-                                             activity_type=at3,
+        self.a10 = create_officer_activity(activity_type=self.at3,
                                              time=dtparse('2014-01-16T9:50'),
-                                             call_unit=cu2,
+                                             call_unit=self.cu2,
                                              call=None)
-        a11 = OfficerActivity.objects.create(officer_activity_id=11,
-                                             activity_type=at3,
+        self.a11 = create_officer_activity(activity_type=self.at3,
                                              time=dtparse('2014-01-16T10:10'),
-                                             call_unit=cu1,
+                                             call_unit=self.cu1,
                                              call=None)
-        a12 = OfficerActivity.objects.create(officer_activity_id=12,
-                                             activity_type=at3,
+        self.a12 = create_officer_activity(activity_type=self.at3,
                                              time=dtparse('2014-01-18T9:00'),
-                                             call_unit=cu2,
+                                             call_unit=self.cu2,
                                              call=None)
 
     def test_matches_expected_structure(self):
@@ -286,17 +282,3 @@ class CallVolumeOverviewTest(TestCase):
                            {"date": dtparse("2014-11-01T00:00"), "volume": 1},
                            {"date": dtparse("2015-01-01T00:00"), "volume": 3},
                            {"date": dtparse("2015-02-01T00:00"), "volume": 1}])
-
-    def test_day_hour_heatmap(self):
-        overview = CallVolumeOverview(
-            q("time_received__gte=2015-01-01&time_received__lte=2015-02-02"))
-        results = overview.to_dict()['day_hour_heatmap']
-
-        assert_list_equiv(results, [
-            {'dow_received': 3, 'hour_received': 9, 'volume': 0.4, 'freq': 5,
-             'total': 2},
-            {'dow_received': 3, 'hour_received': 12, 'volume': 0.2, 'freq': 5,
-             'total': 1},
-            {'dow_received': 6, 'hour_received': 9, 'volume': 0.2, 'freq': 5,
-             'total': 1},
-        ])
