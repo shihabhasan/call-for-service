@@ -6,6 +6,15 @@ var OfficerAllocationFilter = Filter.extend({
     template: "#officer-allocation-filter-template"
 });
 
+// Beats and districts both need to access the same colors
+var districtColors = {
+    '1': '#9edae5',
+    '2': '#17becf',
+    '3': '#dbdb8d',
+    '4': '#bcbd22',
+    '5': '#c7c7c7',
+}
+
 var dashboard = new Page({
     components: {
         'Filter': OfficerAllocationFilter
@@ -74,7 +83,6 @@ function cleanupData(data) {
             cic = data.allocation_over_time[k]['IN CALL - CITIZEN INITIATED'].avg_volume,
             pat = data.allocation_over_time[k]['PATROL'].avg_volume,
             time = indate.parse(k);
-        console.log(time);
 
         temp_allocation_data[0].values.push({
             'x': time,
@@ -97,13 +105,47 @@ function cleanupData(data) {
             'y': pat,
         });
     });
-    console.log(data);
 
     data.allocation_over_time = temp_allocation_data;
+
+    data.on_duty_by_beat = [
+        {
+            key: "Average On Duty",
+            values: _.chain(data.on_duty_by_beat)
+                .filter(
+                    function (d) {
+                        return d.beat;
+                    })
+                .sortBy(
+                    function (d) {
+                        return d.beat;
+                    })
+                .value()
+        }
+    ];
+
+    data.on_duty_by_district = [
+        {
+            key: "Average On Duty",
+            values: _.chain(data.on_duty_by_district)
+                .filter(
+                    function (d) {
+                        return d.district;
+                    })
+                .sortBy(
+                    function (d) {
+                        return d.district;
+                    })
+                .value()
+        }
+    ];
+
     return data;
 }
 
 monitorChart(dashboard, 'data.allocation_over_time', buildAllocationOverTimeChart);
+monitorChart(dashboard, 'data.on_duty_by_beat', buildOnDutyByBeatChart);
+monitorChart(dashboard, 'data.on_duty_by_district', buildOnDutyByDistrictChart);
 
 function buildAllocationOverTimeChart(data) {
     var parentWidth = d3.select("#allocation-over-time").node().clientWidth;
@@ -142,6 +184,88 @@ function buildAllocationOverTimeChart(data) {
 
         svg.datum(data).call(chart);
         nv.utils.windowResize(chart.update);
+        return chart;
+    });
+}
+
+function buildOnDutyByBeatChart(data) {
+    var parentWidth = d3.select("#on-duty-by-beat").node().clientWidth;
+    var width = parentWidth;
+    var height = width;
+
+    var svg = d3.select("#on-duty-by-beat svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(
+                function (d) {
+                    return d.beat;
+                })
+            .y(
+                function (d) {
+                    return d3.round(d.on_duty, 2);
+                })
+            .duration(250)
+            .barColor(function (d) {
+                return districtColors[d.beat.substring(0,1)];
+            })
+            .showControls(false)
+            .showLegend(false);
+
+        chart.yAxis.tickFormat(d3.format(".,2r"));
+
+        svg.datum(data).call(chart);
+
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        chart.multibar.dispatch.on(
+            'elementClick', function (e) {
+                toggleFilter(dashboard, "call_unit__beat", e.data.beat_id);
+            });
+        
+        nv.utils.windowResize(chart.update);
+
+        return chart;
+    });
+}
+
+function buildOnDutyByDistrictChart(data) {
+    var parentWidth = d3.select("#on-duty-by-district").node().clientWidth;
+    var width = parentWidth;
+    var height = width;
+
+    var svg = d3.select("#on-duty-by-district svg");
+    svg.attr("width", width).attr("height", height);
+
+    nv.addGraph(function () {
+        var chart = nv.models.multiBarHorizontalChart()
+            .x(
+                function (d) {
+                    return d.district;
+                })
+            .y(
+                function (d) {
+                    return d3.round(d.on_duty, 2);
+                })
+            .duration(250)
+            .barColor(function (d) {
+                return districtColors[d.district.substring(1,2)];
+            })
+            .showControls(false)
+            .showLegend(false);
+
+        chart.yAxis.tickFormat(d3.format(".,2r"));
+
+        svg.datum(data).call(chart);
+
+        svg.selectAll('.nv-bar').style('cursor', 'pointer');
+        chart.multibar.dispatch.on(
+            'elementClick', function (e) {
+                toggleFilter(dashboard, "call_unit__district", e.data.district_id);
+            });
+        
+        nv.utils.windowResize(chart.update);
+
         return chart;
     });
 }

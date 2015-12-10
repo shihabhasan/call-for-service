@@ -30,6 +30,32 @@
                         </div>
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="on-duty-by-beat">
+                            <chart-header title="Average Number of Officers On Duty by Beat">
+                                <p>
+                                    This chart shows the average number of officers on duty
+                                    at a single time by beat for the selected time period.
+                                </p>
+                            </chart-header>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="on-duty-by-district">
+                            <chart-header title="Average Number of Officers On Duty by District">
+                                <p>
+                                    This chart shows the average number of officers on duty
+                                    at a single time by district for the selected time period.
+                                </p>
+                            </chart-header>
+                            {% include "_loading.html" %}
+                            <svg></svg>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </script>

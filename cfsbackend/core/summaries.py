@@ -136,11 +136,95 @@ class OfficerActivityOverview:
         # Keys have to be strings to transmit to the client
         return {str(k): v for k, v in agg_result.items()}
 
+    def on_duty_by_beat(self):
+        cursor = connection.cursor()
+
+        cte_sql, params = self.qs.query.sql_with_params()
+
+        sql = """
+        WITH cur_doa AS (
+          {cte_sql}
+        )
+        SELECT
+          beat,
+          beat_id,
+          avg(count) AS on_duty
+        FROM (
+            SELECT
+              b.descr AS beat,
+              b.beat_id,
+              date_trunc('minute', doa.time_) AS time_,
+              count(*)
+            FROM
+              cur_doa doa
+                INNER JOIN call_unit cu
+                  ON (doa.call_unit_id = cu.call_unit_id)
+                INNER JOIN beat b
+                  ON (cu.beat_id = b.beat_id)
+            WHERE
+              doa.officer_activity_type_id = (
+                  SELECT officer_activity_type_id
+                  FROM officer_activity_type
+                  WHERE descr = 'ON DUTY'
+              )
+            GROUP BY b.descr, b.beat_id, date_trunc('minute', doa.time_)
+        ) a
+        GROUP BY beat, beat_id;
+        """.format(cte_sql=cte_sql)
+    
+        cursor.execute(sql, params)
+        results = dictfetchall(cursor)
+
+        return results
+
+    def on_duty_by_district(self):
+        cursor = connection.cursor()
+
+        cte_sql, params = self.qs.query.sql_with_params()
+
+        sql = """
+        WITH cur_doa AS (
+          {cte_sql}
+        )
+        SELECT
+          district,
+          district_id,
+          avg(count) AS on_duty
+        FROM (
+            SELECT
+              d.descr AS district,
+              d.district_id,
+              date_trunc('minute', doa.time_) AS time_,
+              count(*)
+            FROM
+              cur_doa doa
+                INNER JOIN call_unit cu
+                  ON (doa.call_unit_id = cu.call_unit_id)
+                INNER JOIN district d
+                  ON (cu.district_id = d.district_id)
+            WHERE
+            doa.officer_activity_type_id = (
+                SELECT officer_activity_type_id
+                FROM officer_activity_type
+                WHERE descr = 'ON DUTY'
+            )
+            GROUP BY d.descr, d.district_id, date_trunc('minute', doa.time_)
+        ) a
+        GROUP BY district, district_id;
+        """.format(cte_sql=cte_sql)
+    
+        cursor.execute(sql, params)
+        results = dictfetchall(cursor)
+
+        return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
             'bounds': self.bounds,
             'allocation_over_time': self.allocation_over_time(),
+            'on_duty_by_beat': self.on_duty_by_beat(),
+            'on_duty_by_district': self.on_duty_by_district(),
         }
 
 
