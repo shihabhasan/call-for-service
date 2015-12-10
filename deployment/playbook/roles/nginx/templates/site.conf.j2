@@ -5,7 +5,14 @@ server {
         {{name}}
     {%endfor%}
     ;
-    return 301 https://$host$request_uri;
+
+    location /.well-known/acme-challenge/ {
+      proxy_pass http://acmetool;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 server {
@@ -66,9 +73,6 @@ server {
         autoindex off;
     }
 
-    location /.well-known/acme-challenge/ {
-      proxy_pass http://acmetool;
-    }
 
     location / {
         proxy_set_header Host $http_host;
