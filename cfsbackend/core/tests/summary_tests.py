@@ -210,13 +210,13 @@ class OfficerActivityOverviewTest(TestCase):
         by_beat_results = overview.to_dict()['on_duty_by_beat']
 
         correct_by_beat_results = [
-            {'beat_id': 2, 'beat': '2', 'on_duty': 1.0},
+            {'beat_id': 2, 'beat': 'B2', 'on_duty': 1.0},
         ]
 
         by_district_results = overview.to_dict()['on_duty_by_district']
 
         correct_by_district_results = [
-            {'district_id': 2, 'district': 'B', 'on_duty': 1.0},
+            {'district_id': 2, 'district': 'D2', 'on_duty': 1.0},
         ]
 
         for results, correct in (
