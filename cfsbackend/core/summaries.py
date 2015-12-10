@@ -147,7 +147,6 @@ class OfficerActivityOverview:
 class CallOverview:
     def __init__(self, filters):
         self._filters = filters
-        print(filters)
         self.filter = CallFilterSet(data=filters, queryset=Call.objects.all(),
                                     strict_mode=StrictMode.fail)
         self.bounds = self.qs.aggregate(min_time=Min('time_received'),
