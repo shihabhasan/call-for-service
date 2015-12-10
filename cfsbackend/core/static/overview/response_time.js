@@ -154,7 +154,7 @@ function buildORTChart(data) {
         g.selectAll('.nv-noData').remove();
     }
 
-    var domainMax = Math.min(data.max, data.quartiles[2] + 3 * data.iqr);
+    var domainMax = Math.max(3600, Math.min(data.max, data.quartiles[2] + 3 * data.iqr));
 
     var xScale = d3.scale.linear()
         .domain([0, domainMax])
