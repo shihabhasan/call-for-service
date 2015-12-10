@@ -1,3 +1,5 @@
+Ractive.DEBUG = /unminified/.test(function(){/*unminified*/});
+
 var NavBar = Ractive.extend({
     template: '#navbar-template',
     delimiters: ['[[', ']]'],
