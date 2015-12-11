@@ -210,7 +210,7 @@ var volumeBySourceChart = new HorizontalBarChart({
 var volumeMap = new DurhamMap({
     el: "#map",
     dashboard: dashboard,
-    colorScheme: colorbrewer.Reds,
+    colorScheme: colorbrewer.Blues,
     format: function (val, style) {
         return d3.format(",.2f")(val).replace(/\.0+$/, "");
     },

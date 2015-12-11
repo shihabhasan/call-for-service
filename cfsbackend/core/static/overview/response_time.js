@@ -107,7 +107,7 @@ function buildORTChart(data) {
         , tickTop = height / 2 - tickHeight / 2
         , center = boxtop + (boxbottom - boxtop) / 2
         , tooltip = nv.models.tooltip()
-        , colors = ['#fcae91', '#fb6a4a', '#de2d26', '#a50f15']
+        , colors = ['#6baed6', '#4292c6', '#2171b5', '#084594']
         ;
 
     var svg = d3.select("#ort").select("svg");
