@@ -1,38 +1,48 @@
 @mixin border-radius($radius) {
   -webkit-border-radius: $radius;
-     -moz-border-radius: $radius;
-      -ms-border-radius: $radius;
-          border-radius: $radius;
+  -moz-border-radius: $radius;
+  -ms-border-radius: $radius;
+  border-radius: $radius;
 }
 
-$white       : #FFFFFF;
-$ghost       : #FAFAFA;
-$snow        : #F9F9F9;
-$vapor       : #F6F6F6;
-$white-smoke : #F5F5F5;
-$silver      : #EFEFEF;
-$smoke       : #EEEEEE;
-$gainsboro   : #DDDDDD;
-$iron        : #CCCCCC;
-$base        : #AAAAAA;
-$aluminum    : #999999;
-$jumbo       : #888888;
-$monsoon     : #777777;
-$steel       : #666666;
-$charcoal    : #555555;
-$tuatara     : #444444;
-$oil         : #333333;
-$jet         : #222222;
-$black       : #000000;
+@mixin box-shadow($shadow) {
+  -webkit-box-shadow: $shadow;
+  -moz-box-shadow: $shadow;
+  box-shadow: $shadow
+}
+
+$white: #FFFFFF;
+$ghost: #FAFAFA;
+$snow: #F9F9F9;
+$vapor: #F6F6F6;
+$white-smoke: #F5F5F5;
+$silver: #EFEFEF;
+$smoke: #EEEEEE;
+$gainsboro: #DDDDDD;
+$iron: #CCCCCC;
+$base: #AAAAAA;
+$aluminum: #999999;
+$jumbo: #888888;
+$monsoon: #777777;
+$steel: #666666;
+$charcoal: #555555;
+$tuatara: #444444;
+$oil: #333333;
+$jet: #222222;
+$black: #000000;
 
 #loading {
   position: fixed;
-  top: 0;
-  right: 0;
-  @include border-radius(0 0 0 10px);
-  padding: 10px;
-  background-color: $ghost;
+  top: 30%;
+  left: 46%;
+  @include border-radius(10px);
+  border: 1px solid $gainsboro;
+  background-color: $white-smoke;
+  color: $jet;
+  padding: 20px;
   z-index: 9999;
+  font-size: 400%;
+  text-align: center;
 }
 
 .navbar-brand {
@@ -158,23 +168,29 @@ text.axis-worktime {
 .icon-2x {
   font-size: 200%;
 }
+
 .icon-3x {
   font-size: 300%;
 }
+
 .icon-4x {
   font-size: 400%;
 }
+
 .icon-5x {
   font-size: 500%;
 }
+
 .icon-spin {
   -webkit-animation: icon-spin 2s infinite linear;
   animation: icon-spin 2s infinite linear;
 }
+
 .icon-pulse {
   -webkit-animation: icon-spin 1s infinite steps(8);
   animation: icon-spin 1s infinite steps(8);
 }
+
 @-webkit-keyframes icon-spin {
   0% {
     -webkit-transform: rotate(0deg);
@@ -185,6 +201,7 @@ text.axis-worktime {
     transform: rotate(359deg);
   }
 }
+
 @keyframes icon-spin {
   0% {
     -webkit-transform: rotate(0deg);
