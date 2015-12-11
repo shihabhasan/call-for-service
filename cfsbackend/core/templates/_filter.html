@@ -1,5 +1,5 @@
 <script id="filter-button-template" type="text/html">
-    <div class="btn-group">
+    <div class="filter-button btn-group">
         <button type="button" class="btn [[ buttonClass(field, filter) ]] dropdown-toggle"
                 id="button_[[ field ]]"
                 data-field="[[ field ]]"
@@ -50,6 +50,11 @@
         <filter-button field="initiated_by" />
         <filter-button field="call_source" />
         <filter-button field="cancelled" />
+        [[ #if filter ]]
+        <div class="btn-group filter-button">
+            <a class="btn btn-danger" href="#!">Clear All Filters</a>
+        </div>
+        [[ /if ]]
     </div>
 </script>
 
@@ -59,5 +64,10 @@
         <filter-button field="call_unit" />
         <filter-button field="call_unit__beat" />
         <filter-button field="call_unit__district" />
+        [[ #if filter ]]
+        <div class="btn-group filter-button">
+            <a class="btn btn-danger" href="#!">Clear All Filters</a>
+        </div>
+        [[ /if ]]
     </div>
 </script>
