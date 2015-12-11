@@ -13,8 +13,6 @@
                 <div class="row">
                     <div class="small-12 columns">
                         <div id="call-list">
-                            {% include "_loading.html" %}
-
                             [[ #unless loading ]]
                             <h3>[[ (page - 1) * perPage + 1 ]]-[[ page * perPage
                                 ]] of [[ data.count ]] calls</h3>

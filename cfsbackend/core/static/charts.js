@@ -244,7 +244,7 @@ var DurhamMap = function (options) {
 
         info.onAdd = function (map) {
             self._div = L.DomUtil.create('div', 'mapinfo');
-            self.update();
+            self._div.innerHTML = "<div>Hover over a beat</div>";
             return self._div;
         };
 
