@@ -5,6 +5,7 @@ var DiscreteBarChart = function (options) {
     var rotateLabels = options.rotateLabels || false;
     var getX = options.x;
     var getY = options.y;
+    var width, height;
 
     this.el = options.el;
     this.filter = options.filter;
@@ -13,13 +14,15 @@ var DiscreteBarChart = function (options) {
 
     this.create = function () {
         var container = d3.select(this.el);
-        var width = container.node().clientWidth;
-        var height = width / self.ratio;
+        width = container.node().clientWidth;
+        height = width / self.ratio;
 
         var svg = container
             .append("svg")
             .attr("width", width)
-            .attr("height", height);
+            .attr("height", height)
+            .style("height", height + 'px')
+            .style("width", width + 'px');
     };
 
     this.update = function (data) {
@@ -28,7 +31,9 @@ var DiscreteBarChart = function (options) {
             var chart = nv.models.discreteBarChart()
                 .x(getX)
                 .y(getY)
-                .margin({"bottom": 150, "right": 50})
+                .height(height)
+                .width(width)
+                .margin({"bottom": 150, "right": 100})
                 .color(["#2171b5"]);
 
             chart.yAxis.tickFormat(fmt);
@@ -71,13 +76,14 @@ var DiscreteBarChart = function (options) {
     }
 
     this.create();
-}
+};
 
 var HorizontalBarChart = function (options) {
     var self = this;
     var dashboard = options.dashboard;
     var getX = options.x;
     var getY = options.y;
+    var width, height;
 
     this.el = options.el;
     this.filter = options.filter;
@@ -85,13 +91,15 @@ var HorizontalBarChart = function (options) {
 
     this.create = function () {
         var container = d3.select(this.el);
-        var width = container.node().clientWidth;
-        var height = width / self.ratio;
+        width = container.node().clientWidth;
+        height = Math.ceil(width / self.ratio);
 
         var svg = container
             .append("svg")
             .attr("width", width)
-            .attr("height", height);
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
     };
 
     this.update = function (data) {
@@ -101,6 +109,9 @@ var HorizontalBarChart = function (options) {
                 var chart = nv.models.multiBarHorizontalChart()
                     .x(getX)
                     .y(getY)
+                    .height(height)
+                    .width(width)
+                    .margin({left: 60, right: 60, bottom: 40})
                     .duration(250)
                     .showControls(false)
                     .showLegend(false)

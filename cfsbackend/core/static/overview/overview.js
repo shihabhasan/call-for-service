@@ -223,14 +223,19 @@ function buildVolumeByDateChart(data) {
     var height = width / 2.5;
 
     var svg = d3.select("#volume-by-date svg");
-    svg.attr("width", width).attr("height", height);
+    svg.attr("width", width)
+        .attr("height", height)
+        .style("height", height + "px")
+        .style("width", width + "px");
 
     nv.addGraph(
         function () {
             var chart = nv.models.lineChart()
                 .options(
                     {
-                        margin: {"right": 50},
+                        height: height,
+                        width: width,
+                        margin: {"right": 200},
                         transitionDuration: 300,
                         useInteractiveGuideline: true,
                         forceY: [0],
