@@ -156,10 +156,13 @@ text.axis-worktime {
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 4px;
   padding: 5px;
+  color: $jet;
+  font-size: 120%;
 
   h4 {
     font-size: 100%;
     font-weight: bold;
+    margin-top: 5px;
   }
 }
 
