@@ -218,7 +218,8 @@ var volumeMap = new DurhamMap({
 });
 
 function buildVolumeByDateChart(data) {
-    var parentWidth = d3.select("#volume-by-nature").node().clientWidth;
+    var container = d3.select("#volume-by-date");
+    var parentWidth = container.node().clientWidth;
     var width = parentWidth;
     var height = width / 2.5;
 
@@ -228,6 +229,21 @@ function buildVolumeByDateChart(data) {
         .style("height", height + "px")
         .style("width", width + "px");
 
+    var resize = function (chart) {
+        width = container.node().clientWidth;
+        height = Math.ceil(width / 2.5);
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
+    };
+
     nv.addGraph(
         function () {
             var chart = nv.models.lineChart()
@@ -235,7 +251,7 @@ function buildVolumeByDateChart(data) {
                     {
                         height: height,
                         width: width,
-                        margin: {"right": 200},
+                        margin: {"right": 60},
                         transitionDuration: 300,
                         useInteractiveGuideline: true,
                         forceY: [0],
@@ -255,7 +271,9 @@ function buildVolumeByDateChart(data) {
                 .tickFormat(d3.format(",d"));
 
             svg.datum(data).call(chart);
-            nv.utils.windowResize(chart.update);
+            nv.utils.windowResize(function () {
+                resize(chart);
+            });
             return chart;
         });
 }

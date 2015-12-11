@@ -11,7 +11,6 @@ var DiscreteBarChart = function (options) {
     this.filter = options.filter;
     this.ratio = options.ratio || 1.25;
 
-
     this.create = function () {
         var container = d3.select(this.el);
         width = container.node().clientWidth;
@@ -33,7 +32,7 @@ var DiscreteBarChart = function (options) {
                 .y(getY)
                 .height(height)
                 .width(width)
-                .margin({"bottom": 150, "right": 100})
+                .margin({"bottom": 150, "right": 80})
                 .color(["#2171b5"]);
 
             chart.yAxis.tickFormat(fmt);
@@ -65,7 +64,7 @@ var DiscreteBarChart = function (options) {
             }
 
             nv.utils.windowResize(function () {
-                chart.update();
+                self.resize(chart);
                 if (rotateLabels) {
                     doRotateLabels();
                 }
@@ -73,6 +72,21 @@ var DiscreteBarChart = function (options) {
 
             return chart;
         })
+    }
+
+    this.resize = function (chart) {
+        width = container.node().clientWidth;
+        height = Math.ceil(width / self.ratio);
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
     }
 
     this.create();
@@ -83,14 +97,14 @@ var HorizontalBarChart = function (options) {
     var dashboard = options.dashboard;
     var getX = options.x;
     var getY = options.y;
-    var width, height;
+    var container, width, height;
 
     this.el = options.el;
     this.filter = options.filter;
     this.ratio = options.ratio || 0.5;
 
     this.create = function () {
-        var container = d3.select(this.el);
+        container = d3.select(this.el);
         width = container.node().clientWidth;
         height = Math.ceil(width / self.ratio);
 
@@ -112,7 +126,7 @@ var HorizontalBarChart = function (options) {
                     .height(height)
                     .width(width)
                     .margin({left: 60, right: 60, bottom: 40})
-                    .duration(250)
+                    .duration(0)
                     .showControls(false)
                     .showLegend(false)
                     .barColor(["#2171b5"]);
@@ -129,10 +143,27 @@ var HorizontalBarChart = function (options) {
                         toggleFilter(dashboard, self.filter, e.data.id);
                     });
 
-                nv.utils.windowResize(chart.update);
+                nv.utils.windowResize(function () {
+                    self.resize(chart);
+                });
 
                 return chart;
             });
+    };
+
+    this.resize = function (chart) {
+        width = container.node().clientWidth;
+        height = Math.ceil(width / self.ratio);
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
     };
 
     dashboard.on('complete', function () {
