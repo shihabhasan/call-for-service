@@ -58,23 +58,23 @@ dashboard.on('filterByDate', function (event, span) {
 
 function cleanupData(data) {
     var indate = d3.time.format("%H:%M:%S");
-    
+
     var temp_allocation_data = [{
-            key: "Citizen-Initiated Call",
-            values: [],
-        }, {
-            key: "Officer-Initiated Call",
-            values: [],
-        }, {
-            key: "Out of Service",
-            values: [],
-        }, {
-            key: "Directed Patrol",
-            values: [],
-        }, {
-            key: "Patrol",
-            values: [],
-        }];
+        key: "Citizen-Initiated Call",
+        values: [],
+    }, {
+        key: "Officer-Initiated Call",
+        values: [],
+    }, {
+        key: "Out of Service",
+        values: [],
+    }, {
+        key: "Directed Patrol",
+        values: [],
+    }, {
+        key: "Patrol",
+        values: [],
+    }];
 
     _.sortBy(_.keys(data.allocation_over_time)).forEach(function (k) {
         var oos = d3.round(data.allocation_over_time[k]['OUT OF SERVICE'].avg_volume, 2),
@@ -148,16 +148,37 @@ monitorChart(dashboard, 'data.on_duty_by_beat', buildOnDutyByBeatChart);
 monitorChart(dashboard, 'data.on_duty_by_district', buildOnDutyByDistrictChart);
 
 function buildAllocationOverTimeChart(data) {
-    var parentWidth = d3.select("#allocation-over-time").node().clientWidth;
+    var container = d3.select("#allocation-over-time");
+    var parentWidth = container.node().clientWidth;
     var width = parentWidth;
     var height = width / 2;
 
     var svg = d3.select("#allocation-over-time svg");
-    svg.attr("width", width).attr("height", height);
+    svg.attr("width", width)
+        .attr("height", height)
+        .style("height", height + "px")
+        .style("width", width + 'px')
+
+    var resize = function (chart) {
+        width = container.node().clientWidth;
+        height = width / 2;
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
+    };
 
     nv.addGraph(function () {
         var chart = nv.models.stackedAreaChart()
             .options({
+                height: height,
+                width: width,
                 margin: {"right": 50},
                 transitionDuration: 300,
                 useInteractiveGuideline: true,
@@ -183,18 +204,39 @@ function buildAllocationOverTimeChart(data) {
             .headerFormatter(function (d) { return d; });
 
         svg.datum(data).call(chart);
-        nv.utils.windowResize(chart.update);
+        nv.utils.windowResize(function () {
+            resize(chart);
+        });
         return chart;
     });
 }
 
 function buildOnDutyByBeatChart(data) {
-    var parentWidth = d3.select("#on-duty-by-beat").node().clientWidth;
+    var container = d3.select("#on-duty-by-beat");
+    var parentWidth = container.node().clientWidth;
     var width = parentWidth;
     var height = width;
 
     var svg = d3.select("#on-duty-by-beat svg");
-    svg.attr("width", width).attr("height", height);
+    svg.attr("width", width)
+        .attr("height", height)
+        .style("height", height + "px")
+        .style("width", width + 'px');
+
+    var resize = function (chart) {
+        width = container.node().clientWidth;
+        height = width;
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
+    };
 
     nv.addGraph(function () {
         var chart = nv.models.multiBarHorizontalChart()
@@ -208,10 +250,12 @@ function buildOnDutyByBeatChart(data) {
                 })
             .duration(250)
             .barColor(function (d) {
-                return districtColors[d.beat.substring(0,1)];
+                return districtColors[d.beat.substring(0, 1)];
             })
             .showControls(false)
-            .showLegend(false);
+            .showLegend(false)
+            .height(height)
+            .width(width);
 
         chart.yAxis.tickFormat(d3.format(".,2r"));
 
@@ -222,20 +266,40 @@ function buildOnDutyByBeatChart(data) {
             'elementClick', function (e) {
                 toggleFilter(dashboard, "call_unit__beat", e.data.beat_id);
             });
-        
-        nv.utils.windowResize(chart.update);
 
+        nv.utils.windowResize(function () {
+            resize(chart);
+        });
         return chart;
     });
 }
 
 function buildOnDutyByDistrictChart(data) {
-    var parentWidth = d3.select("#on-duty-by-district").node().clientWidth;
+    var container = d3.select("#on-duty-by-district");
+    var parentWidth = container.node().clientWidth;
     var width = parentWidth;
     var height = width;
 
     var svg = d3.select("#on-duty-by-district svg");
-    svg.attr("width", width).attr("height", height);
+    svg.attr("width", width)
+        .attr("height", height)
+        .style("height", height + "px")
+        .style("width", width + 'px');
+
+    var resize = function (chart) {
+        width = container.node().clientWidth;
+        height = width;
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
+    };
 
     nv.addGraph(function () {
         var chart = nv.models.multiBarHorizontalChart()
@@ -249,10 +313,12 @@ function buildOnDutyByDistrictChart(data) {
                 })
             .duration(250)
             .barColor(function (d) {
-                return districtColors[d.district.substring(1,2)];
+                return districtColors[d.district.substring(1, 2)];
             })
             .showControls(false)
-            .showLegend(false);
+            .showLegend(false)
+            .height(height)
+            .width(width);
 
         chart.yAxis.tickFormat(d3.format(".,2r"));
 
@@ -263,9 +329,10 @@ function buildOnDutyByDistrictChart(data) {
             'elementClick', function (e) {
                 toggleFilter(dashboard, "call_unit__district", e.data.district_id);
             });
-        
-        nv.utils.windowResize(chart.update);
 
+        nv.utils.windowResize(function () {
+            resize(chart);
+        });
         return chart;
     });
 }

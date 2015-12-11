@@ -5,21 +5,23 @@ var DiscreteBarChart = function (options) {
     var rotateLabels = options.rotateLabels || false;
     var getX = options.x;
     var getY = options.y;
+    var width, height;
 
     this.el = options.el;
     this.filter = options.filter;
     this.ratio = options.ratio || 1.25;
 
-
     this.create = function () {
         var container = d3.select(this.el);
-        var width = container.node().clientWidth;
-        var height = width / self.ratio;
+        width = container.node().clientWidth;
+        height = width / self.ratio;
 
         var svg = container
             .append("svg")
             .attr("width", width)
-            .attr("height", height);
+            .attr("height", height)
+            .style("height", height + 'px')
+            .style("width", width + 'px');
     };
 
     this.update = function (data) {
@@ -28,7 +30,9 @@ var DiscreteBarChart = function (options) {
             var chart = nv.models.discreteBarChart()
                 .x(getX)
                 .y(getY)
-                .margin({"bottom": 150, "right": 50})
+                .height(height)
+                .width(width)
+                .margin({"bottom": 150, "right": 80})
                 .color(["#2171b5"]);
 
             chart.yAxis.tickFormat(fmt);
@@ -60,7 +64,7 @@ var DiscreteBarChart = function (options) {
             }
 
             nv.utils.windowResize(function () {
-                chart.update();
+                self.resize(chart);
                 if (rotateLabels) {
                     doRotateLabels();
                 }
@@ -70,28 +74,46 @@ var DiscreteBarChart = function (options) {
         })
     }
 
+    this.resize = function (chart) {
+        width = container.node().clientWidth;
+        height = Math.ceil(width / self.ratio);
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
+    }
+
     this.create();
-}
+};
 
 var HorizontalBarChart = function (options) {
     var self = this;
     var dashboard = options.dashboard;
     var getX = options.x;
     var getY = options.y;
+    var container, width, height;
 
     this.el = options.el;
     this.filter = options.filter;
     this.ratio = options.ratio || 0.5;
 
     this.create = function () {
-        var container = d3.select(this.el);
-        var width = container.node().clientWidth;
-        var height = width / self.ratio;
+        container = d3.select(this.el);
+        width = container.node().clientWidth;
+        height = Math.ceil(width / self.ratio);
 
         var svg = container
             .append("svg")
             .attr("width", width)
-            .attr("height", height);
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
     };
 
     this.update = function (data) {
@@ -101,7 +123,10 @@ var HorizontalBarChart = function (options) {
                 var chart = nv.models.multiBarHorizontalChart()
                     .x(getX)
                     .y(getY)
-                    .duration(250)
+                    .height(height)
+                    .width(width)
+                    .margin({left: 60, right: 60, bottom: 40})
+                    .duration(0)
                     .showControls(false)
                     .showLegend(false)
                     .barColor(["#2171b5"]);
@@ -118,10 +143,27 @@ var HorizontalBarChart = function (options) {
                         toggleFilter(dashboard, self.filter, e.data.id);
                     });
 
-                nv.utils.windowResize(chart.update);
+                nv.utils.windowResize(function () {
+                    self.resize(chart);
+                });
 
                 return chart;
             });
+    };
+
+    this.resize = function (chart) {
+        width = container.node().clientWidth;
+        height = Math.ceil(width / self.ratio);
+
+        container.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("height", height + "px")
+            .style("width", width + 'px');
+
+        chart.height(height).width(width);
+
+        chart.update();
     };
 
     dashboard.on('complete', function () {
