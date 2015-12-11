@@ -1,7 +1,8 @@
 ---
 ansible_ssh_user: root
-
 project_name: cfs
+acme_email: cdreisbach@rti.org
+acme_domain: dpdcfs.rticds.org
 
 project:
   name: "{{ project_name }}"

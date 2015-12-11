@@ -7,4 +7,5 @@
     - { role: common }
     - { role: postgres }
     - { role: nginx, tags: nginx }
+    - { role: acmetool, tags: acme }
     - { role: django, tags: django }
