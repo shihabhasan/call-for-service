@@ -153,7 +153,7 @@ BOWER_INSTALLED_APPS = (
     'jquery#2.1.4',
     'leaflet#0.7.7',
     'moment#2.10.6',
-    'nvd3#b255bca4a3',
+    'nvd3#5992b889c6',
     'q#1.0.1',
     'ractive#0.7.3',
     'underscore#1.8.3',
