@@ -172,8 +172,13 @@ class OfficerActivityOverview:
         GROUP BY beat, beat_id;
         """.format(cte_sql=cte_sql)
     
+        # Band-aid fix for slow query; runs for almost
+        # a minute when planner chooses a merge join.
+        # Need to find out what's causing it.
+        cursor.execute("SET enable_mergejoin=0;")
         cursor.execute(sql, params)
         results = dictfetchall(cursor)
+        cursor.execute("RESET enable_mergejoin;")
 
         return results
 
