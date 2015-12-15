@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import F
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,10 +6,9 @@ from url_filter.integrations.drf import DjangoFilterBackend
 
 from .. import serializers
 from ..filters import CallFilterSet
-from ..models import Call, Sector, District, Beat, City, \
-    CallSource, CallUnit, Nature, CloseCode
+from ..models import Call
 from ..summaries import CallResponseTimeOverview, \
-    CallVolumeOverview, MapOverview, OfficerActivityOverview
+    CallVolumeOverview, OfficerActivityOverview
 
 
 class CallViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,81 +39,46 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
     filter_class = CallFilterSet
 
 
-class CallOverviewViewSet(viewsets.ReadOnlyModelViewSet):
+class APICallMapView(APIView):
     """
-    API endpoint for reduced data payload for summary page. Note that it aggregates by count of calls
+    Get the call data needed to display the call map.
     """
-    queryset = Call.objects.values('month_received', 'week_received',
-                                   'dow_received', 'hour_received').annotate(
-        Count('call_id'))
-    serializer_class = serializers.CallOverviewSerializer
+
+    def build_response(self, qs):
+        res = {"count": qs.count()}
+        cols = ['call_id',
+                'time_received',
+                'call_source__descr',
+                'street_num',
+                'street_name',
+                'geox',
+                'geoy',
+                'business',
+                'nature__descr',
+                'priority__descr',
+                'close_code__descr',
+                'officer_response_time']
+        calls = qs.values_list(*cols)
+        calls = [list(call) for call in calls]
+        for call in calls:
+            call[1] = call[1].strftime("%c")
+            call[-1] = call[-1].total_seconds() if call[-1] else None
+        res['columns'] = cols
+        res['calls'] = calls
+        return res
+
+    def get(self, request, format=None):
+        filter = CallFilterSet(data=request.GET, queryset=Call.objects.all())
+        qs = filter.filter()
+
+        if qs.count() > 10000:
+            return Response({"count": qs.count(),
+                             "error": "Too many calls to display"})
+        else:
+            return Response(self.build_response(qs))
 
 
-class SectorViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint that shows details about all Sectors. Not used in analysis.
-    """
-    queryset = Sector.objects.all()
-    serializer_class = serializers.SectorSerializer
-
-
-class DistrictViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint that shows details about policing districts.
-    """
-    queryset = District.objects.all()
-    serializer_class = serializers.DistrictSerializer
-
-
-class BeatViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint that shows details about policing beats.
-    """
-    queryset = Beat.objects.all()
-    serializer_class = serializers.BeatSerializer
-
-
-class CityViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint that allows calls to be viewed or edited.
-    """
-    queryset = City.objects.all()
-    serializer_class = serializers.CitySerializer
-
-
-class CallSourceViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint for showing the possible call sources for a 911 call.
-    """
-    queryset = CallSource.objects.all()
-    serializer_class = serializers.CallSourceSerializer
-
-
-class CallUnitViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint for showing the units that respond to a call.
-    """
-    queryset = CallUnit.objects.all()
-    serializer_class = serializers.CallUnitSerializer
-
-
-class NatureViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint for showing the nature of a call.
-    """
-    queryset = Nature.objects.all()
-    serializer_class = serializers.NatureSerializer
-
-
-class CloseCodeViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    API endpoint for showing the code applied to a call that when it was closed.
-    """
-    queryset = CloseCode.objects.all()
-    serializer_class = serializers.CloseCodeSerializer
-
-
-class CallResponseTimeView(APIView):
+class APICallResponseTimeView(APIView):
     """
     Gives all the information needed for the response time dashboard based off
     of user-submitted filters.
@@ -125,7 +89,7 @@ class CallResponseTimeView(APIView):
         return Response(overview.to_dict())
 
 
-class OfficerAllocationView(APIView):
+class APIOfficerAllocationView(APIView):
     """
     Gives all the information needed for the officer allocation dashboard based off
     of user-submitted filters.
@@ -136,7 +100,7 @@ class OfficerAllocationView(APIView):
         return Response(overview.to_dict())
 
 
-class CallVolumeView(APIView):
+class APICallVolumeView(APIView):
     """
     Gives all the information needed for the call volume dashboard based off
     of user-submitted filters.
@@ -144,15 +108,4 @@ class CallVolumeView(APIView):
 
     def get(self, request, format=None):
         overview = CallVolumeOverview(request.GET)
-        return Response(overview.to_dict())
-
-
-class MapInfoView(APIView):
-    """
-    Gives all the information needed for the map view based off of
-    user-submitted filters.
-    """
-
-    def get(self, request, format=None):
-        overview = MapOverview(request.GET)
         return Response(overview.to_dict())

@@ -29,16 +29,11 @@ def filter_json(filter_set):
     return json.dumps(out)
 
 
-class CallListView(TemplateView):
-    template_name = "calls.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(CallListView, self).get_context_data(**kwargs)
-        context['form'] = filter_json(CallFilterSet)
-        return context
+class LandingPageView(TemplateView):
+    template_name = "landing_page.html"
 
 
-class DashboardView(View):
+class CallVolumeView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("overview.html",
                                   dict(form=filter_json(CallFilterSet)))

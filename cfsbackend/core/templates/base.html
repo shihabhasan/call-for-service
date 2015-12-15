@@ -6,9 +6,10 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CFS</title>
+    <title>DPD CFS</title>
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
-    <link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Audiowide'
+          rel='stylesheet' type='text/css'>
     {% compress css %}
         <link rel="stylesheet"
               href="{% static 'dashboard/toolkit-light.css' %}">
@@ -26,11 +27,18 @@
 <div class="container-fluid container-max-1800" id="dashboard">
     {% block content %}
     {% endblock %}
-    <div class="row">
-        <footer class="col-md-12">RTI 2015</footer>
-    </div>
 </div>
 <!-- end container-fluid -->
+
+<div class="container-fluid footer">
+    <div class="row">
+        <div class="col-md-12">
+            <img src="{% static "img/RTI_logo_blue.gif" %}" alt="RTI International">
+            Copyright 2015 RTI International.
+        </div>
+    </div>
+</div>
+
 {% include "_navbar.html" %}
 {% include "_filter.html" %}
 {% block templates %}{% endblock %}
