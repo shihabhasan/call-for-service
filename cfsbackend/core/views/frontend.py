@@ -29,6 +29,10 @@ def filter_json(filter_set):
     return json.dumps(out)
 
 
+class LandingPageView(TemplateView):
+    template_name = "landing_page.html"
+
+
 class CallVolumeView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("overview.html",

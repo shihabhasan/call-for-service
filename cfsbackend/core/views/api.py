@@ -42,7 +42,7 @@ from rest_framework_msgpack.renderers import MessagePackRenderer
 from rest_framework.renderers import JSONRenderer
 
 
-class CallMapView(APIView):
+class APICallMapView(APIView):
     """
     Get the call data needed to display the call map.
     """
@@ -83,7 +83,7 @@ class CallMapView(APIView):
             return Response(self.build_response(qs))
 
 
-class CallResponseTimeView(APIView):
+class APICallResponseTimeView(APIView):
     """
     Gives all the information needed for the response time dashboard based off
     of user-submitted filters.
@@ -94,7 +94,7 @@ class CallResponseTimeView(APIView):
         return Response(overview.to_dict())
 
 
-class OfficerAllocationView(APIView):
+class APIOfficerAllocationView(APIView):
     """
     Gives all the information needed for the officer allocation dashboard based off
     of user-submitted filters.
@@ -105,7 +105,7 @@ class OfficerAllocationView(APIView):
         return Response(overview.to_dict())
 
 
-class CallVolumeView(APIView):
+class APICallVolumeView(APIView):
     """
     Gives all the information needed for the call volume dashboard based off
     of user-submitted filters.
