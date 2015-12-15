@@ -27,11 +27,18 @@
 <div class="container-fluid container-max-1800" id="dashboard">
     {% block content %}
     {% endblock %}
-    <div class="row">
-        <footer class="col-md-12">RTI 2015</footer>
-    </div>
 </div>
 <!-- end container-fluid -->
+
+<div class="container-fluid footer">
+    <div class="row">
+        <div class="col-md-12">
+            <img src="{% static "img/RTI_logo_blue.gif" %}" alt="RTI International">
+            Copyright 2015 RTI International.
+        </div>
+    </div>
+</div>
+
 {% include "_navbar.html" %}
 {% include "_filter.html" %}
 {% block templates %}{% endblock %}
