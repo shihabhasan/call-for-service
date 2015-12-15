@@ -38,16 +38,11 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filter_class = CallFilterSet
 
-from rest_framework_msgpack.renderers import MessagePackRenderer
-from rest_framework.renderers import JSONRenderer
-
 
 class APICallMapView(APIView):
     """
     Get the call data needed to display the call map.
     """
-
-    renderer_classes = (JSONRenderer, MessagePackRenderer,)
 
     def build_response(self, qs):
         res = {"count": qs.count()}
