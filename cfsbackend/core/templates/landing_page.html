@@ -27,11 +27,11 @@
         }
 
         #banner {
-            background: url({% static "img/banner.jpg" %}) no-repeat center center fixed;
-            -webkit-background-size: cover; /* For WebKit*/
-            -moz-background-size: cover; /* Mozilla*/
-            -o-background-size: cover; /* Opera*/
-            background-size: cover; /* Generic*/
+            background: url({% static "img/banner.jpg" %}) no-repeat top center fixed;
+            -webkit-background-size: contain; /* For WebKit*/
+            -moz-background-size: contain; /* Mozilla*/
+            -o-background-size: contain; /* Opera*/
+            background-size: contain; /* Generic*/
         }
 
         #banner h1 {
@@ -44,11 +44,11 @@
         }
 
         .banner-text {
-            background-color: rgba(255, 255, 255, 0.4);
+            background-color: rgba(255, 255, 255, 0.15);
             color: black;
             padding: 5px 10px;
             border-radius: 2px;
-            margin-bottom: 120px;
+            margin-bottom: 90px;
         }
 
         .action-icons {
