@@ -52,7 +52,7 @@ function cleanupData(data) {
 var responseTimeMap = new DurhamMap({
     el: "#map",
     dashboard: dashboard,
-    colorScheme: colorbrewer.Blues,
+    colorScheme: colorbrewer.Oranges,
     format: durationFormat,
     dataDescr: "Officer Response Time"
 });
@@ -64,7 +64,8 @@ var ortBySourceChart = new DiscreteBarChart({
     fmt: durationFormat,
     rotateLabels: true,
     x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) }
+    y: function (d) { return Math.round(d.mean) },
+    colors: ["#f16913"]
 });
 
 var ortByPriorityChart = new DiscreteBarChart({
@@ -73,7 +74,8 @@ var ortByPriorityChart = new DiscreteBarChart({
     filter: 'priority',
     fmt: durationFormat,
     x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) }
+    y: function (d) { return Math.round(d.mean) },
+    colors: ["#f16913"]
 });
 
 monitorChart(dashboard, 'data.officer_response_time', buildORTChart);
@@ -107,7 +109,7 @@ function buildORTChart(data) {
         , tickTop = height / 2 - tickHeight / 2
         , center = boxtop + (boxbottom - boxtop) / 2
         , tooltip = nv.models.tooltip()
-        , colors = ['#6baed6', '#4292c6', '#2171b5', '#084594']
+        , colors = ['#fd8d3c', '#f16913', '#d94801', '#8c2d04']
         ;
 
     var svg = d3.select("#ort").select("svg");
