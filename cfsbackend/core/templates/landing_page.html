@@ -27,28 +27,28 @@
         }
 
         #banner {
-            background: url({% static "img/banner.jpg" %}) no-repeat center center fixed;
-            -webkit-background-size: cover; /* For WebKit*/
-            -moz-background-size: cover; /* Mozilla*/
-            -o-background-size: cover; /* Opera*/
-            background-size: cover; /* Generic*/
+            background: url({% static "img/banner.jpg" %}) no-repeat top center fixed;
+            -webkit-background-size: contain; /* For WebKit*/
+            -moz-background-size: contain; /* Mozilla*/
+            -o-background-size: contain; /* Opera*/
+            background-size: contain; /* Generic*/
         }
 
         #banner h1 {
-            color: black;
+            color: white;
             font-weight: bold;
         }
 
         #banner h2 {
-            color: black;
+            color: white;
         }
 
         .banner-text {
-            background-color: rgba(255, 255, 255, 0.4);
-            color: black;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
             padding: 5px 10px;
             border-radius: 2px;
-            margin-bottom: 120px;
+            margin-bottom: 90px;
         }
 
         .action-icons {
@@ -78,12 +78,26 @@
     </div>
 </nav>
 
-<div class="jumbotron" id="banner">
+<div class="visible-xs visible-sm">
     <div class="container">
-        <div class="banner-text">
-            <h1>DPD Call for Service Data</h1>
-            <h2>Turning CFS data into operational and strategic
-                intelligence</h2>
+        <div class="row">
+            <div class="col-md-12">
+                <h1>DPD CFS Analytics</h1>
+                <h2>Turning CFS data into operational and strategic
+                    intelligence</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="jumbotron hidden-xs hidden-sm" id="banner">
+    <div class="container">
+        <div class="row">
+            <div class="banner-text col-md-12">
+                <h1>DPD CFS Analytics</h1>
+                <h2>Turning CFS data into operational and strategic
+                    intelligence</h2>
+            </div>
         </div>
     </div>
 </div>
@@ -135,7 +149,8 @@
 <div class="container-fluid footer">
     <div class="row">
         <div class="col-md-12">
-            <img src="{% static "img/RTI_logo_blue.gif" %}" alt="RTI International">
+            <img src="{% static "img/RTI_logo_blue.gif" %}"
+                 alt="RTI International">
             Copyright 2015 RTI International.
         </div>
     </div>

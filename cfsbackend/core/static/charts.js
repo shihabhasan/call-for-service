@@ -6,6 +6,7 @@ var DiscreteBarChart = function (options) {
     var getX = options.x;
     var getY = options.y;
     var width, height;
+    var colors = options.colors || ["#2171b5"];
 
     this.el = options.el;
     this.filter = options.filter;
@@ -33,7 +34,7 @@ var DiscreteBarChart = function (options) {
                 .height(height)
                 .width(width)
                 .margin({"bottom": 150, "right": 80})
-                .color(["#2171b5"]);
+                .color(colors);
 
             chart.yAxis.tickFormat(fmt);
 
