@@ -174,6 +174,7 @@ var volumeByDOWChart = new HorizontalBarChart({
     filter: "dow_received",
     ratio: 1.5,
     dashboard: dashboard,
+    fmt: d3.format(",d"),
     x: function (d) { return d.name },
     y: function (d) { return d.volume }
 });
@@ -183,6 +184,7 @@ var volumeByShiftChart = new HorizontalBarChart({
     filter: "shift",
     ratio: 2.5,
     dashboard: dashboard,
+    fmt: d3.format(",d"),
     x: function (d) { return d.name },
     y: function (d) { return d.volume }
 });
@@ -203,6 +205,7 @@ var volumeBySourceChart = new HorizontalBarChart({
     filter: "initiated_by",
     ratio: 2.5,
     dashboard: dashboard,
+    fmt: d3.format(",d"),
     x: function (d) { return d.name },
     y: function (d) { return d.volume }
 });

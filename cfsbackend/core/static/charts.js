@@ -7,6 +7,7 @@ var DiscreteBarChart = function (options) {
     var getY = options.y;
     var width, height;
     var colors = options.colors || ["#2171b5"];
+    var container = d3.select(options.el);
 
     this.el = options.el;
     this.filter = options.filter;
@@ -96,8 +97,10 @@ var DiscreteBarChart = function (options) {
 var HorizontalBarChart = function (options) {
     var self = this;
     var dashboard = options.dashboard;
+    var fmt = options.fmt || function (x) { return x; };
     var getX = options.x;
     var getY = options.y;
+    var colors = options.colors || ["#2171b5"];
     var container, width, height;
 
     this.el = options.el;
@@ -130,10 +133,9 @@ var HorizontalBarChart = function (options) {
                     .duration(0)
                     .showControls(false)
                     .showLegend(false)
-                    .barColor(["#2171b5"]);
+                    .barColor(colors);
 
-
-                chart.yAxis.tickFormat(d3.format(",d"));
+                chart.yAxis.tickFormat(fmt);
 
                 svg.datum(data).call(chart);
 

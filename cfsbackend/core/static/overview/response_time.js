@@ -46,6 +46,52 @@ function cleanupData(data) {
             values: _.sortBy(data.officer_response_time_by_source, function (d) { return d.name; })
         }];
 
+    var dow = ['Mon', 'Tue', "Wed", 'Thu', "Fri", 'Sat', 'Sun'];
+    data.officer_response_time_by_dow = [
+        {
+            key: "Volume By Day of Week",
+            values: _.chain(data.officer_response_time_by_dow)
+                .map(function (d) {
+                    return {
+                        id: d.id,
+                        mean: d.mean,
+                        name: dow[d.id]
+                    }
+                })
+                .sortBy(
+                    function (d) {
+                        return d.id;
+                    })
+                .value()
+        }
+    ];
+
+    var shifts = ['Shift 1', 'Shift 2'];
+    data.officer_response_time_by_shift = [
+        {
+            key: "Volume By Shift",
+            values: _.chain(data.officer_response_time_by_shift)
+                .map(function (d) {
+                    return {
+                        id: d.id,
+                        mean: d.mean,
+                        name: shifts[d.id]
+                    }
+                })
+                .sortBy(
+                    function (d) {
+                        return d.id;
+                    })
+                .value()
+        }
+    ];
+
+    data.officer_response_time_by_nature_group = _.chain(data.officer_response_time_by_nature_group)
+        .filter(function (d) { return d.name; })
+        .sortBy(function (d) { return d.name; })
+        .value();
+    data.officer_response_time_by_nature_group = [{key: "Response Time", values: data.officer_response_time_by_nature_group}];
+
     return data;
 }
 
@@ -55,6 +101,17 @@ var responseTimeMap = new DurhamMap({
     colorScheme: colorbrewer.Oranges,
     format: durationFormat,
     dataDescr: "Officer Response Time"
+});
+
+var ortByDOWChart = new HorizontalBarChart({
+    el: "#ort-by-dow",
+    filter: "dow_received",
+    ratio: 1.5,
+    fmt: durationFormat,
+    dashboard: dashboard,
+    x: function (d) { return d.name },
+    y: function (d) { return Math.round(d.mean) },
+    colors: ["#f16913"]
 });
 
 var ortBySourceChart = new DiscreteBarChart({
@@ -78,9 +135,35 @@ var ortByPriorityChart = new DiscreteBarChart({
     colors: ["#f16913"]
 });
 
+var ortByShiftChart = new HorizontalBarChart({
+    el: "#ort-by-shift",
+    filter: "shift",
+    ratio: 2.5,
+    dashboard: dashboard,
+    fmt: durationFormat,
+    x: function (d) { return d.name },
+    y: function (d) { return Math.round(d.mean) },
+    colors: ["#f16913"]
+});
+
+var ortByNatureGroupChart = new DiscreteBarChart({
+    el: '#ort-by-nature',
+    dashboard: dashboard,
+    filter: 'nature__nature_group',
+    ratio: 2,
+    rotateLabels: true,
+    fmt: durationFormat,
+    x: function (d) { return d.name },
+    y: function (d) { return Math.round(d.mean) },
+    colors: ["#f16913"]
+});
+
 monitorChart(dashboard, 'data.officer_response_time', buildORTChart);
 monitorChart(dashboard, 'data.officer_response_time_by_source', ortBySourceChart.update);
 monitorChart(dashboard, 'data.officer_response_time_by_priority', ortByPriorityChart.update);
+monitorChart(dashboard, 'data.officer_response_time_by_dow', ortByDOWChart.update);
+monitorChart(dashboard, 'data.officer_response_time_by_shift', ortByShiftChart.update);
+monitorChart(dashboard, 'data.officer_response_time_by_nature_group', ortByNatureGroupChart.update);
 monitorChart(dashboard, 'data.map_data', responseTimeMap.update);
 
 // ========================================================================

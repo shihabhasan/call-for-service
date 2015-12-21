@@ -10,6 +10,15 @@ from .models import OfficerActivity, OfficerActivityType, Call, Beat, \
     NatureGroup
 from .filters import CallFilterSet, OfficerActivityFilterSet
 
+def merge_dicts(*dict_args):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
 
 class Secs(Extract):
     name = 'secs'
@@ -127,7 +136,8 @@ class OfficerActivityOverview:
                 'freq': r['ON DUTY']['freq'],
                 'total': r['ON DUTY']['total'] \
                          - sum(
-                    [v['total'] for k, v in r.items() if not k == 'ON DUTY']),
+                        [v['total'] for k, v in r.items() if
+                         not k == 'ON DUTY']),
                 'avg_volume': r['ON DUTY']['avg_volume'] \
                               - sum([v['avg_volume'] for k, v in r.items() if
                                      not k == 'ON DUTY']),
@@ -171,7 +181,7 @@ class OfficerActivityOverview:
         ) a
         GROUP BY beat, beat_id;
         """.format(cte_sql=cte_sql)
-    
+
         # Band-aid fix for slow query; runs for almost
         # a minute when planner chooses a merge join.
         # Need to find out what's causing it.
@@ -217,7 +227,7 @@ class OfficerActivityOverview:
         ) a
         GROUP BY district, district_id;
         """.format(cte_sql=cte_sql)
-    
+
         cursor.execute(sql, params)
         results = dictfetchall(cursor)
 
@@ -252,11 +262,6 @@ class CallOverview:
     def count(self):
         return self.qs.count()
 
-    def beat_ids(self):
-        return dict(Beat.objects.all().values_list('descr', 'beat_id'))
-
-
-class CallVolumeOverview(CallOverview):
     def precision(self):
         if self.span >= timedelta(days=365):
             return 'month'
@@ -265,10 +270,91 @@ class CallVolumeOverview(CallOverview):
         else:
             return 'hour'
 
+    def merge_data(self, src_data, all_ids):
+        src_data = list(src_data)
+        all_ids = set(all_ids)
+        present_ids = set(x['id'] for x in src_data)
+
+        for id in all_ids.difference(present_ids):
+            src_data.append(merge_dicts({"id": id}, self.default))
+
+        return src_data
+
+    def beat_ids(self):
+        return dict(Beat.objects.all().values_list('descr', 'beat_id'))
+
+    def by_dow(self):
+        results = self.qs \
+            .annotate(id=F('dow_received'), name=F('dow_received')) \
+            .values("id", "name") \
+            .annotate(**self.annotations)
+
+        return self.merge_data(results, range(0, 7))
+
+    def by_shift(self):
+        results = self.qs \
+            .annotate(id=Case(
+                When(Q(hour_received__gte=6) & Q(hour_received__lt=18), then=0),
+                default=1,
+                output_field=IntegerField())) \
+            .values("id") \
+            .annotate(**self.annotations)
+
+        return self.merge_data(results, [0, 1])
+
+    def by_nature_group(self):
+        all_in_field = NatureGroup.objects.annotate(
+                name=F("descr"),
+                id=F("nature_group_id")).values('name', 'id')
+
+        results = self.qs \
+            .annotate(id=F("nature__nature_group_id"),
+                      name=F("nature__nature_group__descr")) \
+            .values("name", "id") \
+            .annotate(**self.annotations)
+
+        results = list(results)
+
+        present_ids = set(x['id'] for x in results)
+
+        for row in all_in_field:
+            if row['id'] not in present_ids:
+                row.update(**self.default)
+                results.append(row)
+
+        return results
+
+    def by_field(self, field):
+        field_model = getattr(self.qs.model, field).field.related_model
+        all_in_field = field_model.objects.annotate(
+                name=F("descr"),
+                id=F(field + "_id")).values('name', 'id')
+        results = self.qs \
+            .annotate(id=F(field + "_id"),
+                      name=F(field + '__descr')) \
+            .values("id", "name") \
+            .exclude(id=None) \
+            .annotate(**self.annotations)
+
+        results = list(results)
+        present_ids = set(x['id'] for x in results)
+
+        for row in all_in_field:
+            if row['id'] not in present_ids:
+                row.update(**self.default)
+                results.append(row)
+
+        return results
+
+
+class CallVolumeOverview(CallOverview):
+    annotations = dict(volume=Count("id"))
+    default = dict(volume=0)
+
     def volume_by_date(self):
         results = self.qs \
             .annotate(
-            date=DateTrunc('time_received', precision=self.precision())) \
+                date=DateTrunc('time_received', precision=self.precision())) \
             .values("date") \
             .annotate(volume=Count("date")) \
             .order_by("date")
@@ -278,85 +364,13 @@ class CallVolumeOverview(CallOverview):
     def volume_by_source(self):
         results = self.qs \
             .annotate(id=Case(
-            When(call_source__descr="Self Initiated", then=0),
-            default=1,
-            output_field=IntegerField())) \
+                When(call_source__descr="Self Initiated", then=0),
+                default=1,
+                output_field=IntegerField())) \
             .values("id") \
-            .annotate(volume=Count("id"))
+            .annotate(**self.annotations)
 
         return self.merge_data(results, [0, 1])
-
-    def merge_data(self, src_data, all_ids):
-        src_data = list(src_data)
-        all_ids = set(all_ids)
-        present_ids = set(x['id'] for x in src_data)
-
-        for id in all_ids.difference(present_ids):
-            src_data.append({"id": id, "volume": 0})
-
-        return src_data
-
-    def volume_by_shift(self):
-        results = self.qs \
-            .annotate(id=Case(
-            When(Q(hour_received__gte=6) & Q(hour_received__lt=18), then=0),
-            default=1,
-            output_field=IntegerField())) \
-            .values("id") \
-            .annotate(volume=Count("id"))
-
-        return self.merge_data(results, [0, 1])
-
-    def volume_by_dow(self):
-        results = self.qs \
-            .annotate(id=F('dow_received'), name=F('dow_received')) \
-            .values("id", "name") \
-            .annotate(volume=Count('name'))
-
-        return self.merge_data(results, range(0, 7))
-
-    def volume_by_field(self, field):
-        field_model = getattr(self.qs.model, field).field.related_model
-        all_in_field = field_model.objects.annotate(
-            name=F("descr"),
-            id=F(field + "_id")).values('name', 'id')
-        qs = self.qs.annotate(name=F(field + "__descr"),
-                              id=F(field + "_id")).values('name', 'id')
-        qs = qs.annotate(volume=Count('name'))
-
-        results = list(qs)
-
-        present_ids = set(x['id'] for x in results)
-
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update({"volume": 0})
-                results.append(row)
-
-        return results
-
-    def volume_by_nature_group(self):
-        all_in_field = NatureGroup.objects.annotate(
-            name=F("descr"),
-            id=F("nature_group_id")).values('name', 'id')
-
-        results = self.qs \
-            .annotate(id=F("nature__nature_group_id"),
-                      name=F("nature__nature_group__descr")) \
-            .values("name", "id") \
-            .annotate(volume=Count('name'))
-
-        results = list(results)
-
-        present_ids = set(x['id'] for x in results)
-
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update({"volume": 0})
-                results.append(row)
-
-        return results
-
 
     def to_dict(self):
         return {
@@ -366,24 +380,26 @@ class CallVolumeOverview(CallOverview):
             'count': self.count(),
             'volume_by_date': self.volume_by_date(),
             'volume_by_source': self.volume_by_source(),
-            'volume_by_nature': self.volume_by_field('nature'),
-            'volume_by_nature_group': self.volume_by_nature_group(),
-            'volume_by_beat': self.volume_by_field('beat'),
-            'volume_by_dow': self.volume_by_dow(),
-            'volume_by_shift': self.volume_by_shift(),
+            'volume_by_beat': self.by_field('beat'),
+            'volume_by_nature_group': self.by_nature_group(),
+            'volume_by_dow': self.by_dow(),
+            'volume_by_shift': self.by_shift(),
             'beat_ids': self.beat_ids(),
         }
 
 
 class CallResponseTimeOverview(CallOverview):
+    annotations = dict(mean=Avg(Secs("officer_response_time")))
+    default = dict(mean=0)
+
     def officer_response_time(self):
         results = self.qs.filter(
-            officer_response_time__gt=timedelta(0)).aggregate(
-            avg=Avg(Secs('officer_response_time')),
-            quartiles=Percentile(Secs('officer_response_time'),
-                                 [0.25, 0.5, 0.75],
-                                 output_field=ArrayField(DurationField)),
-            max=Max(Secs('officer_response_time')))
+                officer_response_time__gt=timedelta(0)).aggregate(
+                avg=Avg(Secs('officer_response_time')),
+                quartiles=Percentile(Secs('officer_response_time'),
+                                     [0.25, 0.5, 0.75],
+                                     output_field=ArrayField(DurationField)),
+                max=Max(Secs('officer_response_time')))
 
         quartiles = results['quartiles']
 
@@ -397,29 +413,9 @@ class CallResponseTimeOverview(CallOverview):
         else:
             return {}
 
-    def officer_response_time_by_field(self, field):
-        field_model = getattr(self.qs.model, field).field.related_model
-        all_in_field = field_model.objects.annotate(
-            name=F("descr"),
-            id=F(field + "_id")).values('name', 'id')
-
-        results = self.qs \
-            .annotate(id=F(field + "_id"),
-                      name=F(field + '__descr')) \
-            .values("id", "name") \
-            .exclude(id=None) \
-            .annotate(mean=Avg(Secs("officer_response_time"))) \
-            .order_by("-mean")
-
-        results = list(results)
-        present_ids = set(x['id'] for x in results)
-
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update({"mean": 0})
-                results.append(row)
-
-        return results
+    def by_field(self, field):
+        results = super().by_field(field)
+        return sorted(results, key=lambda x: -x['mean'])
 
     def to_dict(self):
         return {
@@ -427,12 +423,12 @@ class CallResponseTimeOverview(CallOverview):
             'bounds': self.bounds,
             'count': self.count(),
             'officer_response_time': self.officer_response_time(),
-            'officer_response_time_by_source': self.officer_response_time_by_field(
-                'call_source'),
-            'officer_response_time_by_beat': self.officer_response_time_by_field(
-                'beat'),
-            'officer_response_time_by_priority': self.officer_response_time_by_field(
-                'priority'),
+            'officer_response_time_by_source': self.by_field('call_source'),
+            'officer_response_time_by_beat': self.by_field('beat'),
+            'officer_response_time_by_priority': self.by_field('priority'),
+            'officer_response_time_by_nature_group': self.by_nature_group(),
+            'officer_response_time_by_dow': self.by_dow(),
+            'officer_response_time_by_shift': self.by_shift(),
             'beat_ids': self.beat_ids(),
         }
 
