@@ -2,13 +2,14 @@ from collections import Counter
 from datetime import timedelta
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection
-from django.db.models import Min, Max, Count, Case, When, IntegerField, F, Avg, \
-    DurationField, StdDev, Q
+from django.db.models import Min, Max, Count, Case, When, IntegerField, F, \
+    Avg, DurationField, Q
 from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
 from .models import OfficerActivity, OfficerActivityType, Call, Beat, \
     NatureGroup
 from .filters import CallFilterSet, OfficerActivityFilterSet
+
 
 def merge_dicts(*dict_args):
     '''
@@ -20,6 +21,7 @@ def merge_dicts(*dict_args):
         result.update(dictionary)
     return result
 
+
 class Secs(Extract):
     name = 'secs'
 
@@ -28,10 +30,12 @@ class Secs(Extract):
 
 
 class OfficerActivityOverview:
+
     def __init__(self, filters):
         self._filters = filters
-        self.filter = OfficerActivityFilterSet(data=filters,
-                                               queryset=OfficerActivity.objects.all())
+        self.filter = OfficerActivityFilterSet(
+            data=filters,
+            queryset=OfficerActivity.objects.all())
         self.bounds = self.qs.aggregate(min_time=Min('time'),
                                         max_time=Max('time'))
 
@@ -45,9 +49,11 @@ class OfficerActivityOverview:
 
     def round_datetime(self, d, decimals=-1):
         """
-        Round the given date time to the given decimal precision (defaults to 10 mins).
+        Round the given date time to the given decimal precision (defaults to
+        10 mins).
 
-        Note that default Python3 rounding exhibits "round-toward-even" behavior:
+        Note that default Python3 rounding exhibits "round-toward-even"
+        behavior:
         http://stackoverflow.com/questions/10825926/python-3-x-rounding-behavior
 
         This means that round(5, -1) = 0 and round(15, -1) = 20.
@@ -65,8 +71,8 @@ class OfficerActivityOverview:
                                 for r in OfficerActivityType.objects.all()
                                 }
 
-        # In order for this to show average allocation, we need to know the number
-        # of times each time sample occurs.
+        # In order for this to show average allocation, we need to know the
+        # number of times each time sample occurs.
         start = self.round_datetime(self.bounds['min_time'])
         end = self.round_datetime(self.bounds['max_time'])
         total_seconds = int((end - start).total_seconds())
@@ -134,13 +140,12 @@ class OfficerActivityOverview:
         for r in agg_result.values():
             r['PATROL'] = {
                 'freq': r['ON DUTY']['freq'],
-                'total': r['ON DUTY']['total'] \
-                         - sum(
-                        [v['total'] for k, v in r.items() if
-                         not k == 'ON DUTY']),
-                'avg_volume': r['ON DUTY']['avg_volume'] \
-                              - sum([v['avg_volume'] for k, v in r.items() if
-                                     not k == 'ON DUTY']),
+                'total': r['ON DUTY']['total'] - sum(
+                    [v['total'] for k, v in r.items() if
+                     not k == 'ON DUTY']),
+                'avg_volume': r['ON DUTY']['avg_volume'] - sum(
+                    [v['avg_volume'] for k, v in r.items() if
+                     not k == 'ON DUTY']),
             }
 
         # Keys have to be strings to transmit to the client
@@ -244,6 +249,7 @@ class OfficerActivityOverview:
 
 
 class CallOverview:
+
     def __init__(self, filters):
         self._filters = filters
         self.filter = CallFilterSet(data=filters, queryset=Call.objects.all(),
@@ -294,7 +300,8 @@ class CallOverview:
     def by_shift(self):
         results = self.qs \
             .annotate(id=Case(
-                When(Q(hour_received__gte=6) & Q(hour_received__lt=18), then=0),
+                When(Q(hour_received__gte=6) & Q(
+                    hour_received__lt=18), then=0),
                 default=1,
                 output_field=IntegerField())) \
             .values("id") \
@@ -304,8 +311,8 @@ class CallOverview:
 
     def by_nature_group(self):
         all_in_field = NatureGroup.objects.annotate(
-                name=F("descr"),
-                id=F("nature_group_id")).values('name', 'id')
+            name=F("descr"),
+            id=F("nature_group_id")).values('name', 'id')
 
         results = self.qs \
             .annotate(id=F("nature__nature_group_id"),
@@ -327,8 +334,8 @@ class CallOverview:
     def by_field(self, field):
         field_model = getattr(self.qs.model, field).field.related_model
         all_in_field = field_model.objects.annotate(
-                name=F("descr"),
-                id=F(field + "_id")).values('name', 'id')
+            name=F("descr"),
+            id=F(field + "_id")).values('name', 'id')
         results = self.qs \
             .annotate(id=F(field + "_id"),
                       name=F(field + '__descr')) \
@@ -394,12 +401,12 @@ class CallResponseTimeOverview(CallOverview):
 
     def officer_response_time(self):
         results = self.qs.filter(
-                officer_response_time__gt=timedelta(0)).aggregate(
-                avg=Avg(Secs('officer_response_time')),
-                quartiles=Percentile(Secs('officer_response_time'),
-                                     [0.25, 0.5, 0.75],
-                                     output_field=ArrayField(DurationField)),
-                max=Max(Secs('officer_response_time')))
+            officer_response_time__gt=timedelta(0)).aggregate(
+            avg=Avg(Secs('officer_response_time')),
+            quartiles=Percentile(Secs('officer_response_time'),
+                                 [0.25, 0.5, 0.75],
+                                 output_field=ArrayField(DurationField)),
+            max=Max(Secs('officer_response_time')))
 
         quartiles = results['quartiles']
 
@@ -423,7 +430,6 @@ class CallResponseTimeOverview(CallOverview):
             'bounds': self.bounds,
             'count': self.count(),
             'officer_response_time': self.officer_response_time(),
-            'officer_response_time_by_source': self.by_field('call_source'),
             'officer_response_time_by_beat': self.by_field('beat'),
             'officer_response_time_by_priority': self.by_field('priority'),
             'officer_response_time_by_nature_group': self.by_nature_group(),
@@ -434,6 +440,7 @@ class CallResponseTimeOverview(CallOverview):
 
 
 class MapOverview(CallOverview):
+
     def officer_response_time_by_beat(self):
         results = self.qs \
             .annotate(name=F("beat__descr")) \
@@ -466,4 +473,4 @@ def dictfetchall(cursor):
     return [
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
-        ]
+    ]

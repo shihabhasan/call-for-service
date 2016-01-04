@@ -59,7 +59,9 @@ class MapView(View):
         return render_to_response("map.html",
                                   dict(form=filter_json(CallFilterSet)))
 
+
 class OfficerAllocationDashboardView(View):
     def get(self, request, *args, **kwargs):
-        return render_to_response("officer_allocation.html",
-                                  dict(form=filter_json(OfficerActivityFilterSet)))
+        return render_to_response(
+            "officer_allocation.html",
+            dict(form=filter_json(OfficerActivityFilterSet)))
