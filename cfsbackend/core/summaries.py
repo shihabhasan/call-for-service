@@ -2,13 +2,14 @@ from collections import Counter
 from datetime import timedelta
 from django.contrib.postgres.fields import ArrayField
 from django.db import connection
-from django.db.models import Min, Max, Count, Case, When, IntegerField, F, Avg, \
-    DurationField, StdDev, Q
+from django.db.models import Min, Max, Count, Case, When, IntegerField, F, \
+    Avg, DurationField, Q
 from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
 from .models import OfficerActivity, OfficerActivityType, Call, Beat, \
     NatureGroup
 from .filters import CallFilterSet, OfficerActivityFilterSet
+
 
 def merge_dicts(*dict_args):
     '''
@@ -20,6 +21,7 @@ def merge_dicts(*dict_args):
         result.update(dictionary)
     return result
 
+
 class Secs(Extract):
     name = 'secs'
 
@@ -28,6 +30,7 @@ class Secs(Extract):
 
 
 class OfficerActivityOverview:
+
     def __init__(self, filters):
         self._filters = filters
         self.filter = OfficerActivityFilterSet(data=filters,
@@ -134,13 +137,12 @@ class OfficerActivityOverview:
         for r in agg_result.values():
             r['PATROL'] = {
                 'freq': r['ON DUTY']['freq'],
-                'total': r['ON DUTY']['total'] \
-                         - sum(
-                        [v['total'] for k, v in r.items() if
-                         not k == 'ON DUTY']),
-                'avg_volume': r['ON DUTY']['avg_volume'] \
-                              - sum([v['avg_volume'] for k, v in r.items() if
-                                     not k == 'ON DUTY']),
+                'total': r['ON DUTY']['total'] - sum(
+                    [v['total'] for k, v in r.items() if
+                     not k == 'ON DUTY']),
+                'avg_volume': r['ON DUTY']['avg_volume'] - sum(
+                    [v['avg_volume'] for k, v in r.items() if
+                     not k == 'ON DUTY']),
             }
 
         # Keys have to be strings to transmit to the client
@@ -244,6 +246,7 @@ class OfficerActivityOverview:
 
 
 class CallOverview:
+
     def __init__(self, filters):
         self._filters = filters
         self.filter = CallFilterSet(data=filters, queryset=Call.objects.all(),
@@ -294,7 +297,8 @@ class CallOverview:
     def by_shift(self):
         results = self.qs \
             .annotate(id=Case(
-                When(Q(hour_received__gte=6) & Q(hour_received__lt=18), then=0),
+                When(Q(hour_received__gte=6) & Q(
+                    hour_received__lt=18), then=0),
                 default=1,
                 output_field=IntegerField())) \
             .values("id") \
@@ -304,8 +308,8 @@ class CallOverview:
 
     def by_nature_group(self):
         all_in_field = NatureGroup.objects.annotate(
-                name=F("descr"),
-                id=F("nature_group_id")).values('name', 'id')
+            name=F("descr"),
+            id=F("nature_group_id")).values('name', 'id')
 
         results = self.qs \
             .annotate(id=F("nature__nature_group_id"),
@@ -327,8 +331,8 @@ class CallOverview:
     def by_field(self, field):
         field_model = getattr(self.qs.model, field).field.related_model
         all_in_field = field_model.objects.annotate(
-                name=F("descr"),
-                id=F(field + "_id")).values('name', 'id')
+            name=F("descr"),
+            id=F(field + "_id")).values('name', 'id')
         results = self.qs \
             .annotate(id=F(field + "_id"),
                       name=F(field + '__descr')) \
@@ -372,6 +376,28 @@ class CallVolumeOverview(CallOverview):
 
         return self.merge_data(results, [0, 1])
 
+    def day_hour_heatmap(self):
+        if self.span == timedelta(0, 0):
+            return []
+        # In order for this to show average volume, we need to know the number
+        # of times each day of the week occurs.
+        start = self.bounds['min_time'].date()
+        end = self.bounds['max_time'].date()
+        weekdays = Counter((start + timedelta(days=x)).weekday() for x in
+                           range(0, (end - start).days + 1))
+        results = self.qs \
+            .values('dow_received', 'hour_received') \
+            .annotate(volume=Count('dow_received')) \
+            .order_by('dow_received', 'hour_received')
+        for result in results:
+            result['freq'] = weekdays[result['dow_received']]
+            result['total'] = result['volume']
+            try:
+                result['volume'] /= result['freq']
+            except ZeroDivisionError:
+                result['volume'] = 0
+                return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
@@ -384,6 +410,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_nature_group': self.by_nature_group(),
             'volume_by_dow': self.by_dow(),
             'volume_by_shift': self.by_shift(),
+            'heatmap': self.day_hour_heatmap(),
             'beat_ids': self.beat_ids(),
         }
 
@@ -394,12 +421,12 @@ class CallResponseTimeOverview(CallOverview):
 
     def officer_response_time(self):
         results = self.qs.filter(
-                officer_response_time__gt=timedelta(0)).aggregate(
-                avg=Avg(Secs('officer_response_time')),
-                quartiles=Percentile(Secs('officer_response_time'),
-                                     [0.25, 0.5, 0.75],
-                                     output_field=ArrayField(DurationField)),
-                max=Max(Secs('officer_response_time')))
+            officer_response_time__gt=timedelta(0)).aggregate(
+            avg=Avg(Secs('officer_response_time')),
+            quartiles=Percentile(Secs('officer_response_time'),
+                                 [0.25, 0.5, 0.75],
+                                 output_field=ArrayField(DurationField)),
+            max=Max(Secs('officer_response_time')))
 
         quartiles = results['quartiles']
 
@@ -434,6 +461,7 @@ class CallResponseTimeOverview(CallOverview):
 
 
 class MapOverview(CallOverview):
+
     def officer_response_time_by_beat(self):
         results = self.qs \
             .annotate(name=F("beat__descr")) \
@@ -466,4 +494,4 @@ def dictfetchall(cursor):
     return [
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
-        ]
+    ]
