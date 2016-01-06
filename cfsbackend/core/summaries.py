@@ -278,8 +278,9 @@ class CallOverview:
         all_ids = set(all_ids)
         present_ids = set(x['id'] for x in src_data)
 
-        for id in all_ids.difference(present_ids):
-            src_data.append(merge_dicts({"id": id}, self.default))
+        if len(present_ids) > 0:
+            for id in all_ids.difference(present_ids):
+                src_data.append(merge_dicts({"id": id}, self.default))
 
         return src_data
 
@@ -321,10 +322,11 @@ class CallOverview:
 
         present_ids = set(x['id'] for x in results)
 
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update(**self.default)
-                results.append(row)
+        if len(present_ids) > 0:
+            for row in all_in_field:
+                if row['id'] not in present_ids:
+                    row.update(**self.default)
+                    results.append(row)
 
         return results
 
@@ -343,10 +345,11 @@ class CallOverview:
         results = list(results)
         present_ids = set(x['id'] for x in results)
 
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update(**self.default)
-                results.append(row)
+        if results:
+            for row in all_in_field:
+                if row['id'] not in present_ids:
+                    row.update(**self.default)
+                    results.append(row)
 
         return results
 
@@ -396,7 +399,7 @@ class CallVolumeOverview(CallOverview):
                 result['volume'] /= result['freq']
             except ZeroDivisionError:
                 result['volume'] = 0
-                return results
+        return results
 
     def to_dict(self):
         return {
@@ -442,7 +445,7 @@ class CallResponseTimeOverview(CallOverview):
 
     def by_field(self, field):
         results = super().by_field(field)
-        return sorted(results, key=lambda x: -x['mean'])
+        return sorted(results, key=lambda x: -x['mean'] if x['mean'] else 0)
 
     def to_dict(self):
         return {

@@ -1,5 +1,3 @@
-"use strict";
-
 var url = "/api/response_time/";
 
 var dashboard = new Page({
@@ -26,7 +24,7 @@ function cleanupData(data) {
     data.map_data = _.reduce(
         data.officer_response_time_by_beat, function (memo, d) {
             memo[d.name] = d.mean;
-            return memo
+            return memo;
         }, {});
 
     data.officer_response_time_by_priority =
@@ -56,7 +54,7 @@ function cleanupData(data) {
                         id: d.id,
                         mean: d.mean,
                         name: dow[d.id]
-                    }
+                    };
                 })
                 .sortBy(
                     function (d) {
@@ -76,7 +74,7 @@ function cleanupData(data) {
                         id: d.id,
                         mean: d.mean,
                         name: shifts[d.id]
-                    }
+                    };
                 })
                 .sortBy(
                     function (d) {
@@ -109,8 +107,8 @@ var ortByDOWChart = new HorizontalBarChart({
     ratio: 1.5,
     fmt: durationFormat,
     dashboard: dashboard,
-    x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) },
+    x: function (d) { return d.name; },
+    y: function (d) { return Math.round(d.mean); },
     colors: ["#f16913"]
 });
 
@@ -120,8 +118,8 @@ var ortBySourceChart = new DiscreteBarChart({
     filter: 'call_source',
     fmt: durationFormat,
     rotateLabels: true,
-    x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) },
+    x: function (d) { return d.name; },
+    y: function (d) { return Math.round(d.mean); },
     colors: ["#f16913"]
 });
 
@@ -130,8 +128,8 @@ var ortByPriorityChart = new DiscreteBarChart({
     el: '#ort-by-priority',
     filter: 'priority',
     fmt: durationFormat,
-    x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) },
+    x: function (d) { return d.name; },
+    y: function (d) { return Math.round(d.mean); },
     colors: ["#f16913"]
 });
 
@@ -141,8 +139,8 @@ var ortByShiftChart = new HorizontalBarChart({
     ratio: 2.5,
     dashboard: dashboard,
     fmt: durationFormat,
-    x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) },
+    x: function (d) { return d.name; },
+    y: function (d) { return Math.round(d.mean); },
     colors: ["#f16913"]
 });
 
@@ -153,8 +151,8 @@ var ortByNatureGroupChart = new DiscreteBarChart({
     ratio: 2,
     rotateLabels: true,
     fmt: durationFormat,
-    x: function (d) { return d.name },
-    y: function (d) { return Math.round(d.mean) },
+    x: function (d) { return d.name; },
+    y: function (d) { return Math.round(d.mean); },
     colors: ["#f16913"]
 });
 
@@ -182,18 +180,17 @@ function getORTChartBounds() {
 }
 
 function buildORTChart(data) {
-    var margin = {top: 0, left: 15, right: 15, bottom: 40}
-        , bounds = getORTChartBounds()
-        , width = bounds.width - margin.left - margin.right
-        , height = bounds.height - margin.top - margin.bottom
-        , boxtop = margin.top + 10
-        , boxbottom = height - 10
-        , tickHeight = (boxbottom - boxtop) * 0.7
-        , tickTop = height / 2 - tickHeight / 2
-        , center = boxtop + (boxbottom - boxtop) / 2
-        , tooltip = nv.models.tooltip()
-        , colors = ['#fd8d3c', '#f16913', '#d94801', '#8c2d04']
-        ;
+    var margin = {top: 0, left: 15, right: 15, bottom: 40},
+        bounds = getORTChartBounds(),
+        width = bounds.width - margin.left - margin.right,
+        height = bounds.height - margin.top - margin.bottom,
+        boxtop = margin.top + 10,
+        boxbottom = height - 10,
+        tickHeight = (boxbottom - boxtop) * 0.7,
+        tickTop = height / 2 - tickHeight / 2,
+        center = boxtop + (boxbottom - boxtop) / 2,
+        tooltip = nv.models.tooltip(),
+        colors = ['#fd8d3c', '#f16913', '#d94801', '#8c2d04'];
 
     var svg = d3.select("#ort").select("svg");
     var g;
@@ -226,7 +223,7 @@ function buildORTChart(data) {
             .attr('x', margin.left + width / 2)
             .attr('y', margin.top + height / 2)
             .text(function (d) {
-                return d
+                return d;
             });
 
         g
@@ -305,66 +302,66 @@ function buildORTChart(data) {
 
     boxplot.selectAll("line.whisker-left")
         .attr("x1", function (d) {
-            return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5))
+            return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5));
         })
         .attr("x2", function (d) {
-            return xScale(d.quartiles[0])
+            return xScale(d.quartiles[0]);
         })
         .style({"stroke": colors[0], "stroke-width": 3});
 
     boxplot.selectAll("line.tick-left")
         .attr("x1", function (d) {
-            return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5))
+            return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5));
         })
         .attr("x2", function (d) {
-            return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5))
+            return xScale(Math.max(0, d.quartiles[0] - d.iqr * 1.5));
         })
         .style({"stroke": colors[0], "stroke-width": 3});
 
     boxplot.selectAll("line.whisker-right")
         .attr("x1", function (d) {
-            return xScale(d.quartiles[2])
+            return xScale(d.quartiles[2]);
         })
         .attr("x2", function (d) {
-            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5))
+            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5));
         })
         .style({"stroke": colors[3], "stroke-width": 3});
 
     boxplot.selectAll("line.tick-right")
         .attr("x1", function (d) {
-            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5))
+            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5));
         })
         .attr("x2", function (d) {
-            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5))
+            return xScale(Math.min(domainMax, d.quartiles[2] + d.iqr * 1.5));
         })
         .style({"stroke": colors[3], "stroke-width": 3});
 
     boxplot.selectAll("rect.box-left")
         .attr("x", function (d) {
-            return xScale(d.quartiles[0])
+            return xScale(d.quartiles[0]);
         })
         .attr("width", function (d) {
-            return xScale(d.quartiles[1] - d.quartiles[0])
+            return xScale(d.quartiles[1] - d.quartiles[0]);
         })
         .style({"stroke": colors[1], "fill": colors[1]});
 
     boxplot.selectAll("rect.box-right")
         .attr("x", function (d) {
-            return xScale(d.quartiles[1])
+            return xScale(d.quartiles[1]);
         })
         .attr("width", function (d) {
-            return xScale(d.quartiles[2] - d.quartiles[1])
+            return xScale(d.quartiles[2] - d.quartiles[1]);
         })
         .style({"stroke": colors[2], "fill": colors[2]});
 
     boxplot.selectAll("line.nv-boxplot-median")
         .attr("x1", function (d) {
-            return xScale(d.quartiles[1])
+            return xScale(d.quartiles[1]);
         })
         .attr("x2", function (d) {
-            return xScale(d.quartiles[1])
+            return xScale(d.quartiles[1]);
         })
-        .style({"stroke-width": 3})
+        .style({"stroke-width": 3});
 
     var tooltipData = function (d, i) {
         return {
@@ -391,8 +388,8 @@ function buildORTChart(data) {
             data: d,
             index: i,
             e: d3.event
-        }
-    }
+        };
+    };
 
     g
         .on('mouseover', function (d, i) {
@@ -403,7 +400,7 @@ function buildORTChart(data) {
         })
         .on('mousemove', function () {
             tooltip();
-        })
+        });
 
     function resize() {
         var bounds = getORTChartBounds();
