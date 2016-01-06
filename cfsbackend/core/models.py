@@ -16,6 +16,17 @@ from pg.view import MaterializedView
 from django.contrib.postgres.fields import ArrayField
 
 
+class DateTimeNoTZField(models.DateTimeField):
+    """
+    Django automatically creates datetime fields as timestamp with
+    time zone; however, we've been creating them as no timezone.
+    We need this to be consistent so any time shifts are applied
+    uniformly across timestamp columns.
+    """
+
+    def db_type(self, connection):
+        return 'timestamp without time zone'
+
 def update_materialized_views():
     for view_cls in MaterializedView.__subclasses__():
         view_cls.update_view()
@@ -96,9 +107,9 @@ class Call(models.Model):
     objects = CallQuerySet.as_manager()
 
     call_id = models.BigIntegerField(primary_key=True)
-    time_received = models.DateTimeField(db_index=True)
-    time_routed = models.DateTimeField(blank=True, null=True)
-    time_finished = models.DateTimeField(blank=True, null=True)
+    time_received = DateTimeNoTZField(db_index=True)
+    time_routed = DateTimeNoTZField(blank=True, null=True)
+    time_finished = DateTimeNoTZField(blank=True, null=True)
     year_received = models.IntegerField(db_index=True)
     month_received = models.IntegerField(db_index=True)
     week_received = models.IntegerField(db_index=True)
@@ -129,12 +140,12 @@ class Call(models.Model):
     report_only = models.BooleanField()
     cancelled = models.BooleanField(db_index=True)
 
-    first_unit_dispatch = models.DateTimeField(blank=True, null=True)
-    first_unit_enroute = models.DateTimeField(blank=True, null=True)
-    first_unit_arrive = models.DateTimeField(blank=True, null=True)
-    first_unit_transport = models.DateTimeField(blank=True, null=True)
-    last_unit_clear = models.DateTimeField(blank=True, null=True)
-    time_closed = models.DateTimeField(blank=True, null=True)
+    first_unit_dispatch = DateTimeNoTZField(blank=True, null=True)
+    first_unit_enroute = DateTimeNoTZField(blank=True, null=True)
+    first_unit_arrive = DateTimeNoTZField(blank=True, null=True)
+    first_unit_transport = DateTimeNoTZField(blank=True, null=True)
+    last_unit_clear = DateTimeNoTZField(blank=True, null=True)
+    time_closed = DateTimeNoTZField(blank=True, null=True)
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
     close_comments = models.TextField(blank=True, null=True)
     officer_response_time = models.DurationField(blank=True, null=True,
@@ -182,7 +193,7 @@ class CallLog(models.Model):
     call = models.ForeignKey('Call', blank=True, null=True)
     transaction = models.ForeignKey('Transaction', blank=True, null=True)
     shift = models.ForeignKey('Shift', blank=True, null=True)
-    time_recorded = models.DateTimeField(blank=True, null=True)
+    time_recorded = DateTimeNoTZField(blank=True, null=True)
     call_unit = models.ForeignKey('CallUnit', blank=True, null=True)
     close_code = models.ForeignKey('CloseCode', blank=True, null=True)
 
@@ -250,8 +261,8 @@ class InCallPeriod(MaterializedView):
     call = models.ForeignKey('Call', db_column="call_id",
                              related_name="+",
                              on_delete=models.DO_NOTHING)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = DateTimeNoTZField()
+    end_time = DateTimeNoTZField()
 
     class Meta:
         db_table = 'in_call'
@@ -283,7 +294,7 @@ class NatureGroup(ModelWithDescr):
 class Note(models.Model):
     note_id = models.AutoField(primary_key=True)
     body = models.TextField(blank=True, null=True)
-    time_recorded = models.DateTimeField(blank=True, null=True)
+    time_recorded = DateTimeNoTZField(blank=True, null=True)
     note_author = models.ForeignKey('NoteAuthor', blank=True, null=True)
     call = models.ForeignKey('Call', blank=True, null=True)
 
@@ -314,7 +325,7 @@ class OfficerActivity(MaterializedView):
     call_unit = models.ForeignKey('CallUnit',
                                   db_column="call_unit_id",
                                   related_name="+")
-    time = models.DateTimeField(db_column="time_")
+    time = DateTimeNoTZField(db_column="time_")
     activity_type = models.ForeignKey('OfficerActivityType',
                                       db_column="officer_activity_type_id",
                                       related_name="+")
@@ -361,8 +372,8 @@ class OutOfServicePeriod(models.Model):
                                  related_name="+")
     location = models.TextField(blank=True, null=True)
     comments = models.TextField(blank=True, null=True)
-    start_time = models.DateTimeField(blank=True, null=True)
-    end_time = models.DateTimeField(blank=True, null=True)
+    start_time = DateTimeNoTZField(blank=True, null=True)
+    end_time = DateTimeNoTZField(blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
 
     def update_derived_fields(self):
@@ -395,8 +406,8 @@ class ShiftUnit(models.Model):
     officer = models.ForeignKey(Officer, blank=True, null=True,
                                 db_column="officer_id",
                                 related_name="+")
-    in_time = models.DateTimeField(blank=True, null=True)
-    out_time = models.DateTimeField(blank=True, null=True)
+    in_time = DateTimeNoTZField(blank=True, null=True)
+    out_time = DateTimeNoTZField(blank=True, null=True)
     bureau = models.ForeignKey(Bureau, blank=True, null=True,
                                db_column="bureau_id",
                                related_name="+")
