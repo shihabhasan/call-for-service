@@ -4,8 +4,7 @@ from django.views.generic import View, TemplateView
 from core import models
 from ..filters import CallFilterSet, OfficerActivityFilterSet
 
-
-def filter_json(filter_set):
+def build_filter(filter_set):
     fields = filter_set.definition
     out = {"fields": [f for f in fields if not f['name'] == 'call']}
     refs = {}
@@ -26,7 +25,11 @@ def filter_json(filter_set):
                                                                   "descr"))
 
     out["refs"] = refs
-    return json.dumps(out)
+    return out
+
+
+def filter_json(filter_set):
+    return json.dumps(build_filter(filter_set))
 
 
 class LandingPageView(TemplateView):
@@ -62,6 +65,14 @@ class MapView(View):
 
 class OfficerAllocationDashboardView(View):
     def get(self, request, *args, **kwargs):
-        return render_to_response(
-            "officer_allocation.html",
-            dict(form=filter_json(OfficerActivityFilterSet)))
+        filter_obj = build_filter(OfficerActivityFilterSet)
+
+        # We want only the values of CallUnit where squad isn't null.
+        # We don't want to show a bunch of bogus units for filtering.
+        filter_obj['refs']['CallUnit'] = list(
+                models.CallUnit.objects.filter(squad__isnull=False) \
+                        .order_by('descr') \
+                        .values_list('call_unit_id', 'descr'))
+
+        return render_to_response("officer_allocation.html",
+                                  dict(form=json.dumps(filter_obj)))
