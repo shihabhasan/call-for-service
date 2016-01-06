@@ -278,7 +278,7 @@ var volumeMap = new DurhamMap({
 var heatmap = new Heatmap({
   el: "#heatmap",
   dashboard: dashboard,
-  colors: colorbrewer.Blues[7],
+  colors: colorbrewer.Blues[5],
   fmt: d3.format(",.2f")
 });
 

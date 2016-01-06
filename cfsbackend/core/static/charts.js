@@ -119,6 +119,8 @@ var Heatmap = function(options) {
         height = bounds.height,
         gridSize = Math.floor(width / this.ratio / 10);
 
+    this.origGridSize = gridSize;
+
     var svg = container
       .append("svg")
       .attr("width", width)
@@ -147,8 +149,8 @@ var Heatmap = function(options) {
         bounds = self.getBounds(),
         width = bounds.width,
         height = bounds.height,
-        gridSize = Math.floor(width / 25),
-        legendElementWidth = gridSize,
+        gridSize = Math.floor(width / this.ratio / 10),
+        legendElementWidth = self.origGridSize * 2,
         svg = container.select("svg").select("g"),
         tooltip = nv.models.tooltip();
 
@@ -233,28 +235,36 @@ var Heatmap = function(options) {
         [0].concat(scale.quantiles()), function (d) {
             return d;
         }).enter().append("g").attr("class", "legend")
-        .attr("transform", "translate(" + gridSize + ", 0)");
+        .attr("transform", "translate(" + self.origGridSize + ", 0)");
 
     legend.append("rect")
         .attr(
             "x", function (d, i) {
-                return legendElementWidth * (i * 2);
+                return self.origGridSize * i * 3;
             })
         .attr("y", 0)
-        .attr("width", legendElementWidth)
-        .attr("height", gridSize / 2)
+        .attr("width", self.origGridSize)
+        .attr("height", self.origGridSize)
         .style(
             "fill", function (d, i) {
                 return colors[i];
             });
 
-    legend.append("text").attr("class", "axis").text(
+    var textX = function (d, i) { return self.origGridSize * (i * 3 + 1) + 8; };
+
+    var text = legend.append("text")
+      .attr("x", textX)
+      .attr("y", 0);
+
+    text.append("tspan").attr("class", "axis").text(
+        function (d, i) {
+          return Math.floor((i / buckets) * 100) + "%";            
+        }).attr("x", textX).attr("dy", self.origGridSize / 3);
+
+    text.append("tspan").attr("class", "axis").text(
         function (d) {
-            return "≥ " + Math.round(d);
-        }).attr(
-        "x", function (d, i) {
-            return legendElementWidth * (i * 2 + 1) + 8;
-        }).attr("y", gridSize / 3);
+            return "≥ " + fmt(d);
+        }).attr("x", textX).attr("dy", self.origGridSize / 3);
   };
 
   dashboard.on('complete', function() {
