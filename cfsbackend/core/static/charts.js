@@ -8,6 +8,7 @@ var DiscreteBarChart = function (options) {
     var width, height;
     var colors = options.colors || ["#2171b5"];
     var container = d3.select(options.el);
+    var margin = options.margin || {"bottom": 150, "right": 80};
 
     this.el = options.el;
     this.filter = options.filter;
@@ -34,7 +35,7 @@ var DiscreteBarChart = function (options) {
                 .y(getY)
                 .height(height)
                 .width(width)
-                .margin({"bottom": 150, "right": 80})
+                .margin(margin)
                 .color(colors);
 
             chart.yAxis.tickFormat(fmt);
@@ -356,7 +357,7 @@ var DurhamMap = function (options) {
 
         function updateLegend(legendData) {
             if (!legendData) { return; }
-            
+
             var legend = d3.select('#legend');
             legend.selectAll("ul").remove();
             var list = legend.append('ul').classed('list-inline', true);

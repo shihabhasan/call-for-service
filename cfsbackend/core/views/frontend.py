@@ -62,6 +62,7 @@ class MapView(View):
         return render_to_response("map.html",
                                   dict(form=filter_json(CallFilterSet)))
 
+
 class OfficerAllocationDashboardView(View):
     def get(self, request, *args, **kwargs):
         filter_obj = build_filter(OfficerActivityFilterSet)
