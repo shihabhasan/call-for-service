@@ -33,8 +33,9 @@ class OfficerActivityOverview:
 
     def __init__(self, filters):
         self._filters = filters
-        self.filter = OfficerActivityFilterSet(data=filters,
-                                               queryset=OfficerActivity.objects.all())
+        self.filter = OfficerActivityFilterSet(
+            data=filters,
+            queryset=OfficerActivity.objects.all())
         self.bounds = self.qs.aggregate(min_time=Min('time'),
                                         max_time=Max('time'))
 
@@ -48,9 +49,11 @@ class OfficerActivityOverview:
 
     def round_datetime(self, d, decimals=-1):
         """
-        Round the given date time to the given decimal precision (defaults to 10 mins).
+        Round the given date time to the given decimal precision (defaults to
+        10 mins).
 
-        Note that default Python3 rounding exhibits "round-toward-even" behavior:
+        Note that default Python3 rounding exhibits "round-toward-even"
+        behavior:
         http://stackoverflow.com/questions/10825926/python-3-x-rounding-behavior
 
         This means that round(5, -1) = 0 and round(15, -1) = 20.
@@ -68,8 +71,8 @@ class OfficerActivityOverview:
                                 for r in OfficerActivityType.objects.all()
                                 }
 
-        # In order for this to show average allocation, we need to know the number
-        # of times each time sample occurs.
+        # In order for this to show average allocation, we need to know the
+        # number of times each time sample occurs.
         start = self.round_datetime(self.bounds['min_time'])
         end = self.round_datetime(self.bounds['max_time'])
         total_seconds = int((end - start).total_seconds())
@@ -453,7 +456,6 @@ class CallResponseTimeOverview(CallOverview):
             'bounds': self.bounds,
             'count': self.count(),
             'officer_response_time': self.officer_response_time(),
-            'officer_response_time_by_source': self.by_field('call_source'),
             'officer_response_time_by_beat': self.by_field('beat'),
             'officer_response_time_by_priority': self.by_field('priority'),
             'officer_response_time_by_nature_group': self.by_nature_group(),

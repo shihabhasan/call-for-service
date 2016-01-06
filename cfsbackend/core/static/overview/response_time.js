@@ -38,11 +38,6 @@ function cleanupData(data) {
             .value();
     data.officer_response_time_by_priority =
         [{key: "Officer Response Time", values: data.officer_response_time_by_priority}];
-    data.officer_response_time_by_source =
-        [{
-            key: "Officer Response Time",
-            values: _.sortBy(data.officer_response_time_by_source, function (d) { return d.name; })
-        }];
 
     var dow = ['Mon', 'Tue', "Wed", 'Thu', "Fri", 'Sat', 'Sun'];
     data.officer_response_time_by_dow = [
@@ -104,20 +99,9 @@ var responseTimeMap = new DurhamMap({
 var ortByDOWChart = new HorizontalBarChart({
     el: "#ort-by-dow",
     filter: "dow_received",
-    ratio: 1.5,
+    ratio: 1,
     fmt: durationFormat,
     dashboard: dashboard,
-    x: function (d) { return d.name; },
-    y: function (d) { return Math.round(d.mean); },
-    colors: ["#f16913"]
-});
-
-var ortBySourceChart = new DiscreteBarChart({
-    dashboard: dashboard,
-    el: '#ort-by-source',
-    filter: 'call_source',
-    fmt: durationFormat,
-    rotateLabels: true,
     x: function (d) { return d.name; },
     y: function (d) { return Math.round(d.mean); },
     colors: ["#f16913"]
@@ -128,8 +112,9 @@ var ortByPriorityChart = new DiscreteBarChart({
     el: '#ort-by-priority',
     filter: 'priority',
     fmt: durationFormat,
-    x: function (d) { return d.name; },
-    y: function (d) { return Math.round(d.mean); },
+    x: function (d) { return d.name },
+    y: function (d) { return Math.round(d.mean) },
+    margin: {"bottom": 20, "right": 80},
     colors: ["#f16913"]
 });
 
@@ -157,7 +142,6 @@ var ortByNatureGroupChart = new DiscreteBarChart({
 });
 
 monitorChart(dashboard, 'data.officer_response_time', buildORTChart);
-monitorChart(dashboard, 'data.officer_response_time_by_source', ortBySourceChart.update);
 monitorChart(dashboard, 'data.officer_response_time_by_priority', ortByPriorityChart.update);
 monitorChart(dashboard, 'data.officer_response_time_by_dow', ortByDOWChart.update);
 monitorChart(dashboard, 'data.officer_response_time_by_shift', ortByShiftChart.update);
