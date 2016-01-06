@@ -112,6 +112,7 @@ var ortByPriorityChart = new DiscreteBarChart({
     el: '#ort-by-priority',
     filter: 'priority',
     fmt: durationFormat,
+    ratio: 0.8,
     x: function (d) { return d.name },
     y: function (d) { return Math.round(d.mean) },
     margin: {"bottom": 20, "right": 80},
