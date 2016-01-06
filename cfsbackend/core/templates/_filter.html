@@ -24,6 +24,16 @@
                     <li><a on-click="addfilter:[[field]],[[ 0 ]]">[[ 1 ]]</li>
                 [[ /each ]]
             </ul>
+        [[ elseif type == 'select-long' ]]
+            <ul class="dropdown-menu dropdown-menu-long">
+                [[ #if filterValue(field, filter) ]]
+                    <li><a on-click="removefilter:[[ field ]]">Clear</a></li>
+                    <li role="separator" class="divider"></li>
+                [[ /if ]]
+                [[ #each options ]]
+                    <li><a on-click="addfilter:[[field]],[[ 0 ]]">[[ 1 ]]</li>
+                [[ /each ]]
+            </ul>
         [[ elseif type == 'boolean' ]]
             <ul class="dropdown-menu">
                 [[ #if filterValue(field, filter) ]]

@@ -94,16 +94,13 @@ $black: #000000;
   }
 }
 
-.clickable {
-  cursor: pointer;
+.filters .dropdown-menu-long {
+    max-height: 500px;
+    overflow: auto;
 }
 
-.filter-form {
-  background-color: $ghost;
-  color: $jet;
-  margin-top: 10px;
-  padding: 10px 5px;
-  border: 5px solid $ghost;
+.clickable {
+  cursor: pointer;
 }
 
 .loading {
