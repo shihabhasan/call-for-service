@@ -1,3 +1,16 @@
+
+function ordinalize (n) {
+  var s = ["th", "st", "nd", "rd"],
+      v = n % 100;
+
+  if (v >= 11 && v <= 20) {
+    return v + s[0];
+  } else {
+    return v + (s[v % 10] || s[0]);
+  }
+}
+
+
 var Heatmap = function(options) {
   // Expected data:
   // [{day: 0, hour: 0, value: x1}, {day: 0, hour: 1, value: x2}...
@@ -11,6 +24,7 @@ var Heatmap = function(options) {
   var fmt = options.fmt || function (x) {
     return x;
   };
+  var measureName = options.measureName || "";
 
   var days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
       times = ["12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a",
@@ -240,30 +254,36 @@ var Heatmap = function(options) {
     legend.append("rect")
         .attr(
             "x", function (d, i) {
-                return self.origGridSize * i * 3;
+                return self.origGridSize * i * 4;
             })
         .attr("y", 0)
         .attr("width", self.origGridSize)
-        .attr("height", self.origGridSize)
+        .attr("height", self.origGridSize / 2)
         .style(
             "fill", function (d, i) {
                 return colors[i];
             });
 
-    var textX = function (d, i) { return self.origGridSize * (i * 3 + 1) + 8; };
+    var textX = function (d, i) { return self.origGridSize * (i * 4 + 1) + 8; };
 
     var text = legend.append("text")
       .attr("x", textX)
       .attr("y", 0);
 
-    text.append("tspan").attr("class", "axis").text(
-        function (d, i) {
-          return Math.floor((i / buckets) * 100) + "%";            
-        }).attr("x", textX).attr("dy", self.origGridSize / 3);
+    // text.append("tspan").attr("class", "axis").text(
+    //     function (d, i) {
+    //       return ordinalize(Math.floor((i / buckets) * 100)) + " percentile";
+    //     }).attr("x", textX).attr("dy", self.origGridSize / 3);
 
     text.append("tspan").attr("class", "axis").text(
-        function (d) {
-            return "≥ " + fmt(d);
+        function (d, i) {
+            var q = scale.quantiles();
+            if (q[i]) {
+              return [fmt(d), "-", fmt(q[i]), measureName].join(" ");
+            } else {
+              return fmt(d) + "+ " + measureName;
+            }
+            // return "≥ " + fmt(d);
         }).attr("x", textX).attr("dy", self.origGridSize / 3);
   };
 

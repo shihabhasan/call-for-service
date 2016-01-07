@@ -279,7 +279,10 @@ var heatmap = new Heatmap({
   el: "#heatmap",
   dashboard: dashboard,
   colors: colorbrewer.Blues[5],
-  fmt: d3.format(",.2f")
+  fmt: function (val) {
+    return d3.format(",.2f")(val).replace(/\.0+$/, "");
+  },
+  measureName: "calls"
 });
 
 function buildVolumeByDateChart(data) {
