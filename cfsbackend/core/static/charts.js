@@ -20,7 +20,7 @@ var Heatmap = function(options) {
   var colors = options.colors || colorbrewer.OrRd[7];
   var buckets = colors.length;
   var getValue = options.value || function (d) { return d.value; };
-  var margin = {top: 0, right: 20, bottom: 0, left: 0};
+  var margin = {top: 0, right: 30, bottom: 0, left: 0};
   var fmt = options.fmt || function (x) {
     return x;
   };
@@ -101,7 +101,7 @@ var Heatmap = function(options) {
       .attr("x", gridSize)
       .attr(
           "y", function (d, i) {
-              return (i + 1.5) * gridSize;
+              return (i + 1) * gridSize;
           })
       .style("text-anchor", "end")
       .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
@@ -120,7 +120,7 @@ var Heatmap = function(options) {
           "x", function (d, i) {
               return (i + 1) * gridSize;
           })
-      .attr("y", gridSize * 1.5)
+      .attr("y", gridSize * 1)
       .style("text-anchor", "middle")
       .attr("transform", "translate(0,-8)")
       .attr("class", "timeLabel axis");
@@ -199,7 +199,7 @@ var Heatmap = function(options) {
             })
         .attr(
             "y", function (d) {
-                return margin.top + (d.day + 1.5) * gridSize;
+                return margin.top + (d.day + 1) * gridSize;
             })
         .attr("rx", 4)
         .attr("ry", 4)
