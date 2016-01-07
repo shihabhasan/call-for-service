@@ -122,7 +122,7 @@ var Heatmap = function(options) {
           })
       .attr("y", gridSize * 1)
       .style("text-anchor", "middle")
-      .attr("transform", "translate(0,-8)")
+      .attr("transform", "translate(-4,-8)")
       .attr("class", "timeLabel axis");
   };
 
