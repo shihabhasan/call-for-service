@@ -10,6 +10,4 @@ config.plugins.push(
   })
 );
 
-config.watch = false;
-
 module.exports = config;

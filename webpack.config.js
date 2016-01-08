@@ -4,7 +4,6 @@ var BundleTracker = require("webpack-bundle-tracker");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
-  watch: true,
   context: path.join(__dirname, "assets"),
   entry: {
     call_volume: "./js/call_volume",
