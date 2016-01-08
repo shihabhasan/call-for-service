@@ -15,7 +15,7 @@ project:
   virtualenv_python: /usr/bin/python3.4
 
 repo:
-  branch: webpack
+  branch: master
   url: "git@bitbucket.org:rtidatascience/cfs_analytics_backend.git"
 
 database:
