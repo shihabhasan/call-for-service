@@ -117,21 +117,15 @@ $black: #000000;
 // Heat map styles
 
 rect.bordered {
-  stroke: #E6E6E6;
+  fill: $vapor;
+  stroke: $gainsboro;
   stroke-width: 2px;
+  border-radius: 2px;
 }
 
-text.mono {
-  font-size: 9pt;
-  fill: #aaa;
-}
-
-text.axis-workweek {
-  fill: #000;
-}
-
-text.axis-worktime {
-  fill: #000;
+text.axis {
+  font-size: 10pt;
+  fill: $jet;
 }
 
 #volume-by-beat .nv-x .tick line, #volume-by-nature .nv-x .tick line {

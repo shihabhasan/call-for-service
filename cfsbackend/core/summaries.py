@@ -281,8 +281,9 @@ class CallOverview:
         all_ids = set(all_ids)
         present_ids = set(x['id'] for x in src_data)
 
-        for id in all_ids.difference(present_ids):
-            src_data.append(merge_dicts({"id": id}, self.default))
+        if len(present_ids) > 0:
+            for id in all_ids.difference(present_ids):
+                src_data.append(merge_dicts({"id": id}, self.default))
 
         return src_data
 
@@ -324,10 +325,11 @@ class CallOverview:
 
         present_ids = set(x['id'] for x in results)
 
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update(**self.default)
-                results.append(row)
+        if len(present_ids) > 0:
+            for row in all_in_field:
+                if row['id'] not in present_ids:
+                    row.update(**self.default)
+                    results.append(row)
 
         return results
 
@@ -346,10 +348,11 @@ class CallOverview:
         results = list(results)
         present_ids = set(x['id'] for x in results)
 
-        for row in all_in_field:
-            if row['id'] not in present_ids:
-                row.update(**self.default)
-                results.append(row)
+        if results:
+            for row in all_in_field:
+                if row['id'] not in present_ids:
+                    row.update(**self.default)
+                    results.append(row)
 
         return results
 
@@ -379,6 +382,28 @@ class CallVolumeOverview(CallOverview):
 
         return self.merge_data(results, [0, 1])
 
+    def day_hour_heatmap(self):
+        if self.span == timedelta(0, 0):
+            return []
+        # In order for this to show average volume, we need to know the number
+        # of times each day of the week occurs.
+        start = self.bounds['min_time'].date()
+        end = self.bounds['max_time'].date()
+        weekdays = Counter((start + timedelta(days=x)).weekday() for x in
+                           range(0, (end - start).days + 1))
+        results = self.qs \
+            .values('dow_received', 'hour_received') \
+            .annotate(volume=Count('dow_received')) \
+            .order_by('dow_received', 'hour_received')
+        for result in results:
+            result['freq'] = weekdays[result['dow_received']]
+            result['total'] = result['volume']
+            try:
+                result['volume'] /= result['freq']
+            except ZeroDivisionError:
+                result['volume'] = 0
+        return results
+
     def to_dict(self):
         return {
             'filter': self.filter.data,
@@ -391,6 +416,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_nature_group': self.by_nature_group(),
             'volume_by_dow': self.by_dow(),
             'volume_by_shift': self.by_shift(),
+            'heatmap': self.day_hour_heatmap(),
             'beat_ids': self.beat_ids(),
         }
 
@@ -422,7 +448,7 @@ class CallResponseTimeOverview(CallOverview):
 
     def by_field(self, field):
         results = super().by_field(field)
-        return sorted(results, key=lambda x: -x['mean'])
+        return sorted(results, key=lambda x: -x['mean'] if x['mean'] else 0)
 
     def to_dict(self):
         return {
