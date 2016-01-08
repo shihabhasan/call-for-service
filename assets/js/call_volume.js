@@ -1,3 +1,25 @@
+import "nvd3/build/nv.d3.css";
+import "leaflet/dist/leaflet.css";
+
+import {
+  Page,
+  buildURL,
+  cloneFilter,
+  updateHash,
+  buildQueryParams,
+  monitorChart } from "./core";
+import {
+  HorizontalBarChart,
+  DiscreteBarChart,
+  Heatmap,
+  DurhamMap } from "./charts";
+import $ from "jquery";
+import _ from "underscore-contrib";
+import d3 from "d3";
+import moment from "moment";
+import colorbrewer from "colorbrewer";
+import nv from "nvd3";
+
 var callVolumeURL = "/api/call_volume/";
 
 var outFormats = {
@@ -8,20 +30,20 @@ var outFormats = {
 };
 
 var dashboard = new Page({
-  el: $('#dashboard').get(),
+  el: $("#dashboard").get(),
   template: "#dashboard-template",
   data: {
     mapDrawn: false,
-    'capitalize': function(string) {
+    "capitalize": function(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
     },
     data: {
-      'volume_over_time': {
-        'period_size': 'day',
-        'results': []
+      "volume_over_time": {
+        "period_size": "day",
+        "results": []
       },
-      'day_hour_heatmap': [],
-      'volume_by_source': {}
+      "day_hour_heatmap": [],
+      "volume_by_source": {}
     }
   },
   filterUpdated: function(filter) {
@@ -29,29 +51,29 @@ var dashboard = new Page({
       buildURL(callVolumeURL, filter), _.bind(
         function(error, newData) {
           if (error) throw error;
-          this.set('loading', false);
-          this.set('initialload', false);
+          this.set("loading", false);
+          this.set("initialload", false);
           newData = cleanupData(newData);
-          this.set('data', newData);
+          this.set("data", newData);
         }, this));
   }
 });
 
 dashboard.on(
-  'filterByDate',
+  "filterByDate",
   function(event, span) {
     var pastSunday = moment().day("Sunday").startOf("day");
 
     var f = cloneFilter(dashboard);
     if (span === "7days") {
-      f['time_received__gte'] = pastSunday.clone().subtract(7, 'days').format("YYYY-MM-DD");
-      f['time_received__lte'] = pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD");
+      f["time_received__gte"] = pastSunday.clone().subtract(7, "days").format("YYYY-MM-DD");
+      f["time_received__lte"] = pastSunday.clone().subtract(1, "days").format("YYYY-MM-DD");
     } else if (span === "28days") {
-      f['time_received__gte'] = pastSunday.clone().subtract(28, 'days').format("YYYY-MM-DD");
-      f['time_received__lte'] = pastSunday.clone().subtract(1, 'days').format("YYYY-MM-DD");
+      f["time_received__gte"] = pastSunday.clone().subtract(28, "days").format("YYYY-MM-DD");
+      f["time_received__lte"] = pastSunday.clone().subtract(1, "days").format("YYYY-MM-DD");
     } else if (span == "ytd") {
-      f['time_received__gte'] = moment().clone().startOf("year").format("YYYY-MM-DD");
-      delete f['time_received__lte'];
+      f["time_received__gte"] = moment().clone().startOf("year").format("YYYY-MM-DD");
+      delete f["time_received__lte"];
     }
 
     updateHash(buildQueryParams(f));
@@ -99,7 +121,7 @@ function cleanupData(data) {
       id: d.id,
       volume: d.volume,
       name: sources[d.id]
-    }
+    };
   }).sortBy(function(d) {
     return d.id;
   }).value();
@@ -113,7 +135,7 @@ function cleanupData(data) {
     data.volume_by_beat,
     function(memo, d) {
       memo[d.name] = d.volume;
-      return memo
+      return memo;
     }, {});
 
   data.volume_by_beat = [{
@@ -130,7 +152,7 @@ function cleanupData(data) {
       .value()
   }];
 
-  var dow = ['Mon', 'Tue', "Wed", 'Thu', "Fri", 'Sat', 'Sun'];
+  var dow = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   data.volume_by_dow = [{
     key: "Volume By Day of Week",
     values: _.chain(data.volume_by_dow)
@@ -139,7 +161,7 @@ function cleanupData(data) {
           id: d.id,
           volume: d.volume,
           name: dow[d.id]
-        }
+        };
       })
       .sortBy(
         function(d) {
@@ -148,7 +170,7 @@ function cleanupData(data) {
       .value()
   }];
 
-  var shifts = ['Shift 1', 'Shift 2'];
+  var shifts = ["Shift 1", "Shift 2"];
   data.volume_by_shift = [{
     key: "Volume By Shift",
     values: _.chain(data.volume_by_shift)
@@ -229,25 +251,25 @@ var volumeByShiftChart = new HorizontalBarChart({
   dashboard: dashboard,
   fmt: d3.format(",d"),
   x: function(d) {
-    return d.name
+    return d.name;
   },
   y: function(d) {
-    return d.volume
+    return d.volume;
   }
 });
 
 var volumeByNatureGroupChart = new DiscreteBarChart({
-  el: '#volume-by-nature',
+  el: "#volume-by-nature",
   dashboard: dashboard,
-  filter: 'nature__nature_group',
+  filter: "nature__nature_group",
   ratio: 2,
   rotateLabels: true,
   fmt: d3.format(",d"),
   x: function(d) {
-    return d.name
+    return d.name;
   },
   y: function(d) {
-    return d.volume
+    return d.volume;
   }
 });
 
@@ -258,10 +280,10 @@ var volumeBySourceChart = new HorizontalBarChart({
   dashboard: dashboard,
   fmt: d3.format(",d"),
   x: function(d) {
-    return d.name
+    return d.name;
   },
   y: function(d) {
-    return d.volume
+    return d.volume;
   }
 });
 
@@ -269,7 +291,7 @@ var volumeMap = new DurhamMap({
   el: "#map",
   dashboard: dashboard,
   colorScheme: colorbrewer.Blues,
-  format: function(val, style) {
+  format: function(val) {
     return d3.format(",.2f")(val).replace(/\.0+$/, "");
   },
   dataDescr: "Call Volume"
@@ -305,7 +327,7 @@ function buildVolumeByDateChart(data) {
       .attr("width", width)
       .attr("height", height)
       .style("height", height + "px")
-      .style("width", width + 'px');
+      .style("width", width + "px");
 
     chart.height(height).width(width);
 
@@ -330,7 +352,7 @@ function buildVolumeByDateChart(data) {
       chart.xAxis
         .tickFormat(
           function(d) {
-            return d3.time.format(outFormats[dashboard.get('data.precision')])(
+            return d3.time.format(outFormats[dashboard.get("data.precision")])(
               new Date(d));
             //return d3.time.format('%x')(new Date(d));
           });
@@ -348,10 +370,10 @@ function buildVolumeByDateChart(data) {
 }
 
 
-monitorChart(dashboard, 'data.volume_by_nature_group', volumeByNatureGroupChart.update);
-monitorChart(dashboard, 'data.volume_by_date', buildVolumeByDateChart);
-monitorChart(dashboard, 'data.volume_by_source', volumeBySourceChart.update);
-monitorChart(dashboard, 'data.volume_by_dow', volumeByDOWChart.update);
-monitorChart(dashboard, 'data.volume_by_shift', volumeByShiftChart.update);
-monitorChart(dashboard, 'data.map_data', volumeMap.update);
-monitorChart(dashboard, 'data.heatmap', heatmap.update);
+monitorChart(dashboard, "data.volume_by_nature_group", volumeByNatureGroupChart.update);
+monitorChart(dashboard, "data.volume_by_date", buildVolumeByDateChart);
+monitorChart(dashboard, "data.volume_by_source", volumeBySourceChart.update);
+monitorChart(dashboard, "data.volume_by_dow", volumeByDOWChart.update);
+monitorChart(dashboard, "data.volume_by_shift", volumeByShiftChart.update);
+monitorChart(dashboard, "data.map_data", volumeMap.update);
+monitorChart(dashboard, "data.heatmap", heatmap.update);

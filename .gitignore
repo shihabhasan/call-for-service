@@ -148,3 +148,6 @@ cfsbackend/cfsbackend/staticfiles/
 # Temporary data
 .ipynb_checkpoints/
 
+.eslintrc.json
+assets/bundles/
+webpack-stats.json

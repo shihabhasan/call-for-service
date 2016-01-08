@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
-    <link rel="stylesheet" href="{% static 'leaflet/dist/leaflet.css' %}">
+  {% render_bundle 'response_time' 'css' %}
 {% endblock %}
 
 {% block templates %}
@@ -133,14 +133,6 @@
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
-    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
-    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
-    <script src="{% static 'd3/d3.js' %}"></script>
-    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
-    <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
-    <script src="{% static 'q/q.js' %}"></script>
-    <script src="{% static 'leaflet/dist/leaflet.js' %}"></script>
-    <script src="{% static 'charts.js' %}"></script>
-    <script src="{% static 'overview/response_time.js' %}"></script>
+  {% render_bundle 'response_time' 'js' %}
 {% endblock %}
 </body></html>

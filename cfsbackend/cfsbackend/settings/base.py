@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     "compressor",
     'django_extensions',
     'postgres_stats',
+    'webpack_loader',
 
     'core',
 )
@@ -125,13 +126,24 @@ CACHES = {
     }
 }
 
-## Testing
+# Testing
 
 TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, '..', 'assets'),
+)
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(BASE_DIR, '..', 'webpack-stats.json'),
+    },
+}
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")

@@ -12,6 +12,7 @@ django-nose==1.4.1
 django-postgres-stats==0.1.1
 django-rest-swagger==0.3.3
 django-url-filter==0.2.0
+django-webpack-loader==0.2.4
 djangorestframework==3.2.0
 gunicorn==19.2.1
 Jinja2==2.8

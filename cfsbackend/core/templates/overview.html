@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
-    <link rel="stylesheet" href="{% static 'leaflet/dist/leaflet.css' %}">
+    {% render_bundle 'call_volume' 'css' %}
 {% endblock %}
 
 {% block templates %}
@@ -119,7 +119,7 @@
                                 separated into 5 equal buckets, so the
                                 lightest color represents the 1/5th of times that
                                 have the least call volume, the next color shows
-                                the next 1/5th of hours and so on.                            
+                                the next 1/5th of hours and so on.
                             </p>
                         </chart-header>
                     </div>
@@ -131,15 +131,5 @@
 
 <!-- Latest compiled and minified JavaScript -->
 {% block javascript %}
-    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
-    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
-    <script src="{% static 'd3/d3.js' %}"></script>
-    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
-    <script src="{% static 'colorbrewer/colorbrewer.js' %}"></script>
-    <script src="{% static 'q/q.js' %}"></script>
-    <script src="{% static 'leaflet/dist/leaflet.js' %}"></script>
-    <script src="{% static 'charts.js' %}"></script>
-    <script src="{% static 'overview/overview.js' %}"></script>
+  {% render_bundle 'call_volume' 'js' %}
 {% endblock %}
-</body>
-</html>
