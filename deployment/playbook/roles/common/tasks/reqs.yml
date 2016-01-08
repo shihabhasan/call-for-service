@@ -37,5 +37,5 @@
     - python3-numpy
 - name: Install Node
   apt: name=nodejs state=present
-- name: Install bower
-  npm: name=bower global=yes
+- name: Install webpack
+  npm: name=webpack global=yes
