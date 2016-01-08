@@ -35,4 +35,20 @@ class Command(BaseCommand):
                     dow_received = EXTRACT(ISODOW FROM time_received) - 1,
                     week_received = EXTRACT(WEEK FROM time_received);
                 """)
+                
+                print("Shifting call notes...")
+                cursor.execute("""
+    UPDATE note SET time_recorded = time_recorded + INTERVAL %s;
+                """, ("{} days".format(weeks*7)))
 
+                print("Shifting officer allocation data...")
+                cursor.execute("""
+    UPDATE shift_unit SET in_time = in_time + INTERVAL %s,
+                          out_time = out_time + INTERVAL %s;
+                """, ("{} days".format(weeks*7),) * 2)
+
+                cursor.execute("""
+    UPDATE out_of_service SET start_time = start_time + INTERVAL %s,
+                          end_time = end_time + INTERVAL %s;
+                """, ("{} days".format(weeks*7),) * 2)
+    
