@@ -4,10 +4,13 @@ var BundleTracker = require("webpack-bundle-tracker");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
+  watch: true,
   context: path.join(__dirname, "assets"),
   entry: {
     call_volume: "./js/call_volume",
-    response_time: "./js/response_time"
+    response_time: "./js/response_time",
+    officer_allocation: "./js/officer_allocation",
+    landing_page: "./js/landing_page"
   },
   output: {
     path: path.join(__dirname, "assets", "bundles"),
@@ -25,9 +28,16 @@ module.exports = {
       "window.jQuery": "jquery",
       "jQuery": "jquery"
     }),
-    new ExtractTextPlugin("[name]-[hash].css")
+    new ExtractTextPlugin("[name]-[hash].css"),
+    new webpack.optimize.CommonsChunkPlugin({
+      // (the commons chunk name)
+      name: "commons",
+      filename: "commons-[hash].js"
+
+      // (Modules must be shared between 3 entries)
+      // minChunks: 3
+    })
   ],
-  // devtool: "eval-source-map",
   module: {
     loaders: [{
       test: /.js$/,

@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% load staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{% static 'nvd3/build/nv.d3.css' %}">
+    {% render_bundle 'officer_allocation' 'css' %}
 {% endblock %}
 
 {% block content %}
@@ -59,11 +60,7 @@
 {% endblock %}
 
 {% block javascript %}
-    <script src="{% static 'underscore-contrib/underscore.object.builders.js' %}"></script>
-    <script src="{% static 'underscore-contrib/underscore.object.selectors.js' %}"></script>
-    <script src="{% static 'd3/d3.js' %}"></script>
-    <script src="{% static 'nvd3/build/nv.d3.js' %}"></script>
-    <script src="{% static 'officer_allocation/officer_allocation.js' %}"></script>
+  {% render_bundle 'officer_allocation' 'js' %}
 {% endblock %}
 </body>
 </html>

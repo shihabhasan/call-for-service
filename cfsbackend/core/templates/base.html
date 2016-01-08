@@ -1,5 +1,5 @@
 {% load staticfiles %}
-{% load compress %}
+{% load render_bundle from webpack_loader %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +10,7 @@
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
     <link href='https://fonts.googleapis.com/css?family=Audiowide'
           rel='stylesheet' type='text/css'>
+    {% render_bundle 'commons' 'css' %}
     {% block stylesheets %}{% endblock %}
     {% block head %}{% endblock %}
 </head>
@@ -59,6 +60,7 @@
 <script>
     var filterForm = {{ form|safe }};
 </script>
+{% render_bundle 'commons' 'js' %}
 {% block javascript %}{% endblock %}
 </body>
 </html>

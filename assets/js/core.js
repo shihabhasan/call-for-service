@@ -136,7 +136,7 @@ var FilterButton = Ractive.extend({
   }
 });
 
-var Filter = Ractive.extend({
+export var Filter = Ractive.extend({
   components: {
     "filter-button": FilterButton
   },
