@@ -124,14 +124,18 @@ var Filter = Ractive.extend({
             filter: {},
             displayName: displayName,
             getFieldType: function (fieldName) {
+                var selectType = function (options) {
+                    if (options.length > 25) {
+                        return {type: "select-long", options: options}
+                    } else {
+                        return {type: "select", options: options}
+                    }
+                }
                 var field = findField(fieldName);
                 if (field.rel !== undefined) {
-                    return {
-                        type: "select",
-                        options: filterForm.refs[field.rel]
-                    };
+                    return selectType(filterForm.refs[field.rel]);
                 } else if (field.type === "select") {
-                    return {type: field.type, options: field.options}
+                    return selectType(field.options);
                 } else {
                     return {type: field.type};
                 }

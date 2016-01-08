@@ -158,9 +158,9 @@ CallFilterSet = create_filterset(
              [0, "Monday"], [1, "Tuesday"], [2, "Wednesday"], [3, "Thursday"],
              [4, "Friday"], [5, "Saturday"], [6, "Sunday"]
          ]},
-        {"name": "squad", "rel": "Squad", "method": True, "type": "choice",
+        {"name": "squad", "rel": "Squad", "method": True, "type": "select",
          "lookups": ["exact"]},
-        {"name": "unit", "rel": "CallUnit", "method": True, "type": "choice",
+        {"name": "unit", "rel": "CallUnit", "method": True, "type": "select",
          "lookups": ["exact"]},
         {"name": "initiated_by", "type": "select", "method": True,
          "lookups": ["exact"],
