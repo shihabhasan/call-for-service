@@ -16,7 +16,11 @@ module.exports = {
     filename: "[name]-[hash].js"
   },
   resolve: {
-    extensions: ["", ".js"]
+    extensions: ["", ".js"],
+    alias: {
+      // This prevents bootstrap-daterangepicker from using its own jQuery.
+      "jquery": path.join(__dirname, "node_modules/jquery/dist/jquery")
+    }
   },
   plugins: [
     new BundleTracker({
@@ -41,25 +45,25 @@ module.exports = {
     loaders: [{
       test: /.js$/,
       exclude: /node_modules/,
-      loaders: ["babel-loader"]
+      loaders: ["babel"]
     }, {
       test: /\.html$/,
-      loader: "html![name].[ext]"
+      loader: "html"
     }, {
       test: /\.css$/,
-      loader: ExtractTextPlugin.extract("style-loader", "css-loader")
+      loader: ExtractTextPlugin.extract("style", "css")
     }, {
       test: /\.scss$/,
-      loader: ExtractTextPlugin.extract("style-loader", "css-loader!sass-loader")
+      loader: ExtractTextPlugin.extract("style", "css!sass")
     }, {
       test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-      loader: "url-loader?limit=10000&mimetype=application/font-woff"
+      loader: "url?limit=10000&mimetype=application/font-woff"
     }, {
       test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-      loader: "file-loader"
+      loader: "file"
     }, {
       test: /\.(png|jpg|jpeg)$/,
-      loader: "file-loader"
+      loader: "file"
     }]
   },
 

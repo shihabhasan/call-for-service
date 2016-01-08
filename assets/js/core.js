@@ -5,6 +5,8 @@ import "../styles/core.scss";
 
 import "./polyfills";
 import "../dashboard/toolkit";
+import "bootstrap-daterangepicker";
+
 import Ractive from "ractive";
 import _ from "underscore";
 import $ from "jquery";
@@ -12,32 +14,15 @@ import $ from "jquery";
 import moment from "moment";
 import d3 from "d3";
 
-import { daterangepicker } from "bootstrap-daterangepicker";
-
-// From bootstrap-daterangepicker
-// Since we're importing it, the jQuery setup doesn't happen automatically.
-$.fn.daterangepicker = function(options, callback) {
-  this.each(function() {
-    var el = $(this);
-    if (el.data("daterangepicker"))
-      el.data("daterangepicker").remove();
-    el.data("daterangepicker", new daterangepicker(el, options, callback));
-  });
-  return this;
-};
 
 Ractive.DEBUG = /unminified/.test(function() { /*unminified*/ });
 
 var NavBar = Ractive.extend({
-  template: "#navbar-template",
-  delimiters: ["[[", "]]"],
-  tripleDelimiters: ["[[[", "]]]"]
+  template: require("../templates/navbar.html")
 });
 
 var ChartHeader = Ractive.extend({
-  template: "#chart-header-template",
-  delimiters: ["[[", "]]"],
-  tripleDelimiters: ["[[[", "]]]"],
+  template: require("../templates/chart_header.html"),
   isolated: true,
   data: {
     hidden: true
@@ -50,9 +35,7 @@ var ChartHeader = Ractive.extend({
 });
 
 var FilterButton = Ractive.extend({
-  template: "#filter-button-template",
-  delimiters: ["[[", "]]"],
-  tripleDelimiters: ["[[[", "]]]"],
+  template: require("../templates/filter_button.html"),
   computed: {
     fieldType: function() {
       return this.get("getFieldType")(this.get("field")).type;
@@ -140,9 +123,7 @@ export var Filter = Ractive.extend({
   components: {
     "filter-button": FilterButton
   },
-  template: "#filter-template",
-  delimiters: ["[[", "]]"],
-  tripleDelimiters: ["[[[", "]]]"],
+  template: require("../templates/filter.html"),
   data: function() {
     return {
       filter: {},
@@ -206,9 +187,7 @@ export var Filter = Ractive.extend({
 });
 
 var LoadingIndicator = Ractive.extend({
-  delimiters: ["[[", "]]"],
-  tripleDelimiters: ["[[[", "]]]"],
-  template: "#loading-template",
+  template: require("../templates/loading.html"),
   isolated: true
 });
 
@@ -219,8 +198,6 @@ export var Page = Ractive.extend({
     "chart-header": ChartHeader,
     "LoadingIndicator": LoadingIndicator
   },
-  delimiters: ["[[", "]]"],
-  tripleDelimiters: ["[[[", "]]]"],
   data: {
     filterHash: "",
     initialload: true,

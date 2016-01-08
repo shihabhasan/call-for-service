@@ -20,7 +20,7 @@ import nv from "nvd3";
 var url = "/api/officer_allocation/";
 
 var OfficerAllocationFilter = Filter.extend({
-  template: "#officer-allocation-filter-template"
+  template: require("../templates/officer_allocation_filter.html")
 });
 
 // Beats and districts both need to access the same colors
@@ -37,7 +37,7 @@ var dashboard = new Page({
     "Filter": OfficerAllocationFilter
   },
   el: $("#dashboard").get(),
-  template: "#dashboard-template",
+  template: require("../templates/officer_allocation.html"),
   data: {
     data: {
       "allocation_over_time": []

@@ -34,7 +34,7 @@ function durationFormat(secs) {
 
 var dashboard = new Page({
   el: $("#dashboard").get(),
-  template: "#dashboard-template",
+  template: require("../templates/response_time.html"),
   data: {
     "capitalize": function(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);

@@ -31,7 +31,7 @@ var outFormats = {
 
 var dashboard = new Page({
   el: $("#dashboard").get(),
-  template: "#dashboard-template",
+  template: require("../templates/call_volume.html"),
   data: {
     mapDrawn: false,
     "capitalize": function(string) {

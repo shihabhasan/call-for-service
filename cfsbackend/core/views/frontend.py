@@ -48,21 +48,6 @@ class ResponseTimeView(View):
                                   dict(form=filter_json(CallFilterSet)))
 
 
-class PredictiveView(TemplateView):
-    template_name = "predictive.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(PredictiveView, self).get_context_data(**kwargs)
-        context['form'] = filter_json()
-        return context
-
-
-class MapView(View):
-    def get(self, request, *args, **kwargs):
-        return render_to_response("map.html",
-                                  dict(form=filter_json(CallFilterSet)))
-
-
 class OfficerAllocationDashboardView(View):
     def get(self, request, *args, **kwargs):
         filter_obj = build_filter(OfficerActivityFilterSet)

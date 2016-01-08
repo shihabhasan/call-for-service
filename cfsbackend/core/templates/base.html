@@ -1,5 +1,7 @@
+{% spaceless %}
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% endspaceless %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,31 +32,7 @@
     </div>
 </div>
 
-{% include "_navbar.html" %}
-{% include "_filter.html" %}
 {% block templates %}{% endblock %}
-
-<script id="loading-template" type="text/html">
-    [[ #if loading ]]
-    <div id="loading">
-        <i class="fa fa-4x fa-spinner fa-spin"></i>
-    </div>
-    [[ /if ]]
-</script>
-
-<script id="chart-header-template" type="text/html">
-    <div>
-        <h3 class="chart-title">
-            [[ title ]] <i class="fa fa-info-circle clickable"
-                           on-click="toggleExplanation"></i>
-        </h3>
-        [[ #unless hidden ]]
-        <div class="explanation well">
-            [[ >content ]]
-        </div>
-        [[ /unless ]]
-    </div>
-</script>
 
 <!-- Latest compiled and minified JavaScript -->
 <script>
