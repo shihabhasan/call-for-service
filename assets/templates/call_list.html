@@ -1,9 +1,9 @@
 <NavBar filterHash="{{ filterHash }}"/>
 <LoadingIndicator loading="{{ loading }}" />
 <div class="row">
-  <div class="col-md-12">
+    <div class="col-md-12">
     <Filter/>
-  </div>
+    </div>
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12">
@@ -14,13 +14,13 @@
                       {{ else }}
                         <h3 class="call-count">{{ (page - 1) * perPage + 1 }}-{{ topCount }}
                           of {{ calls.count }} calls</h3>
-                        <Pagination page={{ page }} maxPage={{ maxPage }} />
+                        <Pagination page="{{ page }}" maxPage="{{ maxPage }}" />
 
                         {{ #each calls.results }}
                         <Call call={{.}} />
                         {{ /each }}
 
-                        <Pagination page={{ page }} maxPage={{ maxPage }} />
+                        <Pagination page="{{ page }}" maxPage="{{ maxPage }}" />
 
                       {{ /if }}
                     {{ /if }}

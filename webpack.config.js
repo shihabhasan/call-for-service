@@ -2,6 +2,8 @@ var path = require("path");
 var webpack = require("webpack");
 var BundleTracker = require("webpack-bundle-tracker");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var CleanWebpackPlugin = require('clean-webpack-plugin');
+
 
 module.exports = {
   context: path.join(__dirname, "assets"),
@@ -24,6 +26,10 @@ module.exports = {
     }
   },
   plugins: [
+    new CleanWebpackPlugin(['assets/bundles'], {
+      verbose: true,
+      dry: false
+    }),
     new BundleTracker({
       filename: "./webpack-stats.json"
     }),

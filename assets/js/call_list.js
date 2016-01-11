@@ -34,6 +34,15 @@ var Call = Ractive.extend({
       var m = moment(val);
       return m.format("lll");
     }
+  },
+  calculated: {
+    cancelledText: function () {
+      if (this.get('cancelled')) {
+        return 'True';
+      } else {
+        return 'False';
+      }
+    }
   }
 });
 

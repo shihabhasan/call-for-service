@@ -4,7 +4,7 @@
     <a href="#" on-click="prevPage">Previous</a>
   </li>
   {{ /if }}
-  {{ #if !maxPage || page < maxPage }}
+  {{ #if !maxPage || maxPage > page }}
   <li>
     <a href="#" on-click="nextPage">Next</a>
   </li>
