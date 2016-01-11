@@ -55,7 +55,7 @@ module.exports = {
       loaders: ["babel?compact=false"]
     }, {
       test: /\.html$/,
-      loader: "html"
+      loader: "raw"
     }, {
       test: /\.css$/,
       loader: ExtractTextPlugin.extract("style", "css")
