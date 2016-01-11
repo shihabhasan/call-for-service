@@ -15,12 +15,15 @@
                         <h3 class="call-count">{{ (page - 1) * perPage + 1 }}-{{ topCount }}
                           of {{ calls.count }} calls</h3>
                         <Pagination page={{ page }} maxPage={{ maxPage }} />
+
+                        {{ #each calls.results }}
+                        <Call call={{.}} />
+                        {{ /each }}
+
+                        <Pagination page={{ page }} maxPage={{ maxPage }} />
+
                       {{ /if }}
                     {{ /if }}
-
-                    {{ #each calls.results }}
-                    <Call call={{.}} />
-                    {{ /each }}
                 </div>
             </div>
         </div>
