@@ -45,7 +45,7 @@ module.exports = {
     loaders: [{
       test: /.js$/,
       exclude: /node_modules/,
-      loaders: ["babel"]
+      loaders: ["babel?compact=false"]
     }, {
       test: /\.html$/,
       loader: "html"

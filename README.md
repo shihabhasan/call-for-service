@@ -43,3 +43,12 @@ the front-end, you will need to run Webpack.
 
 1. `cd /vagrant`
 2. `webpack -w` (this puts Webpack into watch mode, so it will recompile on changes)
+
+### One command to rule them all
+
+In order to use the following, you will need to have another program installed that
+knows how to run a Procfile. The easiest to use is "honcho," which you can install
+on a Mac via `brew install honcho` or anywhere with Python via `pip install honcho`.
+
+Once that's done, running `honcho -f Procfile.dev start` from the root directory
+of the project should start both webpack and Django.
