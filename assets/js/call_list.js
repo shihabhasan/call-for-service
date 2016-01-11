@@ -1,10 +1,8 @@
 import {
   Page,
   buildURL,
-  cloneFilter
-  // updateHash,
-  // buildQueryParams,
-  // monitorChart
+  cloneFilter,
+  toggleFilter
 }
 from "./core";
 import Ractive from "ractive";
@@ -39,10 +37,15 @@ var Call = Ractive.extend({
   }
 });
 
+var ClickField = Ractive.extend({
+  template: require("../templates/click_field.html")
+})
+
 var callList = new Page({
   components: {
     Call: Call,
-    Pagination: Pagination
+    Pagination: Pagination,
+    ClickField: ClickField
   },
   el: $("#dashboard").get(),
   template: require("../templates/call_list.html"),
@@ -93,6 +96,13 @@ callList.on("Pagination.prevPage", _.bind(function () {
   if (this.get("page") > 1) {
     this.set("page", this.get("page") - 1);
   }
+  return false;
+}, callList));
+
+callList.on("ClickField.addFilter", _.bind(function (event, field, value) {
+  console.log(field);
+  console.log(value);
+  toggleFilter(callList, field, value);
   return false;
 }, callList));
 
