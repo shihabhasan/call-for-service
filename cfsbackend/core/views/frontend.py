@@ -37,6 +37,13 @@ class LandingPageView(TemplateView):
     template_name = "landing_page.html"
 
 
+class CallListView(View):
+    def get(self, request, *args, **kwargs):
+        return render_to_response("dashboard.html",
+                                  dict(asset_chunk="call_list",
+                                       form=filter_json(CallFilterSet)))
+
+
 class CallVolumeView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("dashboard.html",

@@ -9,7 +9,8 @@ module.exports = {
     call_volume: "./js/call_volume",
     response_time: "./js/response_time",
     officer_allocation: "./js/officer_allocation",
-    landing_page: "./js/landing_page"
+    landing_page: "./js/landing_page",
+    call_list: "./js/call_list"
   },
   output: {
     path: path.join(__dirname, "assets", "bundles"),

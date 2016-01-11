@@ -1,0 +1,8 @@
+.call {
+    border-bottom: 1px solid #F5F5F5;
+    margin-bottom: 2em;
+
+    &:last-of-type {
+        border-bottom: none;
+    }
+}

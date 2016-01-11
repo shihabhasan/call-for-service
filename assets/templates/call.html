@@ -1,0 +1,88 @@
+{{ #call }}
+<div class="call">
+    <div class="row">
+        <div class="col-sm-6">
+            <dl class="dl-horizontal">
+                <dt>Call ID</dt>
+                <dd>{{ call_id }}</dd>
+                <dt>Cancelled</dt>
+                <dd>{{ cancelled }}</dd>
+                <dt>Source</dt>
+                <dd>{{ d(call_source) }}</dd>
+                <dt>Nature</dt>
+                <dd>{{ d(nature.descr) }}</dd>
+                <dt>Priority</dt>
+                <dd>{{ d(priority) }}</dd>
+                <dt>Sector</dt>
+                <dd>{{ d(sector) }}</dd>
+                <dt>Beat</dt>
+                <dd>{{ d(beat) }}</dd>
+                <dt>Business</dt>
+                <dd>{{ d(business) }}</dd>
+                <dt>Address</dt>
+                <dd>{{ street_num }} {{ d(street_name) }}</dd>
+                <dt>Cross streets</dt>
+                <dd>
+                    {{ #if crossroad1 }}
+                    <ul>
+                        <li>{{ crossroad1 }}</li>
+                        {{ #if crossroad2 }}
+                        <li>{{ crossroad2 }}</li>
+                        {{ /if }}
+                    </ul>
+                    {{ else }}
+                    -
+                    {{ /if }}
+                </dd>
+                <dt>ZIP Code</dt>
+                <dd>{{ d(zip_code) }}</dd>
+
+            </dl>
+        </div>
+        <div class="col-sm-6">
+            <dl class="dl-horizontal">
+                <dt>Primary Unit</dt>
+                <dd>{{ d(primary_unit.descr) }}</dd>
+                <dt>First Dispatched</dt>
+                <dd>{{ d(first_dispatched.descr)
+                    }}
+                </dd>
+                <dt>Received</dt>
+                <dd>{{ timeFormat(time_received)
+                    }}
+                </dd>
+                <dt>Routed</dt>
+                <dd>{{ timeFormat(time_routed) }}
+                </dd>
+                <dt>Finished</dt>
+                <dd>{{ timeFormat(time_finished)
+                    }}
+                </dd>
+                <dt>First Unit Dispatch</dt>
+                <dd>{{
+                    timeFormat(first_unit_dispatch)
+                    }}
+                </dd>
+                <dt>First Unit Arrive</dt>
+                <dd>{{ timeFormat(first_unit_arrive)
+                    }}
+                </dd>
+                <dt>Last Unit Clear</dt>
+                <dd>{{ timeFormat(last_unit_clear)
+                    }}
+                </dd>
+                <dt>Closed</dt>
+                <dd>{{ timeFormat(time_closed) }}
+                </dd>
+                <dt>Officer Response Time</dt>
+                <dd>{{ d(officer_response_time) }}
+                </dd>
+                <dt>Overall Response Time</dt>
+                <dd>{{ d(overall_response_time) }}
+                </dd>
+            </dl>
+
+        </div>
+    </div>
+</div>
+{{ /call }}

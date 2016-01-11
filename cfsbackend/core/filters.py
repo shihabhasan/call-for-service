@@ -4,6 +4,7 @@ from django import forms
 from url_filter.filtersets import ModelFilterSet
 from url_filter.filters import Filter
 from url_filter.backends.django import DjangoFilterBackend
+
 from . import models
 
 

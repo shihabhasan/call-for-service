@@ -1,6 +1,5 @@
-"""
-    cfsbackend URL Configuration
-"""
+"""cfsbackend URL Configuration."""
+
 from django.conf.urls import include, url
 from rest_framework import routers
 
@@ -16,8 +15,9 @@ urlpatterns = [
     url(r'^api/officer_allocation/', views.APIOfficerAllocationView.as_view()),
     url(r'^api/', include(router.urls)),
     url(r'^docs/', include('rest_framework_swagger.urls')),
+    url(r'^$', views.LandingPageView.as_view()),
     url(r'^call_volume$', views.CallVolumeView.as_view()),
     url(r'^response_time$', views.ResponseTimeView.as_view()),
-    url(r'^$', views.LandingPageView.as_view()),
     url(r'^officer_allocation$', views.OfficerAllocationDashboardView.as_view()),
+    url(r'^calls$', views.CallListView.as_view())
 ]
