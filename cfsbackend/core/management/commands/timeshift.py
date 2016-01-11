@@ -35,11 +35,16 @@ class Command(BaseCommand):
                     dow_received = EXTRACT(ISODOW FROM time_received) - 1,
                     week_received = EXTRACT(WEEK FROM time_received);
                 """)
+
+                print("Shifting call log data...")
+                cursor.execute("""
+    UPDATE call_log SET time_recorded = time_recorded + INTERVAL %s;
+                """, ("{} days".format(weeks*7),))
                 
                 print("Shifting call notes...")
                 cursor.execute("""
     UPDATE note SET time_recorded = time_recorded + INTERVAL %s;
-                """, ("{} days".format(weeks*7)))
+                """, ("{} days".format(weeks*7),))
 
                 print("Shifting officer allocation data...")
                 cursor.execute("""
@@ -51,4 +56,66 @@ class Command(BaseCommand):
     UPDATE out_of_service SET start_time = start_time + INTERVAL %s,
                           end_time = end_time + INTERVAL %s;
                 """, ("{} days".format(weeks*7),) * 2)
-    
+
+                print("Recreating materialized views...")
+                # Drop old view dependent on hardcoded time sample
+                cursor.execute("""
+    DROP MATERIALIZED VIEW discrete_officer_activity;
+                """)
+
+                # Figure out the new time range for the time sample view
+                cursor.execute("SELECT MIN(time_) FROM time_sample;")
+                prev_start = cursor.fetchone()[0]
+
+                new_start = prev_start + dt.timedelta(days=weeks*7)
+                new_end = new_start + dt.timedelta(days=365)
+
+                # Recreate the time sample view
+                cursor.execute("""
+    DROP MATERIALIZED VIEW time_sample;
+    CREATE MATERIALIZED VIEW time_sample AS
+        SELECT series.time_
+            FROM generate_series(
+                %s::timestamp without time zone,
+                %s::timestamp without time zone,
+                '00:10:00'::interval
+            ) series(time_);
+                """, (new_start.strftime("%Y-%m-%d %H:%M:%S"),
+                      new_end.strftime("%Y-%m-%d %H:%M:%S")))
+
+                # Reindex the time sample view
+                cursor.execute("""
+    CREATE UNIQUE INDEX time_sample_time_ndx
+        ON time_sample(time_);
+                """)
+
+                # Refresh other views
+                cursor.execute("""
+    REFRESH MATERIALIZED VIEW in_call;
+    REFRESH MATERIALIZED VIEW officer_activity;
+                """)
+
+                # Recreate the DOA view
+                cursor.execute("""
+    CREATE MATERIALIZED VIEW discrete_officer_activity AS
+      SELECT
+        ROW_NUMBER() OVER (ORDER BY start_time ASC) AS discrete_officer_activity_id,
+        ts.time_,
+        oa.call_unit_id,
+        oa.officer_activity_type_id,
+        oa.call_id
+      FROM
+        officer_activity oa,
+        time_sample ts
+      WHERE
+        ts.time_ BETWEEN oa.start_time AND oa.end_time;
+                """)
+
+                # Reindex the DOA view
+                cursor.execute("""
+    CREATE INDEX discrete_officer_activity_time
+      ON discrete_officer_activity(time_);
+      
+    CREATE INDEX discrete_officer_activity_time_hour
+      ON discrete_officer_activity (EXTRACT(HOUR FROM time_));
+                """)

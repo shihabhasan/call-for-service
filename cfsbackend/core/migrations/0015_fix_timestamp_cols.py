@@ -12,6 +12,8 @@ with open(sql_path("in_call.sql")) as file:
     in_call_sql = file.read()
 with open(sql_path("officer_activity.sql")) as file:
     officer_activity_sql = file.read()
+with open(sql_path("discrete_officer_activity.sql")) as file:
+    discrete_officer_activity_sql = file.read()
 
 
 
@@ -37,4 +39,5 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(in_call_sql),
         migrations.RunSQL(officer_activity_sql),
+        migrations.RunSQL(discrete_officer_activity_sql),
     ]
