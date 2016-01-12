@@ -4,7 +4,7 @@
   sudo_user: "{{ project.user }}"
   git: >
     repo="{{ repo.url }}"
-    dest="{{ project.root }}src/"
+    dest="{{ project.srcroot }}/"
     version="{{ repo.branch }}"
     force=yes
     update=yes
@@ -15,7 +15,7 @@
 - name: Manually create the initial virtualenv
   sudo_user: "{{ project.user }}"
   command: >
-    virtualenv {{ project.virtualenv }} -p python3.4 
+    virtualenv {{ project.virtualenv }} -p python3.4
     creates="{{ project.virtualenv }}"
   tags:
     - deploy
@@ -49,11 +49,14 @@
 
 - name: Install assets
   sudo_user: "{{ project.user }}"
-  django_manage: >
-    command="bower install"
-    app_path={{ django.root }}
-    settings={{ django.settings }}
-    virtualenv={{ project.virtualenv }}
+  npm: path={{ project.srcroot }}
+  tags:
+    - deploy
+    - assets
+
+- name: Compress assets
+  sudo_user: "{{ project.user }}"
+  command: webpack --config webpack.production.config.js chdir={{ project.srcroot }}
   tags:
     - deploy
     - assets
@@ -62,17 +65,6 @@
   sudo_user: "{{ project.user }}"
   django_manage: >
     command=collectstatic
-    app_path={{ django.root }}
-    settings={{ django.settings }}
-    virtualenv={{ project.virtualenv }}
-  tags:
-    - deploy
-    - assets
-
-- name: Compress assets
-  sudo_user: "{{ project.user }}"
-  django_manage: >
-    command=compress
     app_path={{ django.root }}
     settings={{ django.settings }}
     virtualenv={{ project.virtualenv }}

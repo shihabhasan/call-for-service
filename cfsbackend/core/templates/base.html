@@ -1,5 +1,7 @@
+{% spaceless %}
 {% load staticfiles %}
-{% load compress %}
+{% load render_bundle from webpack_loader %}
+{% endspaceless %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,17 +12,8 @@
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
     <link href='https://fonts.googleapis.com/css?family=Audiowide'
           rel='stylesheet' type='text/css'>
-    {% compress css %}
-        <link rel="stylesheet"
-              href="{% static 'dashboard/toolkit-light.css' %}">
-        <link rel="stylesheet"
-              href="{% static 'font-awesome/css/font-awesome.css' %}">
-        <link rel="stylesheet"
-              href="{% static "bootstrap-daterangepicker/daterangepicker.css" %}">
-        <link rel="stylesheet" type="text/x-scss"
-              href="{% static 'core.scss' %}">
-        {% block stylesheets %}{% endblock %}
-    {% endcompress %}
+    {% render_bundle 'commons' 'css' %}
+    {% block stylesheets %}{% endblock %}
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -39,46 +32,13 @@
     </div>
 </div>
 
-{% include "_navbar.html" %}
-{% include "_filter.html" %}
 {% block templates %}{% endblock %}
-
-<script id="loading-template" type="text/html">
-    [[ #if loading ]]
-    <div id="loading">
-        <i class="fa fa-4x fa-spinner fa-spin"></i>
-    </div>
-    [[ /if ]]
-</script>
-
-<script id="chart-header-template" type="text/html">
-    <div>
-        <h3 class="chart-title">
-            [[ title ]] <i class="fa fa-info-circle clickable"
-                           on-click="toggleExplanation"></i>
-        </h3>
-        [[ #unless hidden ]]
-        <div class="explanation well">
-            [[ >content ]]
-        </div>
-        [[ /unless ]]
-    </div>
-</script>
 
 <!-- Latest compiled and minified JavaScript -->
 <script>
     var filterForm = {{ form|safe }};
 </script>
-{% compress js %}
-    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-    <script src="{% static 'dashboard/toolkit.js' %}"></script>
-    <script src="{% static 'ractive/ractive.js' %}"></script>
-    <script src="{% static 'moment/moment.js' %}"></script>
-    <script src="{% static 'bootstrap-daterangepicker/daterangepicker.js' %}"></script>
-    <script src="{% static 'underscore/underscore.js' %}"></script>
-    <script src="{% static 'polyfills.js' %}"></script>
-    <script src="{% static 'core.js' %}"></script>
-    {% block javascript %}{% endblock %}
-{% endcompress %}
+{% render_bundle 'commons' 'js' %}
+{% block javascript %}{% endblock %}
 </body>
 </html>

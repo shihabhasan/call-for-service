@@ -1,5 +1,6 @@
 {% load staticfiles %}
-{% load compress %}
+{% load render_bundle from webpack_loader %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,15 +11,8 @@
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
     <link href='https://fonts.googleapis.com/css?family=Audiowide'
           rel='stylesheet' type='text/css'>
-    {% compress css %}
-        <link rel="stylesheet"
-              href="{% static 'dashboard/toolkit-light.css' %}">
-        <link rel="stylesheet"
-              href="{% static 'font-awesome/css/font-awesome.css' %}">
-        <link rel="stylesheet" type="text/x-scss"
-              href="{% static 'core.scss' %}">
-        {% block stylesheets %}{% endblock %}
-    {% endcompress %}
+    {% render_bundle 'commons' 'css' %}
+    {% render_bundle 'landing_page' 'css' %}
     {% block head %}{% endblock %}
     <style>
         .navbar {
@@ -159,9 +153,7 @@
 <!-- end container-fluid -->
 
 <!-- Latest compiled and minified JavaScript -->
-{% compress js %}
-    <script src="{% static 'jquery/dist/jquery.min.js' %}"></script>
-    <script src="{% static 'dashboard/toolkit.js' %}"></script>
-{% endcompress %}
+{% render_bundle 'commons' 'js' %}
+{% render_bundle 'landing_page' 'js' %}
 </body>
 </html>

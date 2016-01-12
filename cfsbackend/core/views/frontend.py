@@ -4,6 +4,7 @@ from django.views.generic import View, TemplateView
 from core import models
 from ..filters import CallFilterSet, OfficerActivityFilterSet
 
+
 def build_filter(filter_set):
     fields = filter_set.definition
     out = {"fields": [f for f in fields if not f['name'] == 'call']}
@@ -38,29 +39,16 @@ class LandingPageView(TemplateView):
 
 class CallVolumeView(View):
     def get(self, request, *args, **kwargs):
-        return render_to_response("overview.html",
-                                  dict(form=filter_json(CallFilterSet)))
+        return render_to_response("dashboard.html",
+                                  dict(asset_chunk="call_volume",
+                                       form=filter_json(CallFilterSet)))
 
 
 class ResponseTimeView(View):
     def get(self, request, *args, **kwargs):
-        return render_to_response("response_time.html",
-                                  dict(form=filter_json(CallFilterSet)))
-
-
-class PredictiveView(TemplateView):
-    template_name = "predictive.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(PredictiveView, self).get_context_data(**kwargs)
-        context['form'] = filter_json()
-        return context
-
-
-class MapView(View):
-    def get(self, request, *args, **kwargs):
-        return render_to_response("map.html",
-                                  dict(form=filter_json(CallFilterSet)))
+        return render_to_response("dashboard.html",
+                                  dict(asset_chunk="response_time",
+                                       form=filter_json(CallFilterSet)))
 
 
 class OfficerAllocationDashboardView(View):
@@ -70,9 +58,11 @@ class OfficerAllocationDashboardView(View):
         # We want only the values of CallUnit where squad isn't null.
         # We don't want to show a bunch of bogus units for filtering.
         filter_obj['refs']['CallUnit'] = list(
-                models.CallUnit.objects.filter(squad__isnull=False) \
-                        .order_by('descr') \
-                        .values_list('call_unit_id', 'descr'))
+            models.CallUnit.objects
+            .filter(squad__isnull=False)
+            .order_by('descr')
+            .values_list('call_unit_id', 'descr'))
 
-        return render_to_response("officer_allocation.html",
-                                  dict(form=json.dumps(filter_obj)))
+        return render_to_response("dashboard.html",
+                                  dict(asset_chunk="officer_allocation",
+                                       form=json.dumps(filter_obj)))

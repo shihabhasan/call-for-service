@@ -42,10 +42,9 @@ INSTALLED_APPS = (
 
     'rest_framework',
     'rest_framework_swagger',
-    'djangobower',
-    "compressor",
     'django_extensions',
     'postgres_stats',
+    'webpack_loader',
 
     'core',
 )
@@ -125,7 +124,7 @@ CACHES = {
     }
 }
 
-## Testing
+# Testing
 
 TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
 
@@ -133,37 +132,24 @@ TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, '..', 'assets'),
+)
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'STATS_FILE': os.path.join(BASE_DIR, '..', 'webpack-stats.json'),
+    },
+}
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    'djangobower.finders.BowerFinder',
-    'compressor.finders.CompressorFinder',
 )
-
-BOWER_COMPONENTS_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..', 'components'))
-
-BOWER_INSTALLED_APPS = (
-    'bootstrap-daterangepicker#2.1.13',
-    'colorbrewer#1.0.0',
-    'd3#3.5.6',
-    'font-awesome#4.4.0',
-    'jquery#2.1.4',
-    'leaflet#0.7.7',
-    'moment#2.10.6',
-    'nvd3#5992b889c6',
-    'q#1.0.1',
-    'ractive#0.7.3',
-    'underscore#1.8.3',
-    'underscore-contrib#0.3.0',
-)
-
-COMPRESS_PRECOMPILERS = (
-    ('text/x-scss', 'django_libsass.SassCompiler'),
-)
-
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [],

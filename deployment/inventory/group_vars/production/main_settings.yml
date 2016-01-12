@@ -10,6 +10,7 @@ project:
   group: www-data
   mode: live
   root: /opt/{{ project_name }}/
+  srcroot: /opt/{{ project_name }}/src
   virtualenv: /opt/{{ project_name }}/env
   virtualenv_python: /usr/bin/python3.4
 
