@@ -126,12 +126,20 @@ export var Heatmap = function(options) {
           return (i + 1) * gridSize;
         })
       .attr("y", gridSize * 1)
-      .style("text-anchor", "middle")
-      .attr("transform", "translate(-4,-8)")
+      .style("text-anchor", function (d, i) {
+          if (i === times.length - 1) {
+            return "end"
+          } else {
+            return "middle"
+          }
+      })
+      .attr("transform", "translate(0,-8)")
       .attr("class", "timeLabel axis");
   };
 
-  this.create = function() {
+
+
+  this.create = function () {
     var bounds = this.getBounds(),
       container = d3.select(this.el),
       width = bounds.width,
