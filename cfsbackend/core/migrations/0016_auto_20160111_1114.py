@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL("DROP MATERIALIZED VIEW discrete_officer_activity"),
-        migrations.RunSQL("DROP MATERIALIZED VIEW officer_activity"),
+        migrations.RunSQL("DROP MATERIALIZED VIEW officer_activity CASCADE"),
         migrations.RunSQL("DROP MATERIALIZED VIEW in_call"),
 
         migrations.AlterField(
