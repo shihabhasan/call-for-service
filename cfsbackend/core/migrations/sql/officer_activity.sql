@@ -125,10 +125,18 @@ This view has a row for each instance of officer activity at each 10 minute inte
 -- temp view needed here for speed
 DROP MATERIALIZED VIEW IF EXISTS time_sample CASCADE;
 CREATE MATERIALIZED VIEW time_sample AS
-SELECT * FROM
-generate_series('2014-01-01 00:00'::timestamp,
-                '2014-12-31 23:59'::timestamp,
-                '10 minutes') AS series(time_);
+SELECT
+    -- Round times to the nearest 10 mins
+    date_trunc('hour', time_) +
+      INTERVAL '10 min' * ROUND(date_part('minute', time_) / 10.0)
+    AS time_
+FROM
+    -- Generate the range of times we have in the DB
+    generate_series(
+        (SELECT date_trunc('minute', min(start_time)) FROM officer_activity),
+        (SELECT date_trunc('minute', max(end_time)) FROM officer_activity),
+        '10 minutes'
+    ) AS series(time_);
 
 CREATE UNIQUE INDEX time_sample_time
   ON time_sample(time_); 

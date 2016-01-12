@@ -57,65 +57,10 @@ class Command(BaseCommand):
                           end_time = end_time + INTERVAL %s;
                 """, ("{} days".format(weeks*7),) * 2)
 
-                print("Recreating materialized views...")
-                # Drop old view dependent on hardcoded time sample
-                cursor.execute("""
-    DROP MATERIALIZED VIEW discrete_officer_activity;
-                """)
-
-                # Figure out the new time range for the time sample view
-                cursor.execute("SELECT MIN(time_) FROM time_sample;")
-                prev_start = cursor.fetchone()[0]
-
-                new_start = prev_start + dt.timedelta(days=weeks*7)
-                new_end = new_start + dt.timedelta(days=365)
-
-                # Recreate the time sample view
-                cursor.execute("""
-    DROP MATERIALIZED VIEW time_sample;
-    CREATE MATERIALIZED VIEW time_sample AS
-        SELECT series.time_
-            FROM generate_series(
-                %s::timestamp without time zone,
-                %s::timestamp without time zone,
-                '00:10:00'::interval
-            ) series(time_);
-                """, (new_start.strftime("%Y-%m-%d %H:%M:%S"),
-                      new_end.strftime("%Y-%m-%d %H:%M:%S")))
-
-                # Reindex the time sample view
-                cursor.execute("""
-    CREATE UNIQUE INDEX time_sample_time_ndx
-        ON time_sample(time_);
-                """)
-
-                # Refresh other views
+                print("Refreshing materialized views...")
                 cursor.execute("""
     REFRESH MATERIALIZED VIEW in_call;
     REFRESH MATERIALIZED VIEW officer_activity;
-                """)
-
-                # Recreate the DOA view
-                cursor.execute("""
-    CREATE MATERIALIZED VIEW discrete_officer_activity AS
-      SELECT
-        ROW_NUMBER() OVER (ORDER BY start_time ASC) AS discrete_officer_activity_id,
-        ts.time_,
-        oa.call_unit_id,
-        oa.officer_activity_type_id,
-        oa.call_id
-      FROM
-        officer_activity oa,
-        time_sample ts
-      WHERE
-        ts.time_ BETWEEN oa.start_time AND oa.end_time;
-                """)
-
-                # Reindex the DOA view
-                cursor.execute("""
-    CREATE INDEX discrete_officer_activity_time
-      ON discrete_officer_activity(time_);
-      
-    CREATE INDEX discrete_officer_activity_time_hour
-      ON discrete_officer_activity (EXTRACT(HOUR FROM time_));
+    REFRESH MATERIALIZED VIEW time_sample;
+    REFRESH MATERIALIZED VIEW discrete_officer_activity;
                 """)
