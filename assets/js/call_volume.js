@@ -4,10 +4,8 @@ import "leaflet/dist/leaflet.css";
 import {
   Page,
   buildURL,
-  cloneFilter,
-  updateHash,
-  buildQueryParams,
-  monitorChart } from "./core";
+  monitorChart
+} from "./core";
 import {
   HorizontalBarChart,
   DiscreteBarChart,
@@ -16,7 +14,6 @@ import {
 import $ from "jquery";
 import _ from "underscore-contrib";
 import d3 from "d3";
-import moment from "moment";
 import colorbrewer from "colorbrewer";
 import nv from "nvd3";
 
@@ -58,27 +55,6 @@ var dashboard = new Page({
         }, this));
   }
 });
-
-dashboard.on(
-  "filterByDate",
-  function(event, span) {
-    var pastSunday = moment().day("Sunday").startOf("day");
-
-    var f = cloneFilter(dashboard);
-    if (span === "7days") {
-      f["time_received__gte"] = pastSunday.clone().subtract(7, "days").format("YYYY-MM-DD");
-      f["time_received__lte"] = pastSunday.clone().subtract(1, "days").format("YYYY-MM-DD");
-    } else if (span === "28days") {
-      f["time_received__gte"] = pastSunday.clone().subtract(28, "days").format("YYYY-MM-DD");
-      f["time_received__lte"] = pastSunday.clone().subtract(1, "days").format("YYYY-MM-DD");
-    } else if (span == "ytd") {
-      f["time_received__gte"] = moment().clone().startOf("year").format("YYYY-MM-DD");
-      delete f["time_received__lte"];
-    }
-
-    updateHash(buildQueryParams(f));
-    return false;
-  });
 
 
 function cleanupData(data) {

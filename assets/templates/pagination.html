@@ -1,0 +1,12 @@
+<ul class="list-inline">
+  {{ #if page > 1 }}
+  <li>
+    <a href="#" on-click="prevPage">Previous</a>
+  </li>
+  {{ /if }}
+  {{ #if !maxPage || maxPage > page }}
+  <li>
+    <a href="#" on-click="nextPage">Next</a>
+  </li>
+  {{ /if }}
+</ul>

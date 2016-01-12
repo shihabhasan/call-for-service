@@ -2,6 +2,8 @@ var path = require("path");
 var webpack = require("webpack");
 var BundleTracker = require("webpack-bundle-tracker");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var CleanWebpackPlugin = require('clean-webpack-plugin');
+
 
 module.exports = {
   context: path.join(__dirname, "assets"),
@@ -9,7 +11,8 @@ module.exports = {
     call_volume: "./js/call_volume",
     response_time: "./js/response_time",
     officer_allocation: "./js/officer_allocation",
-    landing_page: "./js/landing_page"
+    landing_page: "./js/landing_page",
+    call_list: "./js/call_list"
   },
   output: {
     path: path.join(__dirname, "assets", "bundles"),
@@ -23,6 +26,10 @@ module.exports = {
     }
   },
   plugins: [
+    new CleanWebpackPlugin(['assets/bundles'], {
+      verbose: true,
+      dry: false
+    }),
     new BundleTracker({
       filename: "./webpack-stats.json"
     }),

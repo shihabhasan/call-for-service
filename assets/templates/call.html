@@ -1,0 +1,87 @@
+{{ #call }}
+<div class="call">
+    <div class="row">
+        <div class="col-sm-6">
+            <dl class="dl-horizontal">
+                <dt>Call ID</dt>
+                <dd>{{ call_id }}</dd>
+                <dt>Cancelled</dt>
+                <dd><ClickField field="cancelled" value="{{ cancelledText }}" descr="{{ cancelledText }}" /></dd>
+                <dt>Source</dt>
+                <dd><ClickField field="call_source" value="{{ call_source.call_source_id }}" descr="{{ call_source.descr }}" /></dd>
+                <dt>Nature Group</dt>
+                <dd><ClickField field="nature__nature_group" value="{{ nature_group.nature_group_id }}" descr="{{ nature_group.descr }}" /></dd>
+                <dt>Nature</dt>
+                <dd>{{ d(nature.descr) }}</dd>
+                <dt>Priority</dt>
+                <dd><ClickField field="priority" value="{{ priority.priority_id }}" descr="{{ priority.descr }}" /></dd>
+                <dt>District</dt>
+                <dd><ClickField field="district" value="{{ district.district_id }}" descr="{{ district.descr }}" /></dd>
+                <dt>Beat</dt>
+                <dd><ClickField field="beat" value="{{ beat.beat_id }}" descr="{{ beat.descr }}" /></dd>
+                <dt>Business</dt>
+                <dd>{{ d(business) }}</dd>
+                <dt>Address</dt>
+                <dd>{{ street_num }} {{ d(street_name) }}</dd>
+                <dt>Cross streets</dt>
+                <dd>
+                    {{ #if crossroad1 }}
+                    <ul class="list-unstyled">
+                        <li>{{ crossroad1 }}</li>
+                        {{ #if crossroad2 }}
+                        <li>{{ crossroad2 }}</li>
+                        {{ /if }}
+                    </ul>
+                    {{ else }}
+                    -
+                    {{ /if }}
+                </dd>
+                <dt>ZIP Code</dt>
+                <dd>{{ d(zip_code) }}</dd>
+            </dl>
+        </div>
+        <div class="col-sm-6">
+            <dl class="dl-horizontal">
+                <dt>Primary Unit</dt>
+                <dd>
+                    {{ d(primary_unit.descr) }} /
+                    <ClickField field="squad" value="{{ primary_unit.squad.squad_id }}" descr="{{ primary_unit.squad.descr }}" />
+                </dd>
+                <dt>First Dispatched</dt>
+                <dd>
+                    {{ d(first_dispatched.descr) }} /
+                    <ClickField field="squad" value="{{ first_dispatched.squad.squad_id }}" descr="{{ first_dispatched.squad.descr }}" />
+                </dd>
+                <dt>Received</dt>
+                <dd>{{ timeFormat(time_received) }}
+                </dd>
+                <dt>Routed</dt>
+                <dd>{{ timeFormat(time_routed) }}
+                </dd>
+                <dt>Finished</dt>
+                <dd>{{ timeFormat(time_finished) }}
+                </dd>
+                <dt>First Unit Dispatch</dt>
+                <dd>{{ timeFormat(first_unit_dispatch) }}
+                </dd>
+                <dt>First Unit Arrive</dt>
+                <dd>{{ timeFormat(first_unit_arrive) }}
+                </dd>
+                <dt>Last Unit Clear</dt>
+                <dd>{{ timeFormat(last_unit_clear) }}
+                </dd>
+                <dt>Closed</dt>
+                <dd>{{ timeFormat(time_closed) }}
+                </dd>
+                <dt>Officer Response Time</dt>
+                <dd>{{ d(officer_response_time) }}
+                </dd>
+                <dt>Overall Response Time</dt>
+                <dd>{{ d(overall_response_time) }}
+                </dd>
+            </dl>
+
+        </div>
+    </div>
+</div>
+{{ /call }}

@@ -14,7 +14,6 @@ import $ from "jquery";
 import moment from "moment";
 import d3 from "d3";
 
-
 Ractive.DEBUG = /unminified/.test(function() { /*unminified*/ });
 
 var NavBar = Ractive.extend({
