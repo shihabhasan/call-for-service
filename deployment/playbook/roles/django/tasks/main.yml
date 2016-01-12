@@ -49,7 +49,7 @@
 
 - name: Install assets
   sudo_user: "{{ project.user }}"
-  npm: path={{ project.srcroot }}
+  npm: path={{ project.srcroot }} production=no
   tags:
     - deploy
     - assets

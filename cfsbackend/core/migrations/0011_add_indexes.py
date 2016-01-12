@@ -46,15 +46,6 @@ class Migration(migrations.Migration):
             name='call',
             index_together=set([('dow_received', 'hour_received')]),
         ),
-        # Have to drop this to alter column types
-        migrations.RunSQL("DROP MATERIALIZED VIEW discrete_officer_activity"),
-        migrations.RunSQL("DROP MATERIALIZED VIEW officer_activity"),
-        migrations.RunSQL("DROP MATERIALIZED VIEW in_call"),
-        migrations.RunSQL(
-            ["ALTER TABLE {} ALTER {} TYPE timestamp without time zone".format(table, col) for table, col in timestamp_cols]
-        ),
-        migrations.RunSQL(in_call_sql),
-        migrations.RunSQL(officer_activity_sql),
         migrations.RunSQL([
             ("CREATE INDEX call_day_trunc_time_received_ndx ON call (DATE_TRUNC('day', time_received))", None),
             ("CREATE INDEX call_hour_trunc_time_received_ndx ON call (DATE_TRUNC('hour', time_received))", None)

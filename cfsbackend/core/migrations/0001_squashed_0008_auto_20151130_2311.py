@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.contrib.postgres.fields
-
+import core
 
 class Migration(migrations.Migration):
 
@@ -532,5 +532,80 @@ class Migration(migrations.Migration):
             model_name='nature',
             name='nature_group',
             field=models.ForeignKey(blank=True, to='core.NatureGroup', null=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='first_unit_arrive',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='first_unit_dispatch',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='first_unit_enroute',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='first_unit_transport',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='last_unit_clear',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='time_closed',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='time_finished',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='time_received',
+            field=core.models.DateTimeNoTZField(db_index=True),
+        ),
+        migrations.AlterField(
+            model_name='call',
+            name='time_routed',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='calllog',
+            name='time_recorded',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='note',
+            name='time_recorded',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='outofserviceperiod',
+            name='end_time',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='outofserviceperiod',
+            name='start_time',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='shiftunit',
+            name='in_time',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='shiftunit',
+            name='out_time',
+            field=core.models.DateTimeNoTZField(null=True, blank=True),
         ),
     ]
