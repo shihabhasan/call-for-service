@@ -19,5 +19,6 @@ urlpatterns = [
     url(r'^call_volume$', views.CallVolumeView.as_view()),
     url(r'^response_time$', views.ResponseTimeView.as_view()),
     url(r'^officer_allocation$', views.OfficerAllocationDashboardView.as_view()),
-    url(r'^calls$', views.CallListView.as_view())
+    url(r'^calls$', views.CallListView.as_view()),
+    url(r'^calls.csv$', views.CallExportView.as_view()),
 ]

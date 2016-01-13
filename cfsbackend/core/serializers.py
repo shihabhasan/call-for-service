@@ -95,6 +95,39 @@ class NatureGroupSerializer(serializers.ModelSerializer):
         fields = ('nature_group_id', 'descr')
 
 
+class CallExportSerializer(NonNullSerializer):
+    city = CharField(source="city.descr", read_only=True)
+    zip_code = CharField(source="zip_code.descr", read_only=True)
+
+    primary_unit = CharField(source="primary_unit.descr", read_only=True)
+    first_dispatched = CharField(source="first_dispatched.descr", read_only=True)
+    reporting_unit = CharField(source="reporting_unit.descr", read_only=True)
+    nature = CharField(source="nature.descr", read_only=True)
+
+    beat = CharField(source="beat.descr", read_only=True)
+    district = CharField(source="district.descr", read_only=True)
+    priority = CharField(source="priority.descr", read_only=True)
+    call_source = CharField(source="call_source.descr", read_only=True)
+    nature_group = CharField(source="nature.nature_group.descr", read_only=True)
+    close_code = CharField(source="close_code.descr", read_only=True)
+
+    class Meta:
+        model = Call
+        fields = (
+            'call_id', 'city', 'zip_code', 'district', 'beat',
+            'street_num', 'street_name', 'crossroad1', 'crossroad2', 'geox',
+            'geoy',
+            'call_source', 'primary_unit', 'first_dispatched', 'close_code',
+            'nature', 'nature_group',
+            'reporting_unit', 'month_received', 'week_received', 'dow_received',
+            'hour_received', 'case_id',
+            'business', 'priority', 'report_only', 'cancelled', 'time_received',
+            'time_routed',
+            'time_finished', 'first_unit_dispatch', 'first_unit_enroute',
+            'first_unit_arrive', 'first_unit_transport',
+            'last_unit_clear', 'time_closed', 'officer_response_time',
+            'overall_response_time')
+
 
 class CallSerializer(NonNullSerializer):
     city = CharField(source="city.descr", read_only=True)

@@ -199,6 +199,7 @@ export var Page = Ractive.extend({
   },
   data: {
     filterHash: "",
+    queryParams: "",
     initialload: true,
     loading: true
   },
@@ -206,6 +207,7 @@ export var Page = Ractive.extend({
     this.on("Filter.filterUpdated", _.bind(function(filter) {
       this.set("loading", true);
       this.set("filterHash", this.findComponent("Filter").get("filterHash"));
+      this.set("queryParams", buildQueryParams(this.findComponent("Filter").get("filter")));
       this.filterUpdated(filter);
     }, this));
   }
