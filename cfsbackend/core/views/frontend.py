@@ -100,7 +100,7 @@ class CallExportView(View):
             .select_related('primary_unit')\
             .select_related('first_dispatched')\
             .select_related('reporting_unit')
-        
+
         filter_set = CallFilterSet(data=request.GET,
                                    queryset=qs,
                                    strict_mode=StrictMode.fail)
