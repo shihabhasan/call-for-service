@@ -96,10 +96,11 @@ class CSVIterator:
     def __init__(self, queryset, fields):
         self.queryset = queryset.iterator()
         pseudo_buffer = Echo()
+        self.fields = fields
         self.writer = csv.DictWriter(pseudo_buffer, fieldnames=fields)
 
     def __iter__(self):
-        yield self.writer.writeheader()
+        yield self.writer.writerow(dict(zip(self.fields, self.fields)))
         for record in self.queryset:
             serializer = CallExportSerializer(record)
             yield self.writer.writerow(serializer.data)
