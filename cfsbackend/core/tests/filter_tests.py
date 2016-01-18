@@ -227,16 +227,6 @@ class CallFilterSetTest(TestCase):
         filter = CallFilterSet(data=QueryDict(""), queryset=Call.objects.all())
         assert filter.filter().count() == 3
 
-    def test_unit_filter(self):
-        filter = CallFilterSet(data=QueryDict("unit=1"), queryset=Call.objects.all())
-        assert filter.filter().count() == 3
-
-        filter = CallFilterSet(data=QueryDict("unit=2"), queryset=Call.objects.all())
-        assert filter.filter().count() == 2
-
-        filter = CallFilterSet(data=QueryDict("unit=3"), queryset=Call.objects.all())
-        assert filter.filter().count() == 1
-
     def test_squad_filter(self):
         filter = CallFilterSet(data=QueryDict("squad=1"), queryset=Call.objects.all())
         assert filter.filter().count() == 3

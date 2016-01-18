@@ -23,7 +23,20 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
     You can filter by date/time using `time_received__gte` for received start
     date and `time_received__lte` for received end date.
     """
-    queryset = Call.objects.order_by('time_received')
+    queryset = Call.objects.order_by('time_received') \
+        .select_related('district') \
+        .select_related('beat') \
+        .select_related('city') \
+        .select_related('zip_code') \
+        .select_related('priority') \
+        .select_related('call_source') \
+        .select_related('nature') \
+        .select_related('nature__nature_group') \
+        .select_related('close_code') \
+        .select_related('primary_unit') \
+        .select_related('first_dispatched') \
+        .select_related('reporting_unit')
+
     serializer_class = serializers.CallSerializer
     filter_backends = (DjangoFilterBackend, OrderingFilter)
     filter_class = CallFilterSet
