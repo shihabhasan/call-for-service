@@ -88,17 +88,17 @@ class CallExportView(View):
         response['Content-Disposition'] = 'attachment; filename="calls.csv"'
 
         qs = Call.objects\
-            .select_related('district')\
-            .select_related('beat')\
-            .select_related('city')\
-            .select_related('zip_code')\
-            .select_related('priority')\
-            .select_related('call_source')\
-            .select_related('nature')\
-            .select_related('nature__nature_group')\
-            .select_related('close_code')\
-            .select_related('primary_unit')\
-            .select_related('first_dispatched')\
+            .select_related('district') \
+            .select_related('beat') \
+            .select_related('city') \
+            .select_related('zip_code') \
+            .select_related('priority') \
+            .select_related('call_source') \
+            .select_related('nature') \
+            .select_related('nature__nature_group') \
+            .select_related('close_code') \
+            .select_related('primary_unit') \
+            .select_related('first_dispatched') \
             .select_related('reporting_unit')
 
         filter_set = CallFilterSet(data=request.GET,
