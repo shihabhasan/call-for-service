@@ -1,7 +1,7 @@
 import csv
 import json
 
-from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 from django.shortcuts import render_to_response
 from django.views.generic import View, TemplateView
 from url_filter.filtersets import StrictMode
@@ -82,12 +82,32 @@ class OfficerAllocationDashboardView(View):
                                        form=json.dumps(filter_obj)))
 
 
+class Echo(object):
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+
+class CSVIterator:
+    def __init__(self, queryset, fields):
+        self.queryset = queryset.iterator()
+        pseudo_buffer = Echo()
+        self.writer = csv.DictWriter(pseudo_buffer, fieldnames=fields)
+
+    def __iter__(self):
+        yield self.writer.writeheader()
+        for record in self.queryset:
+            serializer = CallExportSerializer(record)
+            yield self.writer.writerow(serializer.data)
+
+
 class CallExportView(View):
     def get(self, request, *args, **kwargs):
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="calls.csv"'
-
-        qs = Call.objects\
+        qs = Call.objects \
             .select_related('district') \
             .select_related('beat') \
             .select_related('city') \
@@ -150,11 +170,9 @@ class CallExportView(View):
             'reporting_unit',
         ]
 
-        writer = csv.DictWriter(response, fieldnames=fields)
-        writer.writeheader()
-
-        for record in filter_set.filter():
-            serializer = CallExportSerializer(record)
-            writer.writerow(serializer.data)
+        response = StreamingHttpResponse(
+                CSVIterator(filter_set.filter(), fields),
+                content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="calls.csv"'
 
         return response
