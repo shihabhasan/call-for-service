@@ -148,6 +148,7 @@ CallFilterSet = create_filterset(
         {"name": "squad", "rel": "Squad", "method": True, "rel": "Squad",
          "lookups": ["exact"]},
         {"name": "priority", "rel": "Priority"},
+        {"name": "nature", "rel": "Nature"},
         {"name": "nature__nature_group", "label": "Nature Group", "rel": "NatureGroup"},
         {"name": "initiated_by", "type": "select", "method": True,
          "lookups": ["exact"],
