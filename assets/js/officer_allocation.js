@@ -161,12 +161,13 @@ monitorChart(dashboard, "data.on_duty_by_beat", buildOnDutyByBeatChart);
 monitorChart(dashboard, "data.on_duty_by_district", buildOnDutyByDistrictChart);
 
 function buildAllocationOverTimeChart(data) {
-  var container = d3.select("#allocation-over-time");
+  var containerID = '#allocation-over-time';
+  var container = d3.select(containerID);
   var parentWidth = container.node().clientWidth;
   var width = parentWidth;
   var height = width / 2;
 
-  var svg = d3.select("#allocation-over-time svg");
+  var svg = d3.select(containerID + " svg");
   svg.attr("width", width)
     .attr("height", height)
     .style("height", height + "px")
@@ -197,8 +198,10 @@ function buildAllocationOverTimeChart(data) {
         },
         transitionDuration: 300,
         useInteractiveGuideline: true,
-        forceY: [0]
+        forceY: [0],
+        controlOptions: ['Stacked', 'Expanded'],
       });
+
 
     chart.xAxis
       .axisLabel("Time")
@@ -224,9 +227,20 @@ function buildAllocationOverTimeChart(data) {
     nv.utils.windowResize(function() {
       resize(chart);
     });
+
     return chart;
   });
 }
+
+function removeStreamControl(chartID) {
+    // Remove the "stream" option from the chart
+    var streamControl = $('#allocation-over-time .nv-controlsWrap > .nv-legend > g > .nv-series:nth-child(2)');
+    var expandedControl = $('#allocation-over-time .nv-controlsWrap > .nv-legend > g > .nv-series:nth-child(3)');
+
+    expandedControl.attr('transform', streamControl.attr('transform'));
+    streamControl.remove();
+}
+
 
 function buildOnDutyByBeatChart(data) {
   var container = d3.select("#on-duty-by-beat");
