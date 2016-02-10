@@ -24,15 +24,6 @@ var OfficerAllocationFilter = Filter.extend({
   template: require("../templates/officer_allocation_filter.html")
 });
 
-// Beats and districts both need to access the same colors
-var districtColors = {
-  "1": "#9edae5",
-  "2": "#17becf",
-  "3": "#dbdb8d",
-  "4": "#bcbd22",
-  "5": "#c7c7c7"
-};
-
 var dashboard = new Page({
   components: {
     "Filter": OfficerAllocationFilter
@@ -158,8 +149,6 @@ function cleanupData(data) {
 }
 
 monitorChart(dashboard, "data.allocation_over_time", buildAllocationOverTimeChart);
-monitorChart(dashboard, "data.on_duty_by_beat", buildOnDutyByBeatChart);
-monitorChart(dashboard, "data.on_duty_by_district", buildOnDutyByDistrictChart);
 
 function buildAllocationOverTimeChart(data) {
   var containerID = '#allocation-over-time';
@@ -246,133 +235,4 @@ function removeStreamControl(chartID) {
 
     expandedControl.attr('transform', streamControl.attr('transform'));
     streamControl.remove();
-}
-
-
-function buildOnDutyByBeatChart(data) {
-  var container = d3.select("#on-duty-by-beat");
-  var parentWidth = container.node().clientWidth;
-  var width = parentWidth;
-  var height = width;
-
-  var svg = d3.select("#on-duty-by-beat svg");
-  svg.attr("width", width)
-    .attr("height", height)
-    .style("height", height + "px")
-    .style("width", width + "px");
-
-  var resize = function(chart) {
-    width = container.node().clientWidth;
-    height = width;
-
-    container.select("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .style("height", height + "px")
-      .style("width", width + "px");
-
-    chart.height(height).width(width);
-
-    chart.update();
-  };
-
-  nv.addGraph(function() {
-    var chart = nv.models.multiBarHorizontalChart()
-      .x(
-        function(d) {
-          return d.beat;
-        })
-      .y(
-        function(d) {
-          return d3.round(d.on_duty, 2);
-        })
-      .duration(250)
-      .barColor(function(d) {
-        return districtColors[d.beat.substring(0, 1)];
-      })
-      .showControls(false)
-      .showLegend(false)
-      .height(height)
-      .width(width);
-
-    chart.yAxis.tickFormat(d3.format(".,2r"));
-
-    svg.datum(data).call(chart);
-
-    svg.selectAll(".nv-bar").style("cursor", "pointer");
-    chart.multibar.dispatch.on(
-      "elementClick",
-      function(e) {
-        toggleFilter(dashboard, "call_unit__beat", e.data.beat_id);
-      });
-
-    nv.utils.windowResize(function() {
-      resize(chart);
-    });
-    return chart;
-  });
-}
-
-function buildOnDutyByDistrictChart(data) {
-  var container = d3.select("#on-duty-by-district");
-  var parentWidth = container.node().clientWidth;
-  var width = parentWidth;
-  var height = width;
-
-  var svg = d3.select("#on-duty-by-district svg");
-  svg.attr("width", width)
-    .attr("height", height)
-    .style("height", height + "px")
-    .style("width", width + "px");
-
-  var resize = function(chart) {
-    width = container.node().clientWidth;
-    height = width;
-
-    container.select("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .style("height", height + "px")
-      .style("width", width + "px");
-
-    chart.height(height).width(width);
-
-    chart.update();
-  };
-
-  nv.addGraph(function() {
-    var chart = nv.models.multiBarHorizontalChart()
-      .x(
-        function(d) {
-          return d.district;
-        })
-      .y(
-        function(d) {
-          return d3.round(d.on_duty, 2);
-        })
-      .duration(250)
-      .barColor(function(d) {
-        return districtColors[d.district.substring(1, 2)];
-      })
-      .showControls(false)
-      .showLegend(false)
-      .height(height)
-      .width(width);
-
-    chart.yAxis.tickFormat(d3.format(".,2r"));
-
-    svg.datum(data).call(chart);
-
-    svg.selectAll(".nv-bar").style("cursor", "pointer");
-    chart.multibar.dispatch.on(
-      "elementClick",
-      function(e) {
-        toggleFilter(dashboard, "call_unit__district", e.data.district_id);
-      });
-
-    nv.utils.windowResize(function() {
-      resize(chart);
-    });
-    return chart;
-  });
 }

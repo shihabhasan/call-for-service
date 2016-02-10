@@ -243,8 +243,9 @@ class OfficerActivityOverview:
             'filter': self.filter.data,
             'bounds': self.bounds,
             'allocation_over_time': self.allocation_over_time(),
-            'on_duty_by_beat': self.on_duty_by_beat(),
-            'on_duty_by_district': self.on_duty_by_district(),
+            # Not using these on the front-end anymore
+            #'on_duty_by_beat': self.on_duty_by_beat(),
+            #'on_duty_by_district': self.on_duty_by_district(),
         }
 
 
