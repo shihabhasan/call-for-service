@@ -1,4 +1,5 @@
 import "nvd3/build/nv.d3.css";
+import "../styles/officer_allocation.scss";
 
 import {
   Page,
@@ -199,8 +200,14 @@ function buildAllocationOverTimeChart(data) {
         transitionDuration: 300,
         useInteractiveGuideline: true,
         forceY: [0],
+        // Remove the "Stream" option
         controlOptions: ['Stacked', 'Expanded'],
       });
+
+    // Disable legend clicking
+    chart.legend.options({
+        updateState: false,
+    });
 
 
     chart.xAxis
