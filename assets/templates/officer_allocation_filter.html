@@ -2,9 +2,9 @@
     <filter-button field="time" />
     <filter-button field="call_unit__district" />
     <filter-button field="call_unit__squad" />
-    [[ #if filter ]]
+    {{ #if filter }}
     <div class="btn-group filter-button">
         <a class="btn btn-danger" href="#!">Clear All Filters</a>
     </div>
-    [[ /if ]]
+    {{ /if }}
 </div>
