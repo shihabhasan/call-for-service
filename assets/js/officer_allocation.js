@@ -84,10 +84,10 @@ function cleanupData(data) {
     key: "Officer-Initiated Call",
     values: []
   }, {
-    key: "Out of Service",
+    key: "Directed Patrol",
     values: []
   }, {
-    key: "Directed Patrol",
+    key: "Out of Service",
     values: []
   }, {
     key: "Patrol",
