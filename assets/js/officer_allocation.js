@@ -1,4 +1,5 @@
 import "nvd3/build/nv.d3.css";
+import "../styles/officer_allocation.scss";
 
 import {
   Page,
@@ -22,15 +23,6 @@ var url = "/api/officer_allocation/";
 var OfficerAllocationFilter = Filter.extend({
   template: require("../templates/officer_allocation_filter.html")
 });
-
-// Beats and districts both need to access the same colors
-var districtColors = {
-  "1": "#9edae5",
-  "2": "#17becf",
-  "3": "#dbdb8d",
-  "4": "#bcbd22",
-  "5": "#c7c7c7"
-};
 
 var dashboard = new Page({
   components: {
@@ -83,10 +75,10 @@ function cleanupData(data) {
     key: "Officer-Initiated Call",
     values: []
   }, {
-    key: "Out of Service",
+    key: "Directed Patrol",
     values: []
   }, {
-    key: "Directed Patrol",
+    key: "Out of Service",
     values: []
   }, {
     key: "Patrol",
@@ -157,16 +149,15 @@ function cleanupData(data) {
 }
 
 monitorChart(dashboard, "data.allocation_over_time", buildAllocationOverTimeChart);
-monitorChart(dashboard, "data.on_duty_by_beat", buildOnDutyByBeatChart);
-monitorChart(dashboard, "data.on_duty_by_district", buildOnDutyByDistrictChart);
 
 function buildAllocationOverTimeChart(data) {
-  var container = d3.select("#allocation-over-time");
+  var containerID = '#allocation-over-time';
+  var container = d3.select(containerID);
   var parentWidth = container.node().clientWidth;
   var width = parentWidth;
   var height = width / 2;
 
-  var svg = d3.select("#allocation-over-time svg");
+  var svg = d3.select(containerID + " svg");
   svg.attr("width", width)
     .attr("height", height)
     .style("height", height + "px")
@@ -197,8 +188,16 @@ function buildAllocationOverTimeChart(data) {
         },
         transitionDuration: 300,
         useInteractiveGuideline: true,
-        forceY: [0]
+        forceY: [0],
+        // Remove the "Stream" option
+        controlOptions: ['Stacked', 'Expanded'],
       });
+
+    // Disable legend clicking
+    chart.legend.options({
+        updateState: false,
+    });
+
 
     chart.xAxis
       .axisLabel("Time")
@@ -224,134 +223,16 @@ function buildAllocationOverTimeChart(data) {
     nv.utils.windowResize(function() {
       resize(chart);
     });
+
     return chart;
   });
 }
 
-function buildOnDutyByBeatChart(data) {
-  var container = d3.select("#on-duty-by-beat");
-  var parentWidth = container.node().clientWidth;
-  var width = parentWidth;
-  var height = width;
+function removeStreamControl(chartID) {
+    // Remove the "stream" option from the chart
+    var streamControl = $('#allocation-over-time .nv-controlsWrap > .nv-legend > g > .nv-series:nth-child(2)');
+    var expandedControl = $('#allocation-over-time .nv-controlsWrap > .nv-legend > g > .nv-series:nth-child(3)');
 
-  var svg = d3.select("#on-duty-by-beat svg");
-  svg.attr("width", width)
-    .attr("height", height)
-    .style("height", height + "px")
-    .style("width", width + "px");
-
-  var resize = function(chart) {
-    width = container.node().clientWidth;
-    height = width;
-
-    container.select("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .style("height", height + "px")
-      .style("width", width + "px");
-
-    chart.height(height).width(width);
-
-    chart.update();
-  };
-
-  nv.addGraph(function() {
-    var chart = nv.models.multiBarHorizontalChart()
-      .x(
-        function(d) {
-          return d.beat;
-        })
-      .y(
-        function(d) {
-          return d3.round(d.on_duty, 2);
-        })
-      .duration(250)
-      .barColor(function(d) {
-        return districtColors[d.beat.substring(0, 1)];
-      })
-      .showControls(false)
-      .showLegend(false)
-      .height(height)
-      .width(width);
-
-    chart.yAxis.tickFormat(d3.format(".,2r"));
-
-    svg.datum(data).call(chart);
-
-    svg.selectAll(".nv-bar").style("cursor", "pointer");
-    chart.multibar.dispatch.on(
-      "elementClick",
-      function(e) {
-        toggleFilter(dashboard, "call_unit__beat", e.data.beat_id);
-      });
-
-    nv.utils.windowResize(function() {
-      resize(chart);
-    });
-    return chart;
-  });
-}
-
-function buildOnDutyByDistrictChart(data) {
-  var container = d3.select("#on-duty-by-district");
-  var parentWidth = container.node().clientWidth;
-  var width = parentWidth;
-  var height = width;
-
-  var svg = d3.select("#on-duty-by-district svg");
-  svg.attr("width", width)
-    .attr("height", height)
-    .style("height", height + "px")
-    .style("width", width + "px");
-
-  var resize = function(chart) {
-    width = container.node().clientWidth;
-    height = width;
-
-    container.select("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .style("height", height + "px")
-      .style("width", width + "px");
-
-    chart.height(height).width(width);
-
-    chart.update();
-  };
-
-  nv.addGraph(function() {
-    var chart = nv.models.multiBarHorizontalChart()
-      .x(
-        function(d) {
-          return d.district;
-        })
-      .y(
-        function(d) {
-          return d3.round(d.on_duty, 2);
-        })
-      .duration(250)
-      .barColor(function(d) {
-        return districtColors[d.district.substring(1, 2)];
-      })
-      .showControls(false)
-      .showLegend(false)
-      .height(height)
-      .width(width);
-
-    chart.yAxis.tickFormat(d3.format(".,2r"));
-
-    svg.datum(data).call(chart);
-
-    svg.selectAll(".nv-bar").style("cursor", "pointer");
-    chart.multibar.dispatch.on(
-      "elementClick",
-      function(e) {
-        toggleFilter(dashboard, "call_unit__district", e.data.district_id);
-      });
-
-    nv.utils.windowResize(function() {
-      resize(chart);
-    });
-    return chart;
-  });
+    expandedControl.attr('transform', streamControl.attr('transform'));
+    streamControl.remove();
 }
