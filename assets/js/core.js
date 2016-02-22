@@ -181,7 +181,7 @@ export var Filter = Ractive.extend({
     var component = this;
 
     function updateFilter() {
-      var newFilter = {}
+      var newFilter = {};
       if (window.location.hash) {
         newFilter = parseQueryParams(window.location.hash.slice(1));
       }
@@ -192,7 +192,7 @@ export var Filter = Ractive.extend({
           "lte": getLastSunday().subtract(1, "days").format("YYYY-MM-DD"),
         }
       }
-      
+
       component.set("filter", newFilter);
     }
 
