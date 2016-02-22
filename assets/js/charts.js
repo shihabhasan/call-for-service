@@ -1,3 +1,5 @@
+import "leaflet-easybutton/src/easy-button.css";
+
 import { toggleFilter } from "./core";
 
 import d3 from "d3";
@@ -6,6 +8,8 @@ import colorbrewer from "colorbrewer";
 import Q from "q";
 import L from "leaflet";
 import _ from "underscore";
+
+import "leaflet-easybutton";
 
 export var Heatmap = function(options) {
   // Expected data:
@@ -544,6 +548,12 @@ export var DurhamMap = function(options) {
         maxZoom: 16,
         scrollWheelZoom: false
       });
+
+    var centerBtn = L.easyButton('fa-crosshairs', function (btn, map) {
+      map.fitBounds(bounds);
+    });
+
+    centerBtn.addTo(map);
 
     function resize() {
       var container = d3.select(self.container).node(),
