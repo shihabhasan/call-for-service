@@ -74,7 +74,7 @@ var FilterButton = Ractive.extend({
     if (this.get("fieldType") === "daterange") {
       var $button = $("#button_" + field);
       var value = this.get("filterValue")(field, this.get("filter"));
-      var pastSunday = moment().day("Sunday").startOf("day");
+      var pastSunday = getLastSunday();
 
       // todo set up ranges
       var ranges = {
@@ -181,11 +181,19 @@ export var Filter = Ractive.extend({
     var component = this;
 
     function updateFilter() {
+      var newFilter = {}
       if (window.location.hash) {
-        component.set("filter", parseQueryParams(window.location.hash.slice(1)));
-      } else {
-        component.set("filter", {});
+        newFilter = parseQueryParams(window.location.hash.slice(1));
       }
+
+      if (!newFilter['time_received']) {
+        newFilter['time_received'] = {
+          "gte": getLastSunday().subtract(28, "days").format("YYYY-MM-DD"),
+          "lte": getLastSunday().subtract(1, "days").format("YYYY-MM-DD"),
+        }
+      }
+      
+      component.set("filter", newFilter);
     }
 
     updateFilter();
@@ -230,6 +238,10 @@ export var Page = Ractive.extend({
 // ========================================================================
 // Functions
 // ========================================================================
+
+function getLastSunday() {
+  return moment().day("Sunday").startOf("day");
+}
 
 function findField(fieldName) {
   return _(filterForm.fields).find(function(field) {
