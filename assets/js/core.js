@@ -16,6 +16,19 @@ import d3 from "d3";
 
 Ractive.DEBUG = /unminified/.test(function() { /*unminified*/ });
 
+var helpers = Ractive.defaults.data;
+
+helpers.formatCount = function (number, singular, plural) {
+  if (!plural) {
+    plural = singular + "s";
+  }
+  if (number) {
+    var retval = d3.format(",d")(number) + " ";
+    retval += (number === 1) ? singular : plural;
+    return retval;
+  }
+}
+
 var NavBar = Ractive.extend({
   template: require("../templates/navbar.html")
 });

@@ -1,4 +1,6 @@
-<NavBar filterHash="{{ filterHash }}" />
+<NavBar filterHash="{{ filterHash }}"
+        rightText="{{ formatCount(data.count, "call") }}"
+/>
 <LoadingIndicator loading="{{ loading }}" />
 <div class="row">
   <div class="col-md-12">
