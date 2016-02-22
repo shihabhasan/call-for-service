@@ -19,7 +19,6 @@ def build_filter(filter_set):
 
     for field in fields:
         if field.get('rel') and not refs.get(field['rel']):
-
             # Enabling filtering on related fields will be tricky for
             # the Call model, since it's not just a descr we need to
             # display.  We'll bypass that for now.
@@ -29,8 +28,12 @@ def build_filter(filter_set):
             model = getattr(models, field['rel'])
             pk_name = model._meta.pk.name
             refs[field['rel']] = list(
-                    model.objects.all().order_by("descr").values_list(pk_name,
-                                                                      "descr"))
+                model.objects.all().order_by("descr").values_list(pk_name,
+                                                                  "descr"))
+            if field['rel'] == 'Priority':
+                refs['Priority'] = \
+                    sorted(refs['Priority'],
+                           key=lambda x: 0 if x[1] == "P" else int(x[1]))
 
     out["refs"] = refs
     return out
@@ -72,10 +75,10 @@ class OfficerAllocationDashboardView(View):
         # We want only the values of CallUnit where squad isn't null.
         # We don't want to show a bunch of bogus units for filtering.
         filter_obj['refs']['CallUnit'] = list(
-                models.CallUnit.objects
-                    .filter(squad__isnull=False)
-                    .order_by('descr')
-                    .values_list('call_unit_id', 'descr'))
+            models.CallUnit.objects
+                .filter(squad__isnull=False)
+                .order_by('descr')
+                .values_list('call_unit_id', 'descr'))
 
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="officer_allocation",
@@ -172,8 +175,8 @@ class CallExportView(View):
         ]
 
         response = StreamingHttpResponse(
-                CSVIterator(filter_set.filter(), fields),
-                content_type='text/csv')
+            CSVIterator(filter_set.filter(), fields),
+            content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="calls.csv"'
 
         return response
