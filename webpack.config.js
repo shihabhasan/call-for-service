@@ -36,7 +36,8 @@ module.exports = {
     new webpack.ProvidePlugin({
       $: "jquery",
       "window.jQuery": "jquery",
-      "jQuery": "jquery"
+      "jQuery": "jquery",
+      "L": "leaflet"
     }),
     new ExtractTextPlugin("[name]-[hash].css"),
     new webpack.optimize.CommonsChunkPlugin({

@@ -19,9 +19,6 @@ class CallPagination(PageNumberPagination):
 class CallViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows calls to be viewed.
-
-    You can filter by date/time using `time_received__gte` for received start
-    date and `time_received__lte` for received end date.
     """
     queryset = Call.objects.order_by('time_received') \
         .select_related('district') \
