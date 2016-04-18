@@ -186,8 +186,16 @@ export var Filter = Ractive.extend({
         newFilter = parseQueryParams(window.location.hash.slice(1));
       }
 
+      // Time field for the call volume and response time pages
       if (!newFilter['time_received']) {
         newFilter['time_received'] = {
+          "gte": getLastSunday().subtract(28, "days").format("YYYY-MM-DD"),
+          "lte": getLastSunday().subtract(1, "days").format("YYYY-MM-DD"),
+        }
+      }
+      // Time field for the officer allocation page
+      else if (!newFilter['time']) {
+        newFilter['time'] = {
           "gte": getLastSunday().subtract(28, "days").format("YYYY-MM-DD"),
           "lte": getLastSunday().subtract(1, "days").format("YYYY-MM-DD"),
         }
