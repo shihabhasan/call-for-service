@@ -194,7 +194,7 @@ export var Filter = Ractive.extend({
         }
       }
       // Time field for the officer allocation page
-      else if (!newFilter['time']) {
+      if (!newFilter['time']) {
         newFilter['time'] = {
           "gte": getLastSunday().subtract(28, "days").format("YYYY-MM-DD"),
           "lte": getLastSunday().subtract(1, "days").format("YYYY-MM-DD"),
