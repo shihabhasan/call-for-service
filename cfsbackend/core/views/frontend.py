@@ -1,7 +1,7 @@
 import csv
 import json
 
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render_to_response
 from django.views.generic import View, TemplateView
 from url_filter.filtersets import StrictMode
@@ -174,9 +174,12 @@ class CallExportView(View):
             'reporting_unit',
         ]
 
-        response = StreamingHttpResponse(
-            CSVIterator(filter_set.filter(), fields),
-            content_type='text/csv')
+        response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="calls.csv"'
+        writer = csv.DictWriter(response, fieldnames=fields)
+        writer.writerow(dict(zip(fields, fields)))
+        for record in filter_set.filter():
+            serializer = CallExportSerializer(record)
+            writer.writerow(serializer.data)
 
         return response
