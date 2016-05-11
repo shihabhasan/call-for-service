@@ -174,12 +174,17 @@ class CallExportView(View):
             'reporting_unit',
         ]
 
-        response = HttpResponse(content_type='text/csv')
+        # response = HttpResponse(content_type='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename="calls.csv"'
+        # writer = csv.DictWriter(response, fieldnames=fields)
+        # writer.writerow(dict(zip(fields, fields)))
+        # for record in filter_set.filter():
+        #     serializer = CallExportSerializer(record)
+        #     writer.writerow(serializer.data)
+
+        response = StreamingHttpResponse(
+            CSVIterator(filter_set.filter(), fields),
+            content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="calls.csv"'
-        writer = csv.DictWriter(response, fieldnames=fields)
-        writer.writerow(dict(zip(fields, fields)))
-        for record in filter_set.filter():
-            serializer = CallExportSerializer(record)
-            writer.writerow(serializer.data)
 
         return response
