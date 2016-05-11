@@ -110,16 +110,19 @@ def unique_clean_values(column):
 
 
 class ETL:
-    def __init__(self, dir, subsample=None, batch_size=2000):
+    def __init__(self, dir, reset=False, subsample=None, batch_size=2000):
         self.dir = dir
         self.subsample = subsample
         self.mapping = {}
         self.start_time = None
         self.batch_size = batch_size
+        self.reset = reset
 
     def run(self):
         self.start_time = dt.datetime.now()
-        self.clear_database()
+
+        if self.reset:
+            self.clear_database()
 
         self.calls = self.load_calls()
 
@@ -238,11 +241,22 @@ class ETL:
         if self.subsample:
             df = df.sample(frac=self.subsample)
 
+        df = self.exclude_existing(df, Call, 'inci_id', 'call_id')
+
         return df
 
+    def get_key_set(self, model, key_col):
+        return set(model.objects.values_list(key_col, flat=True))
+
+    def exclude_existing(self, df, model, data_key_col, db_key_col):
+        existing_ids = self.get_key_set(model, db_key_col)
+        return df[df.apply(lambda x: x[data_key_col] not in existing_ids, axis=1)]
+        
     def create_from_calls(self, column, model, to_field, from_field='descr'):
         self.log("Creating {} data from calls...".format(model.__name__))
         xs = unique_clean_values(self.calls[column])
+        xs -= self.get_key_set(model, from_field)
+
         model.objects.bulk_create(model(**{from_field: x}) for x in xs)
         return dict(model.objects.values_list(from_field, to_field))
 
@@ -255,6 +269,8 @@ class ETL:
             data = pd.read_csv(os.path.join(self.dir, filename))
         elif filename.endswith(".tsv"):
             data = pd.read_csv(os.path.join(self.dir, filename), sep='\t')
+
+        data = self.exclude_existing(data, model, code_column, from_field)
 
         for idx, row in data.iterrows():
             md = {}
@@ -284,8 +300,7 @@ class ETL:
             list(self.call_log.unitcode.values))
 
     def create_call_units_from_values(self, values):
-        current_unit_descrs = set(
-            CallUnit.objects.values_list('descr', flat=True))
+        current_unit_descrs = self.get_key_set(CallUnit, 'descr')
         unitset = {unit.strip() for unit in values if
                    unit and not isnan(unit) and unit.strip()}
         units_to_create = unitset - current_unit_descrs
@@ -299,6 +314,10 @@ class ETL:
         for note in notes:
             if note[2] is not None:
                 note_authors.add(note[2])
+
+        # Don't create authors we already have
+        note_authors -= self.get_key_set(NoteAuthor, 'descr')
+
         NoteAuthor.objects.bulk_create(
             [NoteAuthor(descr=n) for n in note_authors])
         return dict(NoteAuthor.objects.values_list('descr', 'note_author_id'))
@@ -440,8 +459,11 @@ class ETL:
             'VIR': '^ED6[0-6]$'
         }
 
+        existing_squads = self.get_key_set(Squad, 'descr')
+
         Squad.objects.bulk_create(
-            Squad(descr=s) for s in call_unit_squad_regexes.keys())
+            Squad(descr=s) for s in call_unit_squad_regexes.keys()
+              if s not in existing_squads)
         self.mapping['Squad'] = dict(
             Squad.objects.values_list('descr', 'squad_id'))
 
@@ -478,6 +500,8 @@ class ETL:
         if self.subsample:
             df = df.sample(frac=self.subsample)
 
+        df = self.exclude_existing(df, Shift, 'unitperid', 'shift_id')
+
         return df
 
     def create_shifts(self):
@@ -489,16 +513,19 @@ class ETL:
     def create_officers(self):
         self.log("Creating officers from in service data...")
         officers = {}
+        existing_officers = self.get_key_set(Officer, 'officer_id')
         for idx, row in self.in_service.iterrows():
             id = row.officerid
             name = clean_officer_name(row['name'])
 
-            if id not in officers:
+            # Only load new officers if we don't already have them in the db
+            if id not in officers and id not in existing_officers:
                 if name.isdigit():
                     officers[id] = {'name_aka': [name]}
                 else:
                     officers[id] = {'name': name, 'name_aka': []}
-            else:
+            # Keep track of all names of new officers
+            elif id not in officers:
                 if ('name' in officers[id] or name.isdigit()) and \
                         name and name not in officers[id]['name_aka'] and \
                                 name != officers[id]['name']:
@@ -547,6 +574,9 @@ class ETL:
         df = pd.read_csv(filename, encoding='ISO-8859-1')
         strip_dataframe(df)
 
+        df = self.exclude_existing(df, OutOfServicePeriod, 'outservid',
+                'oos_id')
+
         start = 0
         while start < len(df):
             batch = df[start:start + self.batch_size]
@@ -584,7 +614,11 @@ class ETL:
                                     "cfs_{}2014_incilog.csv".format(month))
             if not os.path.isfile(filename):
                 continue
-            dfs.append(pd.read_csv(filename, encoding='ISO-8859-1'))
+
+            df = pd.read_csv(filename, encoding='ISO-8859-1')
+            df = self.exclude_existing(df, CallLog, 'incilogid', 'call_log_id')
+            dfs.append(df)
+
         df = pd.concat(dfs)
         strip_dataframe(df)
 
@@ -606,6 +640,10 @@ class ETL:
         grouped = trans_data.groupby("transtype")
         for code, row in grouped.first().iterrows():
             transactions[code] = row.descript
+        
+        existing_codes = self.get_key_set(Transaction, 'code')
+        transactions = {code: descr for code, descr in transactions.items() \
+                if code not in existing_codes}
 
         Transaction.objects.bulk_create(
             Transaction(code=code, descr=descr) for code, descr in
@@ -613,6 +651,8 @@ class ETL:
         return dict(Transaction.objects.values_list('code', 'transaction_id'))
 
     def create_call_log(self):
+        existing_ids = self.get_key_set(CallLog, 'call_log_id')
+
         try:
             start = 0
             while start < len(self.call_log):
@@ -620,16 +660,19 @@ class ETL:
                 cls = []
 
                 for idx, s in batch.iterrows():
-                    cl = CallLog(call_log_id=safe_int(s.incilogid),
-                                 transaction_id=self.map('Transaction',
-                                                         s.transtype),
-                                 time_recorded=safe_datetime(s.timestamp),
-                                 call_id=safe_int(s.inci_id),
-                                 call_unit_id=self.map('CallUnit', s.unitcode),
-                                 shift_id=self.map('Shift', s.unitperid),
-                                 close_code_id=self.map('CloseCode',
-                                                        s.closecode))
-                    cls.append(cl)
+                    call_log_id = safe_int(s.incilogid)
+
+                    if call_log_id not in existing_ids:
+                        cl = CallLog(call_log_id=safe_int(s.incilogid),
+                                     transaction_id=self.map('Transaction',
+                                                             s.transtype),
+                                     time_recorded=safe_datetime(s.timestamp),
+                                     call_id=safe_int(s.inci_id),
+                                     call_unit_id=self.map('CallUnit', s.unitcode),
+                                     shift_id=self.map('Shift', s.unitperid),
+                                     close_code_id=self.map('CloseCode',
+                                                            s.closecode))
+                        cls.append(cl)
 
                 CallLog.objects.bulk_create(cls)
                 self.log(
@@ -643,9 +686,14 @@ class ETL:
         self.log("Creating nature groups...")
         filename = os.path.join(self.dir, "nature_grouping.csv")
         df = pd.read_csv(filename, encoding='ISO-8859-1')
+
         strip_dataframe(df)
 
         groups = unique_clean_values(df['group'])
+
+        existing_groups = self.get_key_set(NatureGroup, 'descr')
+        groups = [g for g in groups if g not in existing_groups]
+
         NatureGroup.objects.bulk_create(NatureGroup(descr=g) for g in groups)
         self.mapping['NatureGroup'] = dict(
             NatureGroup.objects.values_list('descr', 'nature_group_id'))
@@ -663,5 +711,9 @@ class ETL:
             'OUT OF SERVICE',
             'ON DUTY'
         ]
+
+        existing_types = self.get_key_set(OfficerActivityType, 'descr')
+        types = [t for t in types if t not in existing_types]
+
         OfficerActivityType.objects.bulk_create(OfficerActivityType(descr=t) for t in types)
 
