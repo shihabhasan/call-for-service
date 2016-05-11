@@ -1,5 +1,6 @@
 import csv
 import json
+from io import StringIO
 
 from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render_to_response
@@ -182,9 +183,46 @@ class CallExportView(View):
         #     serializer = CallExportSerializer(record)
         #     writer.writerow(serializer.data)
 
-        response = StreamingHttpResponse(
-            CSVIterator(filter_set.filter(), fields),
-            content_type='text/csv')
+        def data():
+            csvfile = StringIO()
+            csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
+            csvwriter.writerow(dict(zip(fields, fields)))
+            yield csvfile.getvalue()
+
+            for record in filter_set.filter().iterator():
+                csvfile = StringIO()
+                csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
+                serializer = CallExportSerializer(record)
+                csvwriter.writerow(serializer.data)
+                yield csvfile.getvalue()
+
+        response = StreamingHttpResponse(data(), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="calls.csv"'
+
+        # response = StreamingHttpResponse(
+        #     CSVIterator(filter_set.filter(), fields),
+        #     content_type='text/csv')
+        # response['Content-Disposition'] = 'attachment; filename="calls.csv"'
+
+        # csvfile = StringIO()
+        # csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
+        #
+        # def read_and_flush():
+        #     csvfile.seek(0)
+        #     data = csvfile.read()
+        #     csvfile.seek(0)
+        #     csvfile.truncate()
+        #     return data
+        #
+        # def data():
+        #     csvwriter.writerow(dict(zip(fields, fields)))
+        #     for record in filter_set.filter().iterator():
+        #         serializer = CallExportSerializer(record)
+        #         csvwriter.writerow(serializer.data)
+        #     data = read_and_flush()
+        #     yield data
+        #
+        # response = HttpResponse(data(), content_type="text/csv")
+        # response["Content-Disposition"] = "attachment; filename=calls.csv"
 
         return response
