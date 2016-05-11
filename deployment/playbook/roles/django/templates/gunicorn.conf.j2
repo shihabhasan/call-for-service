@@ -9,4 +9,4 @@ env PYTHONPATH={{ django.root }}
 env DJANGO_SETTINGS_MODULE={{ django.settings }}
 export PYTHONPATH DJANGO_SETTINGS_MODULE
 
-exec {{ project.virtualenv }}/bin/gunicorn --workers 3 --worker_class gevent -b unix:{{ project.root }}gunicorn.sock {{ django.wsgi }}:application --settings={{ django.settings }}
+exec {{ project.virtualenv }}/bin/gunicorn --workers 3 --worker_class eventlet -b unix:{{ project.root }}gunicorn.sock {{ django.wsgi }}:application --settings={{ django.settings }}
