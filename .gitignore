@@ -151,3 +151,4 @@ cfsbackend/cfsbackend/staticfiles/
 .eslintrc.json
 assets/bundles/
 webpack-stats.json
+deployment/playbook/all.retry
