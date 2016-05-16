@@ -469,6 +469,13 @@ class CallMapOverview(CallOverview):
         return self.qs.values_list('geox', 'geoy', 'street_num', 'street_name',
                                    'business')
 
+    def top_users(self):
+        return self.qs. \
+            exclude(street_name=""). \
+            values('street_num', 'street_name', 'business'). \
+            annotate(total=Count('street_num')). \
+            order_by('-total')[:20]
+
     def to_dict(self):
         return {
             'filter': self.filter.data,

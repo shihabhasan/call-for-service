@@ -42,10 +42,64 @@ var dashboard = new Page({
             if (error) throw error;
             this.set("loading", false);
             this.set("initialload", false);
-            this.set("data", newData);
+            this.set("data", cleanData(newData));
         }, this));
     }
 });
+
+function cleanData(data) {
+    var locations = data.locations.map(function (datum) {
+        var loc = proj4(ncStatePlane, wgs84, [datum[0], datum[1]]);
+        return {
+            lat: loc[1],
+            lng: loc[0],
+            address: _([datum[2], datum[3]]).reject(_.isNull).join(" "),
+            street_num: datum[2],
+            street_name: datum[3],
+            business: datum[4]
+        }
+    });
+
+    data.locations = locations;
+
+    data.top_locations = getTopAddresses(locations, 20);
+    console.log(data.top_locations);
+
+    return data;
+}
+
+function getTopAddresses (locations, count) {
+    locations = _(locations).reject(function (d) {
+        return _.isNull(d.street_name) || d.street_name === "";
+    });
+
+    var data = d3.nest()
+        .key(function (d) { return d.address; })
+        .rollup(function (v) {
+            return {
+                count: v.length,
+                business: _.chain(v)
+                    .map(function (d) { return d.business })
+                    .compact()
+                    .unique()
+                    .value()
+                    .join(", ")
+            }
+        })
+        .entries(locations)
+        .sort(function (a, b) { return b.values.count - a.values.count })
+        .slice(0, count);
+
+    console.log(data);
+
+    return data.map(function (d) {
+        return {
+            address: d.key,
+            business: d.values.business,
+            total: d.values.count
+        }
+    });
+}
 
 var DurhamClusterMap = function (options) {
     var self = this;
@@ -160,12 +214,16 @@ var DurhamClusterMap = function (options) {
         var datum;
 
         var markers = data.map(function (datum) {
-            var loc = proj4(ncStatePlane,wgs84,[datum[0], datum[1]]);
-            var marker = new PruneCluster.Marker(loc[1], loc[0]);
+            var marker = new PruneCluster.Marker(datum.lat, datum.lng);
+
+            if (datum.business) {
+                marker.data.popup = `${datum.address} (${datum.business})`
+            } else {
+                marker.data.popup = datum.address;
+            }
+
             return marker;
         });
-
-        console.log(markers);
 
         this.pruneCluster.RegisterMarkers(markers);
         this.pruneCluster.ProcessView();
@@ -185,7 +243,7 @@ var DurhamClusterMap = function (options) {
 var map = new DurhamClusterMap({
     el: "#map",
     dashboard: dashboard,
-    ratio: 2
+    ratio: 0.9
 });
 
 monitorChart(dashboard, "data.locations", map.update)

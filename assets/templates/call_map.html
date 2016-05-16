@@ -7,13 +7,48 @@
         <Filter/>
     </div>
     <div class="col-md-12">
-        <chart-header title="Call Map">
-            This map shows all calls, clustered into areas.
-        </chart-header>
+        <div class="row">
+            <div class="col-md-6">
+                <chart-header title="Call Map">
+                    This map shows all calls, clustered into areas.
+                </chart-header>
 
-        <div id="map-container">
-            <div id="legend"></div>
-            <div id="map"></div>
+                <div id="map-container">
+                    <div id="legend"></div>
+                    <div id="map"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <chart-header title="High Call Volume Locations">
+                    This table shows the 20 addresses with the most calls for
+                    service in the selected call set.
+                </chart-header>
+
+                <table class="table">
+                    <colgroup>
+                        <col style="width:15%">
+                        <col style="width:35%">
+                        <col style="width:60%">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Call Count</th>
+                        <th>Address</th>
+                        <th>Business</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{ #each data.top_locations }}
+                    <tr>
+                        <td>{{ total }}</td>
+                        <td>{{ address }}</td>
+                        <td>
+                            {{ #if business }}{{ business }}{{ else }}-{{ /if }}</td>
+                    </tr>
+                    {{ /each }}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
