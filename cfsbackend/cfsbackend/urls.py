@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^api/call_volume/$', views.APICallVolumeView.as_view()),
     url(r'^api/response_time/$', views.APICallResponseTimeView.as_view()),
     url(r'^api/officer_allocation/', views.APIOfficerAllocationView.as_view()),
+    url(r'^api/call_map/', views.APICallMapView.as_view()),
     url(r'^api/', include(router.urls)),
     url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^$', views.LandingPageView.as_view()),
@@ -21,4 +22,5 @@ urlpatterns = [
     url(r'^officer_allocation$', views.OfficerAllocationDashboardView.as_view()),
     url(r'^calls$', views.CallListView.as_view()),
     url(r'^calls.csv$', views.CallExportView.as_view()),
+    url(r'^call_map$', views.MapView.as_view())
 ]

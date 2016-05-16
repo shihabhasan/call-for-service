@@ -30,7 +30,6 @@ class Secs(Extract):
 
 
 class OfficerActivityOverview:
-
     def __init__(self, filters):
         self._filters = filters
         self.filter = OfficerActivityFilterSet(
@@ -244,13 +243,12 @@ class OfficerActivityOverview:
             'bounds': self.bounds,
             'allocation_over_time': self.allocation_over_time(),
             # Not using these on the front-end anymore
-            #'on_duty_by_beat': self.on_duty_by_beat(),
-            #'on_duty_by_district': self.on_duty_by_district(),
+            # 'on_duty_by_beat': self.on_duty_by_beat(),
+            # 'on_duty_by_district': self.on_duty_by_district(),
         }
 
 
 class CallOverview:
-
     def __init__(self, filters):
         self._filters = filters
         self.filter = CallFilterSet(data=filters, queryset=Call.objects.all(),
@@ -302,10 +300,10 @@ class CallOverview:
     def by_shift(self):
         results = self.qs \
             .annotate(id=Case(
-                When(Q(hour_received__gte=6) & Q(
-                    hour_received__lt=18), then=0),
-                default=1,
-                output_field=IntegerField())) \
+            When(Q(hour_received__gte=6) & Q(
+                hour_received__lt=18), then=0),
+            default=1,
+            output_field=IntegerField())) \
             .values("id") \
             .annotate(**self.annotations)
 
@@ -365,7 +363,7 @@ class CallVolumeOverview(CallOverview):
     def volume_by_date(self):
         results = self.qs \
             .annotate(
-                date=DateTrunc('time_received', precision=self.precision())) \
+            date=DateTrunc('time_received', precision=self.precision())) \
             .values("date") \
             .annotate(volume=Count("date")) \
             .order_by("date")
@@ -375,9 +373,9 @@ class CallVolumeOverview(CallOverview):
     def volume_by_source(self):
         results = self.qs \
             .annotate(id=Case(
-                When(call_source__descr="Self Initiated", then=0),
-                default=1,
-                output_field=IntegerField())) \
+            When(call_source__descr="Self Initiated", then=0),
+            default=1,
+            output_field=IntegerField())) \
             .values("id") \
             .annotate(**self.annotations)
 
@@ -466,8 +464,21 @@ class CallResponseTimeOverview(CallOverview):
         }
 
 
-class MapOverview(CallOverview):
+class CallMapOverview(CallOverview):
+    def locations(self):
+        return self.qs.values_list('geox', 'geoy', 'street_num', 'street_name',
+                                   'business')
 
+    def to_dict(self):
+        return {
+            'filter': self.filter.data,
+            'bounds': self.bounds,
+            'count': self.count(),
+            'locations': self.locations()
+        }
+
+
+class MapOverview(CallOverview):
     def officer_response_time_by_beat(self):
         results = self.qs \
             .annotate(name=F("beat__descr")) \
@@ -500,4 +511,4 @@ def dictfetchall(cursor):
     return [
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
-    ]
+        ]

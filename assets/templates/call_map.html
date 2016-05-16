@@ -1,0 +1,19 @@
+<NavBar filterHash="{{ filterHash }}"
+        rightText="{{ formatCount(data.count, "call") }}"
+/>
+<LoadingIndicator loading="{{ loading }}"/>
+<div class="row">
+    <div class="col-md-12">
+        <Filter/>
+    </div>
+    <div class="col-md-12">
+        <chart-header title="Call Map">
+            This map shows all calls, clustered into areas.
+        </chart-header>
+
+        <div id="map-container">
+            <div id="legend"></div>
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
