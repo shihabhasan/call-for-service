@@ -61,14 +61,12 @@ function cleanData(data) {
     });
 
     data.locations = locations;
-
-    data.top_locations = getTopAddresses(locations, 20);
-    console.log(data.top_locations);
+    // data.top_locations = getTopAddresses(locations, 20);
 
     return data;
 }
 
-function getTopAddresses (locations, count) {
+function getTopAddresses(locations, count) {
     locations = _(locations).reject(function (d) {
         return _.isNull(d.street_name) || d.street_name === "";
     });
@@ -89,8 +87,6 @@ function getTopAddresses (locations, count) {
         .entries(locations)
         .sort(function (a, b) { return b.values.count - a.values.count })
         .slice(0, count);
-
-    console.log(data);
 
     return data.map(function (d) {
         return {
@@ -130,6 +126,17 @@ var DurhamClusterMap = function (options) {
         return deferred.promise;
     };
 
+    function resetTopLocations(map) {
+        var bounds = map.getBounds();
+        var locations = dashboard.get('data.locations');
+        if (locations) {
+            locations = locations.filter(function (d) {
+                return bounds.contains(new L.LatLng(d.lat, d.lng))
+            });
+            dashboard.set('data.top_locations', getTopAddresses(locations, 20));
+        }
+    }
+
     this.create = function () {
         var northEast = L.latLng(36.13898378070337, -78.75068664550781),
             southWest = L.latLng(35.860952532806905, -79.04937744140625),
@@ -142,8 +149,9 @@ var DurhamClusterMap = function (options) {
                 maxBounds: bounds,
                 minZoom: 11,
                 maxZoom: 18,
-                scrollWheelZoom: false
+                scrollWheelZoom: true
             });
+        this.map = map;
 
         map.addLayer(this.pruneCluster);
 
@@ -152,6 +160,9 @@ var DurhamClusterMap = function (options) {
         });
 
         centerBtn.addTo(map);
+
+        map.on('moveend', function () { resetTopLocations(map) });
+
 
         function resize() {
             var container = d3.select(self.container).node(),
@@ -227,6 +238,8 @@ var DurhamClusterMap = function (options) {
 
         this.pruneCluster.RegisterMarkers(markers);
         this.pruneCluster.ProcessView();
+
+        resetTopLocations(this.map);
     };
 
     this.update = function (newData) {

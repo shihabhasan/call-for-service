@@ -109,8 +109,6 @@ callList.on("Pagination.prevPage", _.bind(function () {
 }, callList));
 
 callList.on("ClickField.addFilter", _.bind(function (event, field, value) {
-  console.log(field);
-  console.log(value);
   toggleFilter(callList, field, value);
   return false;
 }, callList));
@@ -118,7 +116,6 @@ callList.on("ClickField.addFilter", _.bind(function (event, field, value) {
 
 
 function cleanupData(data) {
-  console.log(data);
   return data;
 }
 
