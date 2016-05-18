@@ -1,8 +1,10 @@
 ---
 - name: Configure server
   hosts: all
-  sudo: yes
   remote_user: root
+  become: yes
+  become_user: root
+  become_method: sudo
   roles:
     - { role: common }
     - { role: postgres }
