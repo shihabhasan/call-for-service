@@ -29,11 +29,11 @@
     - user
 
 - name: Change SSH owner
-  shell: chown -R {{ project.user }}:{{ project.user }} {{ project.root }}.ssh/ -R
+  file: path={{project.root}}.ssh/ owner={{ project.user }} recurse=yes
   tags:
     - user
 
 - name: Change SSH permissions
-  shell: chmod 0700 {{ project.root }}.ssh/
+  file: path={{project.root}}.ssh/ mode=0700 recurse=no
   tags:
     - user
