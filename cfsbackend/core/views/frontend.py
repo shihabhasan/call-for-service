@@ -69,6 +69,13 @@ class ResponseTimeView(View):
                                        form=filter_json(CallFilterSet)))
 
 
+class MapView(View):
+    def get(self, request, *args, **kwargs):
+        return render_to_response("dashboard.html",
+                                  dict(asset_chunk="call_map",
+                                       form=filter_json(CallFilterSet)))
+
+
 class OfficerAllocationDashboardView(View):
     def get(self, request, *args, **kwargs):
         filter_obj = build_filter(OfficerActivityFilterSet)
