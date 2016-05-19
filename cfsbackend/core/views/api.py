@@ -9,7 +9,8 @@ from .. import serializers
 from ..filters import CallFilterSet
 from ..models import Call
 from ..summaries import CallResponseTimeOverview, \
-    CallVolumeOverview, OfficerActivityOverview
+    CallVolumeOverview, OfficerActivityOverview, \
+    CallMapOverview
 
 
 class CallPagination(PageNumberPagination):
@@ -61,4 +62,10 @@ class APICallVolumeView(APIView):
 
     def get(self, request, format=None):
         overview = CallVolumeOverview(request.GET)
+        return Response(overview.to_dict())
+
+
+class APICallMapView(APIView):
+    def get(self, request, format=None):
+        overview = CallMapOverview(request.GET)
         return Response(overview.to_dict())

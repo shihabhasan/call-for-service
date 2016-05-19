@@ -776,3 +776,4 @@ export var DurhamMap = function(options) {
     self.create();
   });
 };
+
