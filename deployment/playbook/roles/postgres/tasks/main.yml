@@ -15,22 +15,17 @@
     - postgresql-9.4-postgis-2.1
     - postgresql-9.4-postgis-scripts
     - python-psycopg2
-- name: Configure Postgres
-  sudo_user: postgres
-  copy: src=postgresql.conf dest=/etc/postgresql/9.4/main/postgresql.conf owner=postgres group=postgres force=yes
-  notify:
-    - Restart Postgres
-- name: Configure Postgres Auth
-  sudo_user: postgres
-  copy: src=pg_hba.conf dest=/etc/postgresql/9.4/main/pg_hba.conf owner=postgres group=postgres force=yes
-  notify:
-    - Restart Postgres
-- name: "Create datascientist user for Postgres"
-  sudo_user: postgres
-  postgresql_user: name={{ database.user }} password={{ secret.db_password }} role_attr_flags=CREATEDB
-- name: "Create PostgreSQL databases"
-  sudo_user: postgres
-  postgresql_db: name={{ database.name }} owner={{ database.user }} state=present
-- name: "Add PostGIS"
-  sudo_user: postgres
-  postgresql_ext: name=postgis db=cfs
+- become_user: postgres
+  block:
+  - name: Configure Postgres
+    copy: src=postgresql.conf dest=/etc/postgresql/9.4/main/postgresql.conf owner=postgres group=postgres force=yes
+    notify:
+      - Restart Postgres
+  - name: Configure Postgres Auth
+    copy: src=pg_hba.conf dest=/etc/postgresql/9.4/main/pg_hba.conf owner=postgres group=postgres force=yes
+    notify:
+      - Restart Postgres
+  - name: "Create datascientist user for Postgres"
+    postgresql_user: name={{ database.user }} password={{ secret.db_password }} role_attr_flags=CREATEDB
+  - name: "Create PostgreSQL databases"
+    postgresql_db: name={{ database.name }} owner={{ database.user }} state=present

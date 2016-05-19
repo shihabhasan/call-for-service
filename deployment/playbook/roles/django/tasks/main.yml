@@ -1,76 +1,70 @@
 ---
-- name: Pull sources from the repository
-  sudo: yes
-  sudo_user: "{{ project.user }}"
-  git: >
-    repo="{{ repo.url }}"
-    dest="{{ project.srcroot }}/"
-    version="{{ repo.branch }}"
-    force=yes
-    update=yes
-    accept_hostkey=yes
-  tags:
-    - deploy
+- become_user: "{{ project.user }}"
+  block:
+  - name: Pull sources from the repository
+    git: >
+      repo="{{ repo.url }}"
+      dest="{{ project.srcroot }}/"
+      version="{{ repo.branch }}"
+      force=yes
+      update=yes
+      accept_hostkey=yes
+    tags:
+      - deploy
 
-- name: Manually create the initial virtualenv
-  sudo_user: "{{ project.user }}"
-  command: >
-    virtualenv {{ project.virtualenv }} -p python3.4
-    creates="{{ project.virtualenv }}"
-  tags:
-    - deploy
-    - pip
+  - name: Manually create the initial virtualenv
+    command: >
+      virtualenv {{ project.virtualenv }} -p python3.4
+      creates="{{ project.virtualenv }}"
+    tags:
+      - deploy
+      - pip
 
-- name: Install requirements with pip
-  pip: >
-    requirements="{{ project.root }}src/requirements.txt"
-    virtualenv="{{ project.virtualenv }}"
-  tags:
-    - deploy
-    - pip
+  - name: Install requirements with pip
+    pip: >
+      requirements="{{ project.root }}src/requirements.txt"
+      virtualenv="{{ project.virtualenv }}"
+    tags:
+      - deploy
+      - pip
 
-- name: Create Django database settings module
-  sudo_user: "{{ project.user }}"
-  template: >
-    src=webapp_credentials.py.j2
-    dest={{ django.root }}webapp_credentials.py
-  tags:
-    - deploy
+  - name: Create Django database settings module
+    template: >
+      src=webapp_credentials.py.j2
+      dest={{ django.root }}webapp_credentials.py
+    tags:
+      - deploy
 
-- name: Migrate Django database
-  sudo_user: "{{ project.user }}"
-  django_manage: >
-    command=migrate
-    app_path={{ django.root }}
-    settings={{ django.settings }}
-    virtualenv={{ project.virtualenv }}
-  tags:
-    - deploy
+  - name: Migrate Django database
+    django_manage: >
+      command=migrate
+      app_path={{ django.root }}
+      settings={{ django.settings }}
+      virtualenv={{ project.virtualenv }}
+    tags:
+      - deploy
 
-- name: Install assets
-  sudo_user: "{{ project.user }}"
-  npm: path={{ project.srcroot }} production=no
-  tags:
-    - deploy
-    - assets
+  - name: Install assets
+    npm: path={{ project.srcroot }} production=no
+    tags:
+      - deploy
+      - assets
 
-- name: Compress assets
-  sudo_user: "{{ project.user }}"
-  command: webpack --config webpack.production.config.js chdir={{ project.srcroot }}
-  tags:
-    - deploy
-    - assets
+  - name: Compress assets
+    command: webpack --config webpack.production.config.js chdir={{ project.srcroot }}
+    tags:
+      - deploy
+      - assets
 
-- name: Collect assets
-  sudo_user: "{{ project.user }}"
-  django_manage: >
-    command=collectstatic
-    app_path={{ django.root }}
-    settings={{ django.settings }}
-    virtualenv={{ project.virtualenv }}
-  tags:
-    - deploy
-    - assets
+  - name: Collect assets
+    django_manage: >
+      command=collectstatic
+      app_path={{ django.root }}
+      settings={{ django.settings }}
+      virtualenv={{ project.virtualenv }}
+    tags:
+      - deploy
+      - assets
 
 - name: Create gunicorn upstart service
   template: src=gunicorn.conf.j2 dest=/etc/init/gunicorn.conf
