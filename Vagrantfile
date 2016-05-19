@@ -17,8 +17,8 @@ Vagrant.configure(2) do |config|
   config.vm.network :forwarded_port, host: 5433, guest: 5432
   
   config.vm.provision :ansible do |ansible|
-    ansible.playbook = "provisioning/playbook.yml"
-  end 
+    ansible.playbook = "deployment/vagrant/playbook.yml"
+  end
 
   config.vm.provider "virtualbox" do |v|
     v.name = "cfsbackend"

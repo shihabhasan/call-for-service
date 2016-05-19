@@ -1,6 +1,8 @@
 ---
 - hosts: all
-  sudo: yes
+  become: yes
+  become_user: root
+  become_method: sudo
   tasks:
     - name: Add apt keys
       apt_key: url={{item}}
@@ -48,35 +50,10 @@
       npm: name=node-sass global=yes
     - name: Install babel
       npm: name=babel global=yes
-    - name: Check if packages need to be autoremoved
-      command: apt-get --dry-run autoremove
-      register: check_autoremove
-      changed_when: False
-    - name: Autoremove unused packages
-      command: apt-get -y autoremove
-      when: "'packages will be REMOVED' in check_autoremove.stdout"
     - name: "Add bashrc"
       template: src=files/bashrc dest=/home/vagrant/.bashrc owner=vagrant
     - name: "pip install"
       pip: executable=pip3 requirements=/vagrant/requirements.txt
-    - name: Install Nginx
-      apt: name=nginx state=present
-    - name: Copy Nginx Configuration
-      copy: src=files/cfs.nginx.conf dest=/etc/nginx/sites-available/cfs.nginx.conf force=yes
-      notify:
-        - Restart Nginx
-    - name: Remove Nginx default configuration
-      file: path=/etc/nginx/sites-enabled/default state=absent
-      notify:
-        - Restart Nginx
-    - name: Setup Nginx proxy
-      file: src=/etc/nginx/sites-available/cfs.nginx.conf dest=/etc/nginx/sites-enabled/cfs.nginx.conf state=link
-      notify:
-        - Restart Nginx
-  handlers:
-    - name: Restart Nginx
-      sudo: yes
-      service: name=nginx state=restarted
 
 - hosts: all
   become: yes
@@ -97,12 +74,7 @@
       postgresql_user: name=vagrant role_attr_flags=CREATEDB,CREATEROLE,SUPERUSER
     - name: "Create PostgreSQL databases"
       postgresql_db: name=cfs owner=datascientist state=present
-    - name: "Add PostGIS"
-      postgresql_ext: name=postgis db=cfs
   handlers:
     - name: Restart Postgres
-      sudo: yes
+      become_user: root
       service: name=postgresql state=restarted
-    - name: Restart Nginx
-      sudo: yes
-      service: name=nginx state=restarted
