@@ -457,6 +457,7 @@ class CallResponseTimeOverview(CallOverview):
             'officer_response_time': self.officer_response_time(),
             'officer_response_time_by_beat': self.by_field('beat'),
             'officer_response_time_by_priority': self.by_field('priority'),
+            'officer_response_time_by_district': self.by_field('district'),
             'officer_response_time_by_nature_group': self.by_nature_group(),
             'officer_response_time_by_dow': self.by_dow(),
             'officer_response_time_by_shift': self.by_shift(),
