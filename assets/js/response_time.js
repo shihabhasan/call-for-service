@@ -123,6 +123,16 @@ function cleanupData(data) {
     values: data.officer_response_time_by_nature_group
   }];
 
+    data.officer_response_time_by_district = _.chain(data.officer_response_time_by_district)
+        .filter(function (d) { return d.name })
+        .sortBy(function (d) { return d.name })
+        .value();
+
+    data.officer_response_time_by_district = [{
+        key: "Response Time By District",
+        values: data.officer_response_time_by_district
+    }];
+
   return data;
 }
 
@@ -183,6 +193,21 @@ var ortByShiftChart = new HorizontalBarChart({
   colors: ["#f16913"]
 });
 
+var ortByDistrictChart = new HorizontalBarChart({
+    el: "#ort-by-district",
+    filter: "district",
+    ratio: 1.5,
+    dashboard: dashboard,
+    fmt: durationFormat,
+    x: function (d) {
+        return d.name;
+    },
+    y: function (d) {
+        return Math.round(d.mean);
+    },
+    colors: ['#f16913']
+});
+
 var ortByNatureGroupChart = new DiscreteBarChart({
   el: "#ort-by-nature",
   dashboard: dashboard,
@@ -204,6 +229,7 @@ monitorChart(dashboard, "data.officer_response_time_by_priority", ortByPriorityC
 monitorChart(dashboard, "data.officer_response_time_by_dow", ortByDOWChart.update);
 monitorChart(dashboard, "data.officer_response_time_by_shift", ortByShiftChart.update);
 monitorChart(dashboard, "data.officer_response_time_by_nature_group", ortByNatureGroupChart.update);
+monitorChart(dashboard, "data.officer_response_time_by_district", ortByDistrictChart.update);
 monitorChart(dashboard, "data.map_data", responseTimeMap.update);
 
 // ========================================================================
