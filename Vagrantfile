@@ -9,19 +9,19 @@ Vagrant.configure(2) do |config|
     # Customize the amount of memory on the VM:
     vb.memory = "2048"
   end
-  
+
   config.vm.network "private_network", ip: "192.168.50.4"
-  
+
   # Django dev server
   config.vm.network :forwarded_port, host: 8887, guest: 8000
   config.vm.network :forwarded_port, host: 5433, guest: 5432
-  
+
   config.vm.provision :ansible do |ansible|
     ansible.playbook = "deployment/vagrant/playbook.yml"
   end
 
   config.vm.provider "virtualbox" do |v|
     v.name = "cfsbackend"
-   end
-   
+  end
+
 end
