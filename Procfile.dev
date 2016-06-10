@@ -1,2 +1,2 @@
-web: PYTHONPATH=cfsbackend python ./cfsbackend/manage.py runserver_plus
+web: PYTHONPATH=cfsbackend python3 ./cfsbackend/manage.py runserver_plus
 webpack: webpack -w
