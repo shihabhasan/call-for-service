@@ -226,6 +226,7 @@ class City(ModelWithDescr):
 
     class Meta:
         db_table = 'city'
+        verbose_name_plural = "cities"
 
 
 class CloseCode(ModelWithDescr):
@@ -337,6 +338,7 @@ class OfficerActivity(MaterializedView):
     class Meta:
         db_table = 'discrete_officer_activity'
         managed = False
+        verbose_name_plural = "officer activities"
 
     @classmethod
     def update_view(cls):
@@ -359,6 +361,7 @@ class OOSCode(ModelWithDescr):
 
     class Meta:
         db_table = 'oos_code'
+        verbose_name_plural = "OOS codes"
 
 
 class OutOfServicePeriod(models.Model):
@@ -389,6 +392,7 @@ class Priority(ModelWithDescr):
 
     class Meta:
         db_table = 'priority'
+        verbose_name_plural = "priorities"
 
 
 class Shift(models.Model):
