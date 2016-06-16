@@ -1,8 +1,9 @@
 <nav class="navbar navbar-inverse">
     <div class="container-fluid">
         <div class="navbar-header">
-            <a class="navbar-brand" href="/call_volume{{ filterHash }}">DPD
-                CFS</a>
+            <a class="navbar-brand" href="/call_volume{{ filterHash }}">
+                {{ departmentAbbr }} CFS
+            </a>
         </div>
         <ul class="nav navbar-nav">
             <li><a href="/call_volume{{ filterHash }}">Call Volume</a></li>
@@ -11,8 +12,10 @@
             <li><a href="/officer_allocation{{ filterHash }}">Officer
                 Allocation</a></li>
             <li><a href="/calls{{ filterHash }}">Call List</a></li>
-            <li><a href="/calls.csv?{{ queryParams }}">Export Calls as CSV</a></li>
-            <li><a href="/call_map{{ filterHash }}">Utilization <sup><i>beta</i></sup></a></li>
+            <li><a href="/calls.csv?{{ queryParams }}">Export Calls as CSV</a>
+            </li>
+            <li><a href="/call_map{{ filterHash }}">Utilization <sup><i>beta</i></sup></a>
+            </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <li>

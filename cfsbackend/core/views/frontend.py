@@ -1,8 +1,7 @@
 import csv
-import json
 from io import StringIO
 
-from django.http import StreamingHttpResponse, HttpResponse
+from django.http import StreamingHttpResponse
 from django.shortcuts import render_to_response
 from django.views.generic import View, TemplateView
 from url_filter.filtersets import StrictMode
@@ -40,10 +39,6 @@ def build_filter(filter_set):
     return out
 
 
-def filter_json(filter_set):
-    return json.dumps(build_filter(filter_set))
-
-
 class LandingPageView(TemplateView):
     template_name = "landing_page.html"
 
@@ -52,28 +47,28 @@ class CallListView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="call_list",
-                                       form=filter_json(CallFilterSet)))
+                                       form=build_filter(CallFilterSet)))
 
 
 class CallVolumeView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="call_volume",
-                                       form=filter_json(CallFilterSet)))
+                                       form=build_filter(CallFilterSet)))
 
 
 class ResponseTimeView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="response_time",
-                                       form=filter_json(CallFilterSet)))
+                                       form=build_filter(CallFilterSet)))
 
 
 class MapView(View):
     def get(self, request, *args, **kwargs):
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="call_map",
-                                       form=filter_json(CallFilterSet)))
+                                       form=build_filter(CallFilterSet)))
 
 
 class OfficerAllocationDashboardView(View):
@@ -90,7 +85,7 @@ class OfficerAllocationDashboardView(View):
 
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="officer_allocation",
-                                       form=json.dumps(filter_obj)))
+                                       form=filter_obj))
 
 
 class Echo(object):
@@ -182,14 +177,6 @@ class CallExportView(View):
             'reporting_unit',
         ]
 
-        # response = HttpResponse(content_type='text/csv')
-        # response['Content-Disposition'] = 'attachment; filename="calls.csv"'
-        # writer = csv.DictWriter(response, fieldnames=fields)
-        # writer.writerow(dict(zip(fields, fields)))
-        # for record in filter_set.filter():
-        #     serializer = CallExportSerializer(record)
-        #     writer.writerow(serializer.data)
-
         def data():
             csvfile = StringIO()
             csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
@@ -205,31 +192,5 @@ class CallExportView(View):
 
         response = StreamingHttpResponse(data(), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="calls.csv"'
-
-        # response = StreamingHttpResponse(
-        #     CSVIterator(filter_set.filter(), fields),
-        #     content_type='text/csv')
-        # response['Content-Disposition'] = 'attachment; filename="calls.csv"'
-
-        # csvfile = StringIO()
-        # csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
-        #
-        # def read_and_flush():
-        #     csvfile.seek(0)
-        #     data = csvfile.read()
-        #     csvfile.seek(0)
-        #     csvfile.truncate()
-        #     return data
-        #
-        # def data():
-        #     csvwriter.writerow(dict(zip(fields, fields)))
-        #     for record in filter_set.filter().iterator():
-        #         serializer = CallExportSerializer(record)
-        #         csvwriter.writerow(serializer.data)
-        #     data = read_and_flush()
-        #     yield data
-        #
-        # response = HttpResponse(data(), content_type="text/csv")
-        # response["Content-Disposition"] = "attachment; filename=calls.csv"
 
         return response
