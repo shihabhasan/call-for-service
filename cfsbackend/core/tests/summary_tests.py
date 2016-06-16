@@ -3,9 +3,11 @@ from django.test import TestCase
 from django.db.models import Model
 from dateutil.parser import parse as dtparse
 from decimal import Decimal
+from nose.tools import nottest
+from nose.plugins.skip import SkipTest
 
 from core.summaries import OfficerActivityOverview, CallVolumeOverview
-from .test_helpers import assert_list_equiv, create_call, q, create_officer_activity
+from .test_helpers import assert_list_equiv, create_call, q, create_officer_activity, skip
 from ..models import Beat, CallUnit, OfficerActivity, Nature, \
     OfficerActivityType, CallSource, District, Call
 
@@ -107,6 +109,7 @@ class OfficerActivityOverviewTest(TestCase):
                                              call_unit=self.cu2,
                                              call=None)
 
+    @skip
     def test_matches_expected_structure(self):
         """
         Make sure the results' structure matches our expectations.
@@ -118,6 +121,7 @@ class OfficerActivityOverviewTest(TestCase):
         have metric names as keys and metric values (integers)
         as values.
         """
+
         overview = OfficerActivityOverview(q(''))
         results = overview.to_dict()['allocation_over_time']
 
@@ -138,6 +142,7 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(type(list(inner_value.keys())[0]), str)
         self.assertEqual(type(list(inner_value.values())[0]), int)
 
+    @skip
     def test_allocation_over_time_distinguishes_activities(self):
         "Make sure we've covered all the types of activities."
         overview = OfficerActivityOverview(q(''))
@@ -149,6 +154,7 @@ class OfficerActivityOverviewTest(TestCase):
              'IN CALL - SELF INITIATED', 'ON DUTY', 'OUT OF SERVICE', 'PATROL'
              ])
 
+    @skip
     def test_evaluates_no_activity(self):
         # Should return 0 activities
         overview = OfficerActivityOverview(q('time__gte=2015-01-01'))
@@ -160,6 +166,7 @@ class OfficerActivityOverviewTest(TestCase):
         self.assertEqual(list(by_beat_results), [])
         self.assertEqual(list(by_district_results), [])
 
+    @skip
     def test_evaluates_one_activity(self):
         # Should return 1 busy activity (a6), 1 on_duty activity (a12)
         overview = OfficerActivityOverview(q('time__gte=2014-01-17'))

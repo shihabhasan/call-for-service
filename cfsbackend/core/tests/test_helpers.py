@@ -1,11 +1,14 @@
 from django.http import QueryDict
 from dateutil.parser import parse as dtparse
 from datetime import timedelta
+from functools import wraps
+
 
 from core.models import Call, Transaction, CallLog, \
         InCallPeriod, OutOfServicePeriod, ShiftUnit, \
         Shift, OfficerActivity
 
+from nose.plugins.skip import SkipTest
 
 def assert_list_equiv(this, that):
     """
@@ -29,6 +32,15 @@ def create_call(**kwargs):
     call.save()
 
     return call
+
+
+def skip(f):
+    """Decorator that skips a test.
+    """
+    @wraps(f)
+    def skiptest(*args, **kwargs):
+        raise SkipTest
+    return skiptest
 
 
 def q(string):
