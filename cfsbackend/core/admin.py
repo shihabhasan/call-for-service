@@ -54,3 +54,86 @@ class NatureGroupAdmin(admin.ModelAdmin):
     }
 
 
+@admin.register(Bureau)
+class BureauAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CallSource)
+class CallSourceAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CallUnit)
+class CallUnitAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CloseCode)
+class CloseCodeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Division)
+class DivisionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Officer)
+class OfficerAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(OfficerActivity)
+class OfficerActivityAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(OfficerActivityType)
+class OfficerActivityTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(OOSCode)
+class OOSCodeAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(OutOfServicePeriod)
+class OutOfServicePeriodAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Priority)
+class PriorityAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Shift)
+class ShiftAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Squad)
+class SquadAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Unit)
+class UnitAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ZipCode)
+class ZipCodeAdmin(admin.ModelAdmin):
+    pass
