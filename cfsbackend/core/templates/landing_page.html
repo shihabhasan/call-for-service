@@ -1,5 +1,7 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load solo_tags %}
+{% get_solo 'core.SiteConfiguration' as site_config %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -7,7 +9,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DPD CFS</title>
+    <title>{{ site_config.department_abbr }} CFS</title>
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
     <link href='https://fonts.googleapis.com/css?family=Audiowide'
           rel='stylesheet' type='text/css'>
@@ -60,7 +62,8 @@
 <nav class="navbar navbar-inverse">
     <div class="container-fluid">
         <div class="navbar-header">
-            <a class="navbar-brand" href="/call_volume">DPD CFS</a>
+            <a class="navbar-brand"
+               href="/call_volume">{{ site_config.department_abbr }} CFS</a>
         </div>
         <ul class="nav navbar-nav">
             <li><a href="/call_volume">Call Volume</a></li>
@@ -78,7 +81,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1>DPD CFS Analytics</h1>
+                <h1>{{ site_config.department_abbr }} CFS Analytics</h1>
                 <h2>Turning CFS data into operational and strategic
                     intelligence</h2>
             </div>
@@ -90,7 +93,7 @@
     <div class="container">
         <div class="row">
             <div class="banner-text col-md-12">
-                <h1>DPD CFS Analytics</h1>
+                <h1>{{ site_config.department_abbr }} CFS Analytics</h1>
                 <h2>Turning CFS data into operational and strategic
                     intelligence</h2>
             </div>
@@ -147,7 +150,7 @@
         <div class="col-md-12">
             <img src="{% static "img/RTI_logo_blue.gif" %}"
                  alt="RTI International">
-            Copyright 2015 RTI International.
+            Copyright 2016 RTI International.
         </div>
     </div>
 </div>

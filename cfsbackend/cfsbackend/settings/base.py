@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'postgres_stats',
     'webpack_loader',
+    'solo',
 
     'core',
 )
@@ -93,7 +94,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': creds['DEV_DB_NAME'],
         'USER': creds['DEV_DB_USER'],
-        'PASSWORD': creds['DEV_DB_PASSWORD'],
+        'PASSWORD': creds.get('DEV_DB_PASSWORD', None),
         'HOST': creds['DEV_DB_ADDRESS'],
         'PORT': '5432'
     }
