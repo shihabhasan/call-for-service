@@ -1,6 +1,7 @@
 """cfsbackend URL Configuration."""
 
 from django.conf.urls import include, url
+from django.contrib import admin
 from rest_framework import routers
 
 from core import views
@@ -9,7 +10,7 @@ router = routers.DefaultRouter()
 router.register(r'calls', views.CallViewSet)
 
 urlpatterns = [
-    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^api/call_volume/$', views.APICallVolumeView.as_view()),
     url(r'^api/response_time/$', views.APICallResponseTimeView.as_view()),
     url(r'^api/officer_allocation/', views.APIOfficerAllocationView.as_view()),
