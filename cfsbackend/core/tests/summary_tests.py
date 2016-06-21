@@ -4,7 +4,8 @@ from django.db.models import Model
 from dateutil.parser import parse as dtparse
 from decimal import Decimal
 
-from core.summaries import OfficerActivityOverview, CallVolumeOverview
+from core.summaries import CallVolumeOverview
+from officer_allocation.summaries import OfficerActivityOverview
 from .test_helpers import assert_list_equiv, create_call, q, create_officer_activity
 from ..models import Beat, CallUnit, OfficerActivity, Nature, \
     OfficerActivityType, CallSource, District, Call

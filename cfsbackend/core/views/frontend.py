@@ -9,7 +9,7 @@ from url_filter.filtersets import StrictMode
 from core import models
 from core.models import Call
 from core.serializers import CallExportSerializer
-from ..filters import CallFilterSet, OfficerActivityFilterSet
+from ..filters import CallFilterSet
 
 
 def build_filter(filter_set):
@@ -69,23 +69,6 @@ class MapView(View):
         return render_to_response("dashboard.html",
                                   dict(asset_chunk="call_map",
                                        form=build_filter(CallFilterSet)))
-
-
-class OfficerAllocationDashboardView(View):
-    def get(self, request, *args, **kwargs):
-        filter_obj = build_filter(OfficerActivityFilterSet)
-
-        # We want only the values of CallUnit where squad isn't null.
-        # We don't want to show a bunch of bogus units for filtering.
-        filter_obj['refs']['CallUnit'] = list(
-            models.CallUnit.objects
-                .filter(squad__isnull=False)
-                .order_by('descr')
-                .values_list('call_unit_id', 'descr'))
-
-        return render_to_response("dashboard.html",
-                                  dict(asset_chunk="officer_allocation",
-                                       form=filter_obj))
 
 
 class Echo(object):

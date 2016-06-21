@@ -1,9 +1,10 @@
 import datetime
-from django.db.models.constants import LOOKUP_SEP
+
 from django import forms
-from url_filter.filtersets import ModelFilterSet
-from url_filter.filters import Filter
+from django.db.models.constants import LOOKUP_SEP
 from url_filter.backends.django import DjangoFilterBackend
+from url_filter.filters import Filter
+from url_filter.filtersets import ModelFilterSet
 
 from . import models
 
@@ -158,13 +159,3 @@ CallFilterSet = create_filterset(
     ]
 )
 
-OfficerActivityFilterSet = create_filterset(
-    models.OfficerActivity,
-    [
-        {"name": "call_unit", "rel": "CallUnit"},
-        {"name": "call_unit__beat", "label": "Beat", "rel": "Beat"},
-        {"name": "call_unit__district", "label": "District", "rel": "District"},
-        {"name": "time", "type": "daterange"},
-        {"name": "call_unit__squad", "label": "Squad", "rel": "Squad"},
-    ]
-)

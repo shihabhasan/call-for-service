@@ -4,7 +4,8 @@ from django import forms
 from django.http import QueryDict
 from django.test import TestCase
 from ..filters import create_filterset, create_rel_filterset, \
-    OfficerActivityFilterSet, CallFilterSet
+    CallFilterSet
+from officer_allocation.filters import OfficerActivityFilterSet
 from ..models import Call, District, CallUnit, Squad, CallSource, ZipCode, \
     OfficerActivity, Nature, OfficerActivityType, Beat, CallLog, InCallPeriod, \
     OutOfServicePeriod, Transaction, ShiftUnit, Shift

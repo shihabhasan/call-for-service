@@ -1,16 +1,15 @@
 from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from url_filter.integrations.drf import DjangoFilterBackend
 
 from .. import serializers
 from ..filters import CallFilterSet
 from ..models import Call
 from ..summaries import CallResponseTimeOverview, \
-    CallVolumeOverview, OfficerActivityOverview, \
-    CallMapOverview
+    CallVolumeOverview, CallMapOverview
 
 
 class CallPagination(PageNumberPagination):
@@ -46,14 +45,6 @@ class APICallResponseTimeView(APIView):
 
     def get(self, request, format=None):
         overview = CallResponseTimeOverview(request.GET)
-        return Response(overview.to_dict())
-
-
-class APIOfficerAllocationView(APIView):
-    """Powers officer allocation dashboard."""
-
-    def get(self, request, format=None):
-        overview = OfficerActivityOverview(request.GET)
         return Response(overview.to_dict())
 
 

@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'solo',
 
     'core',
+    'officer_allocation',
 )
 
 MIDDLEWARE_CLASSES = (
