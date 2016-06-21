@@ -116,6 +116,13 @@ class DivisionAdmin(admin.ModelAdmin):
     }
 
 
+@admin.register(InCallPeriod)
+class InCallPeriodAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.TextField: {'widget': TextInput}
+    }
+
+
 @admin.register(Nature)
 class NatureAdmin(admin.ModelAdmin):
     formfield_overrides = {
@@ -160,13 +167,6 @@ class OOSCodeAdmin(admin.ModelAdmin):
 
 @admin.register(OutOfServicePeriod)
 class OutOfServicePeriodAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
-
-
-@admin.register(InCallPeriod)
-class InCallPeriodAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
