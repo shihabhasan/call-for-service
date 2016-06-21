@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'postgres_stats',
     'webpack_loader',
+    'solo',
 
     'core',
 )

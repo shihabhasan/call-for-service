@@ -8,12 +8,25 @@
 # Also note: You'll have to insert the output of 'django-admin sqlcustom [app_label]'
 # into your database.
 
-from __future__ import unicode_literals
 from django.db import models
 from django.db import connection
 from django.db.models import Q
 from pg.view import MaterializedView
 from django.contrib.postgres.fields import ArrayField
+from solo.models import SingletonModel
+
+
+class SiteConfiguration(SingletonModel):
+    department_name = models.CharField(max_length=255,
+                                       default="City Police Department")
+    department_abbr = models.CharField("Department abbreviation", max_length=10, default="CPD")
+    maintenance_mode = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "Site Configuration"
+
+    class Meta:
+        verbose_name = "Site Configuration"
 
 
 class DateTimeNoTZField(models.DateTimeField):
@@ -26,6 +39,7 @@ class DateTimeNoTZField(models.DateTimeField):
 
     def db_type(self, connection):
         return 'timestamp without time zone'
+
 
 def update_materialized_views():
     for view_cls in MaterializedView.__subclasses__():

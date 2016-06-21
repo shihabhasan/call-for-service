@@ -1,6 +1,9 @@
 {% spaceless %}
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load serializers %}
+{% load solo_tags %}
+{% get_solo 'core.SiteConfiguration' as site_config %}
 {% endspaceless %}
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +11,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>DPD CFS</title>
+    <title>{{ site_config.department_abbr }} CFS</title>
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
     <link href='https://fonts.googleapis.com/css?family=Audiowide'
           rel='stylesheet' type='text/css'>
@@ -27,7 +30,7 @@
     <div class="row">
         <div class="col-md-12">
             <img src="{% static "img/RTI_logo_blue.gif" %}" alt="RTI International">
-            Copyright 2015 RTI International.
+            Copyright 2016 RTI International.
         </div>
     </div>
 </div>
@@ -36,7 +39,8 @@
 
 <!-- Latest compiled and minified JavaScript -->
 <script>
-    var filterForm = {{ form|safe }};
+    var filterForm = {{ form|jsonify }};
+    var siteConfig = {{ site_config|model_to_dict|jsonify }};
 </script>
 {% render_bundle 'commons' 'js' %}
 {% block javascript %}{% endblock %}

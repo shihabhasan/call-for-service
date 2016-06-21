@@ -1,10 +1,15 @@
 from django.db import models
 from django.forms import TextInput
 from django.contrib import admin
+from solo.admin import SingletonModelAdmin
 from .models import  Beat, Bureau, CallSource, CallUnit, City, CloseCode, \
     District, Division, InCallPeriod, Nature, NatureGroup,  \
     Officer, OfficerActivity, OfficerActivityType, OOSCode, OutOfServicePeriod, \
-    Priority, Shift, ShiftUnit, Squad, Transaction, Unit, ZipCode
+    Priority, Shift, ShiftUnit, SiteConfiguration, Squad, \
+    Transaction, Unit, ZipCode
+
+admin.site.register(SiteConfiguration, SingletonModelAdmin)
+
 
 ### model inline classes
 
