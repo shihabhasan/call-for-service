@@ -3,8 +3,8 @@ from django.forms import TextInput
 from django.contrib import admin
 from solo.admin import SingletonModelAdmin
 from .models import  Beat, Bureau, CallSource, CallUnit, City, CloseCode, \
-    District, Division, InCallPeriod, Nature, NatureGroup,  \
-    Officer, OfficerActivity, OfficerActivityType, OOSCode, OutOfServicePeriod, \
+    District, Division, Nature, NatureGroup,  \
+    Officer, \
     Priority, Shift, ShiftUnit, SiteConfiguration, Squad, \
     Transaction, Unit, ZipCode
 
@@ -36,15 +36,6 @@ class NatureInline(admin.StackedInline):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
-
-
-class OutOfServicePeriodInline(admin.TabularInline):
-    model = OutOfServicePeriod
-    extra = 0
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
-
 
 class ShiftUnitInline(admin.TabularInline):
     model = ShiftUnit
@@ -121,13 +112,6 @@ class DivisionAdmin(admin.ModelAdmin):
     }
 
 
-@admin.register(InCallPeriod)
-class InCallPeriodAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
-
-
 @admin.register(Nature)
 class NatureAdmin(admin.ModelAdmin):
     formfield_overrides = {
@@ -147,34 +131,6 @@ class NatureGroupAdmin(admin.ModelAdmin):
 class OfficerAdmin(admin.ModelAdmin):
     list_display = ('name', 'name_aka',)
     inlines = [ShiftUnitInline]
-
-
-@admin.register(OfficerActivity)
-class OfficerActivityAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(OfficerActivityType)
-class OfficerActivityTypeAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
-
-
-@admin.register(OOSCode)
-class OOSCodeAdmin(admin.ModelAdmin):
-    list_display = ('descr', 'code',)
-    inlines = [OutOfServicePeriodInline]
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
-
-
-@admin.register(OutOfServicePeriod)
-class OutOfServicePeriodAdmin(admin.ModelAdmin):
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
 
 
 @admin.register(Priority)
