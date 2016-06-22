@@ -1,0 +1,3 @@
+PLUGINS = (
+    'officer_allocation',
+)

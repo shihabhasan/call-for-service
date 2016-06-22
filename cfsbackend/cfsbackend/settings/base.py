@@ -21,6 +21,8 @@ BASE_DIR = os.path.abspath(
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
+from .plugins import *
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = creds['SECRET_KEY']
 
@@ -48,8 +50,7 @@ INSTALLED_APPS = (
     'solo',
 
     'core',
-    'officer_allocation',
-)
+) + PLUGINS
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
