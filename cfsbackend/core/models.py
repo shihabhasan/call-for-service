@@ -240,6 +240,7 @@ class City(ModelWithDescr):
 
     class Meta:
         db_table = 'city'
+        verbose_name_plural = "cities"
 
 
 class CloseCode(ModelWithDescr):
@@ -321,6 +322,7 @@ class Priority(ModelWithDescr):
 
     class Meta:
         db_table = 'priority'
+        verbose_name_plural = "priorities"
 
 class Shift(models.Model):
     shift_id = models.AutoField(primary_key=True)
