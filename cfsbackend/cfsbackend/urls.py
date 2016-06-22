@@ -5,6 +5,7 @@ from django.contrib import admin
 from rest_framework import routers
 
 from core import views
+from core.plugins import iterload
 
 router = routers.DefaultRouter()
 router.register(r'calls', views.CallViewSet)
@@ -24,16 +25,5 @@ urlpatterns = [
     url(r'^call_map$', views.MapView.as_view())
 ]
 
-from django.conf import settings
-from importlib import import_module
-for app in settings.PLUGINS:
-    try:
-        mod = import_module('%s.urls' % app)
-        # possibly cleanup the after the imported module?
-        #  might fuss up the `include(...)` or leave a polluted namespace
-    except:
-        # cleanup after module import if fails,
-        #  maybe you can let the `include(...)` report failures
-        pass
-    else:
-        urlpatterns += mod.urlpatterns
+for module in iterload('urls'):
+    urlpatterns += module.urlpatterns
