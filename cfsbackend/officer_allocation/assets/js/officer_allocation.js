@@ -10,7 +10,6 @@ import {
   buildQueryParams,
 } from "core";
 
-import $ from "jquery";
 import _ from "underscore-contrib";
 import d3 from "d3";
 import moment from "moment";
@@ -224,13 +223,4 @@ function buildAllocationOverTimeChart(data) {
 
     return chart;
   });
-}
-
-function removeStreamControl(chartID) {
-    // Remove the "stream" option from the chart
-    var streamControl = $('#allocation-over-time .nv-controlsWrap > .nv-legend > g > .nv-series:nth-child(2)');
-    var expandedControl = $('#allocation-over-time .nv-controlsWrap > .nv-legend > g > .nv-series:nth-child(3)');
-
-    expandedControl.attr('transform', streamControl.attr('transform'));
-    streamControl.remove();
 }
