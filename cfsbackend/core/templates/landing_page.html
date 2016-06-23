@@ -1,8 +1,8 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load hooks_tags %}
 {% load solo_tags %}
 {% get_solo 'core.SiteConfiguration' as site_config %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,12 +67,10 @@
         </div>
         <ul class="nav navbar-nav">
             <li><a href="/call_volume">Call Volume</a></li>
-            <li><a href="/response_time">Response Time</a>
-            </li>
-            <li><a href="/officer_allocation">Officer
-                Allocation</a></li>
+            <li><a href="/response_time">Response Time</a></li>
             <li><a href="/calls">Call List</a></li>
             <li><a href="/call_map">Utilization <sup><i>beta</i></sup></a></li>
+            {% hook 'landing_page_navbar' %}
         </ul>
     </div>
 </nav>

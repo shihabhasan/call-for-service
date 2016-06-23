@@ -1,9 +1,11 @@
 {% spaceless %}
-{% load staticfiles %}
-{% load render_bundle from webpack_loader %}
-{% load serializers %}
-{% load solo_tags %}
-{% get_solo 'core.SiteConfiguration' as site_config %}
+    {% load staticfiles %}
+    {% load render_bundle from webpack_loader %}
+    {% load serializers %}
+    {% load solo_tags %}
+    {% load hooks_tags %}
+
+    {% get_solo 'core.SiteConfiguration' as site_config %}
 {% endspaceless %}
 <!DOCTYPE html>
 <html lang="en">
@@ -29,12 +31,41 @@
 <div class="container-fluid footer">
     <div class="row">
         <div class="col-md-12">
-            <img src="{% static "img/RTI_logo_blue.gif" %}" alt="RTI International">
+            <img src="{% static "img/RTI_logo_blue.gif" %}"
+                 alt="RTI International">
             Copyright 2016 RTI International.
         </div>
     </div>
 </div>
 
+<script id="navbar-template" type="text/html">
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/call_volume[[ filterHash ]]">
+                    {{ site_config.department_abbr }} CFS
+                </a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="/call_volume[[ filterHash ]]">Call Volume</a></li>
+                <li><a href="/response_time[[ filterHash ]]">Response Time</a></li>
+                <li><a href="/calls[[ filterHash ]]">Call List</a></li>
+                <li><a href="/calls.csv?[[ queryParams ]]">Export Calls as
+                    CSV</a>
+                </li>
+                <li><a href="/call_map[[ filterHash ]]">Utilization
+                    <sup><i>beta</i></sup></a>
+                </li>
+                {% hook 'navbar' %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <p class="navbar-text">[[ rightText ]]</p>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</script>
 {% block templates %}{% endblock %}
 
 <!-- Latest compiled and minified JavaScript -->

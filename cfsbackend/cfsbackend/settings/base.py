@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'postgres_stats',
     'webpack_loader',
     'solo',
+    'hooks',
 
     'core',
 ) + PLUGINS

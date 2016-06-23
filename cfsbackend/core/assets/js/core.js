@@ -31,7 +31,8 @@ helpers.formatCount = function (number, singular, plural) {
 }
 
 var NavBar = Ractive.extend({
-  template: require("../templates/navbar.html"),
+  template: "#navbar-template",
+  delimiters: [ '[[', ']]' ],
   data: {
     departmentAbbr: siteConfig.department_abbr
   }
