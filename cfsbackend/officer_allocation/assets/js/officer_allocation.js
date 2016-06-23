@@ -1,4 +1,3 @@
-import "nvd3/build/nv.d3.css";
 import "../styles/officer_allocation.scss";
 
 import {
@@ -9,8 +8,7 @@ import {
   cloneFilter,
   updateHash,
   buildQueryParams,
-  toggleFilter
-} from "./core";
+} from "core";
 
 import $ from "jquery";
 import _ from "underscore-contrib";
@@ -28,7 +26,7 @@ var dashboard = new Page({
   components: {
     "Filter": OfficerAllocationFilter
   },
-  el: $("#dashboard").get(),
+  el: document.getElementById("dashboard"),
   template: require("../templates/officer_allocation.html"),
   data: {
     data: {

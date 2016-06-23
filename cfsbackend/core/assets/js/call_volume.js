@@ -1,4 +1,3 @@
-import "nvd3/build/nv.d3.css";
 import "leaflet/dist/leaflet.css";
 
 import {
@@ -11,7 +10,6 @@ import {
   DiscreteBarChart,
   Heatmap,
   DurhamMap } from "./charts";
-import $ from "jquery";
 import _ from "underscore-contrib";
 import d3 from "d3";
 import colorbrewer from "colorbrewer";
@@ -27,7 +25,7 @@ var outFormats = {
 };
 
 var dashboard = new Page({
-  el: $("#dashboard").get(),
+  el: document.getElementById("dashboard"),
   template: require("../templates/call_volume.html"),
   data: {
     mapDrawn: false,

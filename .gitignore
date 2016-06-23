@@ -149,6 +149,7 @@ cfsbackend/cfsbackend/staticfiles/
 .ipynb_checkpoints/
 
 .eslintrc.json
-assets/bundles/
+**/assets/bundles/
 webpack-stats.json
+webpack-stats-*.json
 deployment/playbook/all.retry

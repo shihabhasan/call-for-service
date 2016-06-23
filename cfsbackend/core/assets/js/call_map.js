@@ -30,7 +30,7 @@ var wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
 var url = "/api/call_map/";
 
 var dashboard = new Page({
-    el: $("#dashboard").get(),
+    el: document.getElementById("dashboard"),
     template: require("../templates/call_map.html"),
     data: {
         loading: true,

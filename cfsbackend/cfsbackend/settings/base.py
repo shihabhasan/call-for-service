@@ -136,7 +136,7 @@ TEST_RUNNER = "cfsbackend.test_runner.ManagedModelTestRunner"
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, '..', 'assets'),
+    os.path.join(BASE_DIR, 'core', 'assets'),
 )
 
 WEBPACK_LOADER = {
@@ -145,6 +145,19 @@ WEBPACK_LOADER = {
         'STATS_FILE': os.path.join(BASE_DIR, '..', 'webpack-stats.json'),
     },
 }
+
+for plugin in PLUGINS:
+    staticfiles_dir = os.path.join(BASE_DIR, plugin, 'assets')
+    if os.path.isdir(staticfiles_dir):
+        STATICFILES_DIRS += (staticfiles_dir,)
+
+    webpack_config = os.path.join(BASE_DIR, plugin, 'webpack.config.js')
+    if os.path.isfile(webpack_config):
+        WEBPACK_LOADER[plugin] = {
+            'BUNDLE_DIR_NAME': 'bundles/',
+            'STATS_FILE': os.path.join(BASE_DIR, '..', 'webpack-stats-{}.json'.format(plugin))
+        }
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")

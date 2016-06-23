@@ -6,7 +6,6 @@ import {
 }
 from "./core";
 import Ractive from "ractive";
-import $ from "jquery";
 import _ from "underscore-contrib";
 import d3 from "d3";
 import moment from "moment";
@@ -56,7 +55,7 @@ var callList = new Page({
     Pagination: Pagination,
     ClickField: ClickField
   },
-  el: $("#dashboard").get(),
+  el: document.getElementById("dashboard"),
   template: require("../templates/call_list.html"),
   data: {
     page: 1,

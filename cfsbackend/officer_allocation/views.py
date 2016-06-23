@@ -31,6 +31,6 @@ class OfficerAllocationDashboardView(View):
                 .order_by('descr')
                 .values_list('call_unit_id', 'descr'))
 
-        return render_to_response("dashboard.html",
+        return render_to_response("officer_allocation.html",
                                   dict(asset_chunk="officer_allocation",
                                        form=filter_obj))

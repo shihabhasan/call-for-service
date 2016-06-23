@@ -1,6 +1,7 @@
 import "../dashboard/toolkit-light.css";
 import "font-awesome/css/font-awesome.css";
 import "bootstrap-daterangepicker/daterangepicker.css";
+import "nvd3/build/nv.d3.css";
 import "../styles/core.scss";
 
 import "./polyfills";

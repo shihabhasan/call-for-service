@@ -4,19 +4,17 @@ var BundleTracker = require("webpack-bundle-tracker");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var CleanWebpackPlugin = require('clean-webpack-plugin');
 
-
-module.exports = {
-    context: path.join(__dirname, "assets"),
+var webpackConfigs = [{
+    context: path.join(__dirname, "cfsbackend", "core", "assets"),
     entry: {
         call_volume: "./js/call_volume",
         response_time: "./js/response_time",
-        officer_allocation: "./js/officer_allocation",
         landing_page: "./js/landing_page",
         call_list: "./js/call_list",
         call_map: "./js/call_map",
     },
     output: {
-        path: path.join(__dirname, "assets", "bundles"),
+        path: path.join(__dirname, "cfsbackend", "core", "assets", "bundles"),
         filename: "[name]-[hash].js"
     },
     resolve: {
@@ -27,7 +25,7 @@ module.exports = {
         }
     },
     plugins: [
-        new CleanWebpackPlugin(['assets/bundles'], {
+        new CleanWebpackPlugin(['cfsbackend/core/assets/bundles'], {
             verbose: true,
             dry: false
         }),
@@ -82,4 +80,26 @@ module.exports = {
     babel: {
         presets: ["es2015"]
     }
-};
+}];
+
+var fs = require("fs");
+var glob = require("glob")
+
+var configs = glob.sync(path.join(__dirname, "cfsbackend", "*", "webpack.config.js"));
+configs.forEach(function (configFile) {
+    var config = require(configFile);
+    if (Array.isArray(config)) {
+        webpackConfigs = webpackConfigs.concat(config);
+    } else {
+        if (!config.plugins) {
+            config.plugins = [];
+        }
+        config.plugins.push(new BundleTracker({
+            filename: path.join(
+                "./webpack-stats-" + path.basename(path.dirname(configFile)) + ".json")
+        }));
+        webpackConfigs.push(config);
+    }
+})
+
+module.exports = webpackConfigs;

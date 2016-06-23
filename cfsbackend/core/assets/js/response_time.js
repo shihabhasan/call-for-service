@@ -1,4 +1,3 @@
-import "nvd3/build/nv.d3.css";
 import "leaflet/dist/leaflet.css";
 
 import {
@@ -11,7 +10,6 @@ import {
   DiscreteBarChart,
   DurhamMap
 } from "./charts";
-import $ from "jquery";
 import _ from "underscore-contrib";
 import d3 from "d3";
 import colorbrewer from "colorbrewer";
@@ -33,7 +31,7 @@ function durationFormat(secs) {
 }
 
 var dashboard = new Page({
-  el: $("#dashboard").get(),
+  el: document.getElementById("dashboard"),
   template: require("../templates/response_time.html"),
   data: {
     "capitalize": function(string) {
