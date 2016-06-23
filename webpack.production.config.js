@@ -1,13 +1,14 @@
-var config = require("./webpack.config");
+var configs = require("./webpack.config");
 var webpack = require("webpack");
 
-config.plugins.push(
-  new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: false,
-      drop_console: true
-    }
-  })
-);
+configs.forEach(function (config) {
+    config.plugins.push(
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false
+            }
+        })
+    );
+});
 
-module.exports = config;
+module.exports = configs;

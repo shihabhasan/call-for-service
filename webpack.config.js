@@ -29,9 +29,6 @@ var webpackConfigs = [{
             verbose: true,
             dry: false
         }),
-        new BundleTracker({
-            filename: "./webpack-stats.json"
-        }),
         new webpack.ProvidePlugin({
             $: "jquery",
             "window.jQuery": "jquery",
@@ -46,6 +43,9 @@ var webpackConfigs = [{
 
             // (Modules must be shared between 3 entries)
             // minChunks: 3
+        }),
+        new BundleTracker({
+            filename: "./webpack-stats.json"
         })
     ],
     module: {
@@ -83,7 +83,27 @@ var webpackConfigs = [{
 }];
 
 var fs = require("fs");
-var glob = require("glob")
+var glob = require("glob");
+var coreConfig = webpackConfigs[0];
+
+function hydrateConfig(configFile, config) {
+    if (!config.plugins) {
+        config.plugins = [];
+    }
+    config.plugins.push(new BundleTracker({
+        filename: path.join(
+            "./webpack-stats-" + path.basename(path.dirname(configFile)) + ".json")
+    }));
+
+    if (!config.module) {
+        config.module = {}
+    }
+    if (!config.module.loaders) {
+        config.module.loaders = coreConfig.module.loaders;
+    }
+
+    return config;
+}
 
 var configs = glob.sync(path.join(__dirname, "cfsbackend", "*", "webpack.config.js"));
 configs.forEach(function (configFile) {
@@ -91,13 +111,7 @@ configs.forEach(function (configFile) {
     if (Array.isArray(config)) {
         webpackConfigs = webpackConfigs.concat(config);
     } else {
-        if (!config.plugins) {
-            config.plugins = [];
-        }
-        config.plugins.push(new BundleTracker({
-            filename: path.join(
-                "./webpack-stats-" + path.basename(path.dirname(configFile)) + ".json")
-        }));
+        config = hydrateConfig(configFile, config);
         webpackConfigs.push(config);
     }
 })
