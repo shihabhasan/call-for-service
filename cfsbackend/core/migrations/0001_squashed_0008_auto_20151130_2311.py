@@ -328,22 +328,6 @@ class Migration(migrations.Migration):
                 'db_table': 'zip_code',
             },
         ),
-        migrations.CreateModel(
-            name='CallGeneralCategory',
-            fields=[
-                ('call_id', models.OneToOneField(primary_key=True, related_name='categories', to='core.Call', serialize=False)),
-                ('gun_related', models.BooleanField()),
-                ('gang_related', models.BooleanField()),
-                ('spanish_related', models.BooleanField()),
-                ('mental_illness_related', models.BooleanField()),
-                ('homeless_related', models.BooleanField()),
-                ('officer_citizen_conflict', models.BooleanField()),
-            ],
-            options={
-                'managed': False,
-                'db_table': 'call_general_category',
-            },
-        ),
         migrations.AddField(
             model_name='shiftunit',
             name='unit',

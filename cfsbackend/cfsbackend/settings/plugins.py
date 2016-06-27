@@ -1,3 +1,3 @@
-PLUGINS = tuple(
+PLUGINS = tuple([
     # 'officer_allocation',
-)
+])

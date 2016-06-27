@@ -120,7 +120,7 @@ class CallQuerySet(models.QuerySet):
 class Call(models.Model):
     objects = CallQuerySet.as_manager()
 
-    call_id = models.BigIntegerField(primary_key=True)
+    call_id = models.CharField(max_length=64, primary_key=True)
     time_received = DateTimeNoTZField(db_index=True)
     time_routed = DateTimeNoTZField(blank=True, null=True)
     time_finished = DateTimeNoTZField(blank=True, null=True)
@@ -184,22 +184,6 @@ class Call(models.Model):
         index_together = [
             ['dow_received', 'hour_received']
         ]
-
-
-class CallGeneralCategory(MaterializedView):
-    call = models.OneToOneField('Call', primary_key=True,
-                                related_name="categories",
-                                on_delete=models.DO_NOTHING)
-    gun_related = models.BooleanField()
-    gang_related = models.BooleanField()
-    spanish_related = models.BooleanField()
-    mental_illness_related = models.BooleanField()
-    homeless_related = models.BooleanField()
-    officer_citizen_conflict = models.BooleanField()
-
-    class Meta:
-        db_table = 'call_general_category'
-        managed = False
 
 
 class CallLog(models.Model):
@@ -287,25 +271,6 @@ class NatureGroup(ModelWithDescr):
 
     class Meta:
         db_table = 'nature_group'
-
-
-class Note(models.Model):
-    note_id = models.AutoField(primary_key=True)
-    body = models.TextField(blank=True, null=True)
-    time_recorded = DateTimeNoTZField(blank=True, null=True)
-    note_author = models.ForeignKey('NoteAuthor', blank=True, null=True)
-    call = models.ForeignKey('Call', blank=True, null=True)
-
-    class Meta:
-        db_table = 'note'
-
-
-class NoteAuthor(models.Model):
-    note_author_id = models.AutoField(primary_key=True)
-    descr = models.TextField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'note_author'
 
 
 class Officer(models.Model):

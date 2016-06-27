@@ -1,8 +1,7 @@
 from django.db import models
 from django.db import connection
 from pg.view import MaterializedView
-from core.models import DateTimeNoTZField, Call, CallUnit, ModelWithDescr, \
-    Officer, Bureau, Division, Unit, Shift
+from core.models import DateTimeNoTZField, Call, CallUnit, ModelWithDescr, Shift
 
 
 class OfficerActivity(MaterializedView):
