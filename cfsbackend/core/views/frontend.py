@@ -30,10 +30,6 @@ def build_filter(filter_set):
             refs[field['rel']] = list(
                 model.objects.all().order_by("descr").values_list(pk_name,
                                                                   "descr"))
-            if field['rel'] == 'Priority':
-                refs['Priority'] = \
-                    sorted(refs['Priority'],
-                           key=lambda x: 0 if x[1] == "P" else int(x[1]))
 
     out["refs"] = refs
     return out

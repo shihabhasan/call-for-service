@@ -1,15 +1,34 @@
 <div class="filters m-b text-md-center">
-    <filter-button field="time_received" />
-    <filter-button field="shift" />
-    <filter-button field="dow_received" />
-    <filter-button field="district" />
-    <filter-button field="beat" />
-    <filter-button field="squad" />
-    <filter-button field="priority" />
-    <filter-button field="nature__nature_group" />
-    <filter-button field="initiated_by" />
-    <filter-button field="call_source" />
-    <filter-button field="cancelled" />
+    <filter-button field="time_received"/>
+    {{ #if config.use_shift }}
+    <filter-button field="shift"/>
+    {{ /if }}
+    <filter-button field="dow_received"/>
+    {{ #if config.use_district }}
+    <filter-button field="district"/>
+    {{ /if }}
+    {{ #if config.use_beat }}
+    <filter-button field="beat"/>
+    {{ /if }}
+    {{ #if config.use_squad }}
+    <filter-button field="squad"/>
+    {{ /if }}
+    {{ #if config.use_priority }}
+    <filter-button field="priority"/>
+    {{ /if }}
+    {{ #if config.use_nature }}
+    <filter-button field="nature"/>
+    {{ /if }}
+    {{ #if config.use_nature_group }}
+    <filter-button field="nature__nature_group"/>
+    {{ /if }}
+    {{ #if config.use_call_source }}
+    <filter-button field="initiated_by"/>
+    <filter-button field="call_source"/>
+    {{ /if }}
+    {{ #if config.use_cancelled }}
+    <filter-button field="cancelled"/>
+    {{ /if }}
     {{ #if filter }}
     <div class="btn-group filter-button">
         <a class="btn btn-danger" href="#!">Clear All Filters</a>

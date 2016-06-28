@@ -1,6 +1,7 @@
 cached-property==1.2.0
 click==5.1
 Django==1.8.5
+django-admin-sortable==2.0.17
 django-appconf==1.0.1
 django-bower==5.0.4
 django-cors-headers==1.1.0

@@ -193,6 +193,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_date': self.volume_by_date(),
             'volume_by_source': self.volume_by_source(),
             'volume_by_beat': self.by_field('beat'),
+            'volume_by_nature': self.by_field('nature'),
             'volume_by_nature_group': self.by_nature_group(),
             'volume_by_dow': self.by_dow(),
             'volume_by_shift': self.by_shift(),

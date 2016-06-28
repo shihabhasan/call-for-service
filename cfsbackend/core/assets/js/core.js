@@ -171,7 +171,8 @@ export var Filter = Ractive.extend({
         }
       },
       filterValue: filterValue,
-      displayValue: displayValue
+      displayValue: displayValue,
+      config: siteConfig
     };
   },
   computed: {

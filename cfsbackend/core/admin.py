@@ -2,13 +2,38 @@ from django.db import models
 from django.forms import TextInput
 from django.contrib import admin
 from solo.admin import SingletonModelAdmin
-from .models import  Beat, Bureau, CallSource, CallUnit, City, CloseCode, \
-    District, Division, Nature, NatureGroup,  \
+from adminsortable.admin import SortableAdmin
+from .models import Beat, Bureau, CallSource, CallUnit, City, CloseCode, \
+    District, Division, Nature, NatureGroup, \
     Officer, \
     Priority, Shift, ShiftUnit, SiteConfiguration, Squad, \
-    Transaction, Unit, ZipCode
+    Transaction, Unit
 
-admin.site.register(SiteConfiguration, SingletonModelAdmin)
+
+@admin.register(SiteConfiguration)
+class SiteConfigurationAdmin(SingletonModelAdmin):
+    model = SiteConfiguration
+    fieldsets = (
+        (None, {
+            'fields': ('maintenance_mode',)
+        }),
+        ('Department', {
+            'fields': ('department_name', 'department_abbr',),
+        }),
+        ('Features', {
+            'fields': (
+                'use_shift',
+                'use_district',
+                'use_beat',
+                'use_squad',
+                'use_priority',
+                'use_nature',
+                'use_nature_group',
+                'use_call_source',
+                'use_cancelled',
+            ),
+        }),
+    )
 
 
 ### model inline classes
@@ -36,6 +61,7 @@ class NatureInline(admin.StackedInline):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
+
 
 class ShiftUnitInline(admin.TabularInline):
     model = ShiftUnit
@@ -99,7 +125,7 @@ class DistrictAdmin(admin.ModelAdmin):
     exclude = ('sector',)
     inlines = [BeatInline, CallUnitInline]
     formfield_overrides = {
-        models.TextField: {'widget': TextInput(attrs={'size':'50'})}
+        models.TextField: {'widget': TextInput(attrs={'size': '50'})}
     }
 
 
@@ -134,7 +160,7 @@ class OfficerAdmin(admin.ModelAdmin):
 
 
 @admin.register(Priority)
-class PriorityAdmin(admin.ModelAdmin):
+class PriorityAdmin(SortableAdmin):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
@@ -166,13 +192,6 @@ class TransactionAdmin(admin.ModelAdmin):
 class UnitAdmin(admin.ModelAdmin):
     list_display = ('descr', 'code',)
     inlines = [ShiftUnitInline]
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput}
-    }
-
-
-@admin.register(ZipCode)
-class ZipCodeAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }

@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'webpack_loader',
     'solo',
     'hooks',
+    'adminsortable',
 
     'core',
 ) + PLUGINS

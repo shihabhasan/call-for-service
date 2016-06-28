@@ -13,20 +13,36 @@ from django.db.models import Q
 from pg.view import MaterializedView
 from django.contrib.postgres.fields import ArrayField
 from solo.models import SingletonModel
+from adminsortable.models import SortableMixin
 
 
 class SiteConfiguration(SingletonModel):
+    maintenance_mode = models.BooleanField(default=False)
+
+    # Department
     department_name = models.CharField(max_length=255,
                                        default="City Police Department")
     department_abbr = models.CharField("Department abbreviation", max_length=10,
                                        default="CPD")
-    maintenance_mode = models.BooleanField(default=False)
+
+    # Features
+    use_shift = models.BooleanField("Use shift?", default=False)
+    use_district = models.BooleanField("Use district?", default=False)
+    use_beat = models.BooleanField("Use beat?", default=False)
+    use_squad = models.BooleanField("Use squad?", default=False)
+    use_priority = models.BooleanField("Use priority?", default=False)
+    use_nature = models.BooleanField("Use natures?", default=False)
+    use_nature_group = models.BooleanField("Use nature groups?", default=False)
+    use_call_source = models.BooleanField("Use call sources?", default=False)
+    use_cancelled = models.BooleanField("Use cancelled?", default=False)
+
+    # Geography
 
     def __str__(self):
         return "Site Configuration"
 
     class Meta:
-        verbose_name = "Site Configuration"
+        verbose_name = "* Site Configuration"
 
 
 class DateTimeNoTZField(models.DateTimeField):
@@ -137,10 +153,9 @@ class Call(models.Model):
                                          related_name="+")
     reporting_unit = models.ForeignKey('CallUnit', blank=True, null=True,
                                        related_name="+")
-    street_num = models.IntegerField(blank=True, null=True)
-    street_name = models.TextField(blank=True, null=True)
+    street_address = models.CharField(max_length=255, blank=True, null=True)
     city = models.ForeignKey('City', blank=True, null=True)
-    zip_code = models.ForeignKey('ZipCode', blank=True, null=True)
+    zip_code = models.CharField(max_length=5, blank=True, null=True)
     crossroad1 = models.TextField(blank=True, null=True)
     crossroad2 = models.TextField(blank=True, null=True)
     geox = models.FloatField(blank=True, null=True)
@@ -151,8 +166,8 @@ class Call(models.Model):
     business = models.TextField(blank=True, null=True)
     nature = models.ForeignKey('Nature', blank=True, null=True)
     priority = models.ForeignKey('Priority', blank=True, null=True)
-    report_only = models.BooleanField()
-    cancelled = models.BooleanField(db_index=True)
+    report_only = models.BooleanField(default=False)
+    cancelled = models.BooleanField(db_index=True, default=False)
 
     first_unit_dispatch = DateTimeNoTZField(blank=True, null=True)
     first_unit_enroute = DateTimeNoTZField(blank=True, null=True)
@@ -261,6 +276,7 @@ class Sector(ModelWithDescr):
 class Nature(ModelWithDescr):
     nature_id = models.AutoField(primary_key=True)
     nature_group = models.ForeignKey('NatureGroup', blank=True, null=True)
+    key = models.CharField(max_length=10, blank=True, null=True, unique=True)
 
     class Meta:
         db_table = 'nature'
@@ -282,12 +298,16 @@ class Officer(models.Model):
         db_table = 'officer'
 
 
-class Priority(ModelWithDescr):
+class Priority(ModelWithDescr, SortableMixin):
     priority_id = models.AutoField(primary_key=True)
+    sort_order = models.PositiveIntegerField(editable=False, db_index=True,
+                                             default=0)
 
     class Meta:
+        ordering = ('sort_order',)
         db_table = 'priority'
         verbose_name_plural = "priorities"
+
 
 class Shift(models.Model):
     shift_id = models.AutoField(primary_key=True)
@@ -322,6 +342,7 @@ class ShiftUnit(models.Model):
     class Meta:
         db_table = 'shift_unit'
 
+
 class Squad(ModelWithDescr):
     squad_id = models.AutoField(primary_key=True)
 
@@ -348,10 +369,3 @@ class Unit(ModelWithDescr):
 
     class Meta:
         db_table = 'unit'
-
-
-class ZipCode(ModelWithDescr):
-    zip_code_id = models.AutoField(primary_key=True)
-
-    class Meta:
-        db_table = 'zip_code'
