@@ -7,6 +7,7 @@
 #
 # Also note: You'll have to insert the output of 'django-admin sqlcustom [app_label]'
 # into your database.
+from datetime import timedelta
 
 from django.db import models
 from django.db.models import Q
@@ -196,9 +197,14 @@ class Call(models.Model):
 
         if self.first_unit_arrive is not None and self.time_received is not None:
             self.overall_response_time = self.first_unit_arrive - self.time_received
+        if self.overall_response_time < timedelta(0):
+            self.overall_response_time = None
 
-        if self.first_unit_arrive is not None and self.first_unit_dispatch is not None:
+        if self.first_unit_arrive is not None and self.first_unit_dispatch is not None\
+                and self.first_unit_arrive >= self.first_unit_dispatch:
             self.officer_response_time = self.first_unit_arrive - self.first_unit_dispatch
+        else:
+            self.officer_response_time = self.overall_response_time
 
     class Meta:
         db_table = 'call'

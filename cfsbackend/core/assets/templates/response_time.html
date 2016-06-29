@@ -1,75 +1,105 @@
 <NavBar filterHash="{{ filterHash }}"
         rightText="{{ formatCount(data.count, "call") }}"
 />
-<LoadingIndicator loading="{{ loading }}" />
+<LoadingIndicator loading="{{ loading }}"/>
 <div class="row">
-  <div class="col-md-12">
-    <Filter/>
-  </div>
-  <div class="col-md-12">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="row">
-          <div class="col-md-6 col-lg-7">
-            <div class="row">
-              <div id="ort" class="col-md-12">
-                <chart-header title="Officer Response Time">
-                  <p>This chart shows us the median officer response time for the current call selection, as well as the range of response times by quartile.</p>
-                </chart-header>
-              </div>
-              <div class="col-lg-6 col-md-12">
-                <div id="ort-by-priority">
-                  <chart-header title="Officer Response Time By Priority">
-                    <p>This chart shows us average officer response time for each priority for the current call selection.
-                    </p>
-                  </chart-header>
-                </div>
-              </div>
-              <div class="col-lg-6 col-md-12">
-                <div id="ort-by-dow">
-                  <chart-header title="Officer Response Time By Day of Week">
-                    <p>
-                      This chart shows us average officer response time for each day of the week for the current call selection. </p>
-                  </chart-header>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6 col-lg-5">
-            <chart-header title="Officer Mean Response Time By Beat">
-              This map shows us average officer response time for each beat for the current call selection. You can click any beat here to filter the calls to only that beat's calls.
-            </chart-header>
-
-            <div id="map-container">
-              <div id="legend"></div>
-              <div id="map"></div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-lg-4 col-md-12">
-            <div id="ort-by-shift">
-              <chart-header title="Officer Response Time By Shift">
-                <p>
-                  This chart shows us average officer response time for each shift for the current call selection. </p>
-              </chart-header>
-            </div>
-            <div id="ort-by-district">
-              <chart-header title="Officer Response Time By District">
-                <p>This chart shows us average officer response time for each district for the current call selection.</p>
-              </chart-header>
-            </div>
-          </div>
-          <div class="col-lg-8 col-md-12">
-            <div id="ort-by-nature">
-              <chart-header title="Officer Response Time By Nature">
-                <p>
-                  This chart shows us average officer response time for each nature for the current call selection. </p>
-              </chart-header>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="col-md-12">
+        <Filter/>
     </div>
-  </div>
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-6 col-lg-7">
+                        <div class="row">
+                            <div id="ort" class="col-md-12">
+                                <chart-header title="Officer Response Time">
+                                    <p>This chart shows us the median officer
+                                        response time for the current call
+                                        selection, as well as the range of
+                                        response times by quartile.</p>
+                                </chart-header>
+                            </div>
+                            <div class="col-md-12">
+                                <div id="ort-by-priority">
+                                    <chart-header
+                                            title="Officer Response Time By Priority">
+                                        <p>This chart shows us average officer
+                                            response time for each priority for
+                                            the current call selection.
+                                        </p>
+                                    </chart-header>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div id="ort-by-dow">
+                                    <chart-header
+                                            title="Officer Response Time By Day of Week">
+                                        <p>
+                                            This chart shows us average officer
+                                            response time for each day of the
+                                            week for the current call
+                                            selection. </p>
+                                    </chart-header>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-5">
+                        {{ #if config.use_beat }}
+                        <chart-header
+                                title="Officer Mean Response Time By Beat">
+                            This map shows us average officer response time for
+                            each beat for the current call selection. You can
+                            click any beat here to filter the calls to only that
+                            beat's calls.
+                        </chart-header>
+                        {{ /if }}
+
+                        <div id="map-container">
+                            <div id="legend"></div>
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-lg-4 col-md-12">
+                        {{ #if config.use_shift }}
+                        <div id="ort-by-shift">
+                            <chart-header
+                                    title="Officer Response Time By Shift">
+                                <p>
+                                    This chart shows us average officer response
+                                    time for each shift for the current call
+                                    selection. </p>
+                            </chart-header>
+                        </div>
+                        {{ /if }}
+                        {{ #if config.use_district }}
+                        <div id="ort-by-district">
+                            <chart-header
+                                    title="Officer Response Time By District">
+                                <p>This chart shows us average officer response
+                                    time for each district for the current call
+                                    selection.</p>
+                            </chart-header>
+                        </div>
+                        {{ /if }}
+                    </div>
+                    <div class="col-lg-8 col-md-12">
+                        <div id="ort-by-nature">
+                            <chart-header
+                                    title="Officer Response Time By Nature">
+                                <p>
+                                    This chart shows us average officer response
+                                    time for each nature for the current call
+                                    selection. </p>
+                            </chart-header>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

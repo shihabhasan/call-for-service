@@ -320,18 +320,19 @@ if (siteConfig.use_call_source) {
     monitorChart(dashboard, "data.volume_by_source", volumeBySourceChart.update);
 }
 
+if (siteConfig.use_beat || siteConfig.use_district) {
+    var volumeMap = new RegionMap({
+        el: "#map",
+        dashboard: dashboard,
+        colorScheme: colorbrewer.Blues,
+        format: function (val) {
+            return d3.format(",.2f")(val).replace(/\.0+$/, "");
+        },
+        dataDescr: "Call Volume"
+    });
 
-var volumeMap = new RegionMap({
-    el: "#map",
-    dashboard: dashboard,
-    colorScheme: colorbrewer.Blues,
-    format: function (val) {
-        return d3.format(",.2f")(val).replace(/\.0+$/, "");
-    },
-    dataDescr: "Call Volume"
-});
-
-monitorChart(dashboard, "data.map_data", volumeMap.update);
+    monitorChart(dashboard, "data.map_data", volumeMap.update);
+}
 
 
 var heatmap = new Heatmap({
