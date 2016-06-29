@@ -81,9 +81,10 @@
                     </div>
                 </div>
             </div>
+            {{ #if config.use_beat }}
             <div class="col-md-5">
                 <chart-header title="Call Volume By Beat">
-                    This map shows the call volume by Durham beat. You can click
+                    This map shows the call volume by beat. You can click
                     any beat here to filter the calls to only that beat's calls.
                 </chart-header>
 
@@ -92,6 +93,19 @@
                     <div id="map"></div>
                 </div>
             </div>
+            {{ elseif config.use_district }}
+            <div class="col-md-5">
+                <chart-header title="Call Volume By District">
+                    This map shows the call volume by district. You can click
+                    any beat here to filter the calls to only that district's calls.
+                </chart-header>
+
+                <div id="map-container">
+                    <div id="legend"></div>
+                    <div id="map"></div>
+                </div>
+            </div>
+            {{ /if }}
         </div>
         <div class="clearfix visible-md-block"></div>
         <div class="row">

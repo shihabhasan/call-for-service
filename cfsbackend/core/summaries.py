@@ -8,7 +8,7 @@ from postgres_stats import Extract, DateTrunc, Percentile
 from url_filter.filtersets import StrictMode
 
 from .filters import CallFilterSet
-from .models import Call, Beat, NatureGroup
+from .models import Call, Beat, NatureGroup, District
 
 
 def merge_dicts(*dict_args):
@@ -69,6 +69,9 @@ class CallOverview:
 
     def beat_ids(self):
         return dict(Beat.objects.all().values_list('descr', 'beat_id'))
+
+    def district_ids(self):
+        return dict(District.objects.all().values_list('descr', 'district_id'))
 
     def by_dow(self):
         results = self.qs \
@@ -192,6 +195,7 @@ class CallVolumeOverview(CallOverview):
             'count': self.count(),
             'volume_by_date': self.volume_by_date(),
             'volume_by_source': self.volume_by_source(),
+            'volume_by_district': self.by_field('district'),
             'volume_by_beat': self.by_field('beat'),
             'volume_by_nature': self.by_field('nature'),
             'volume_by_nature_group': self.by_nature_group(),
@@ -199,6 +203,7 @@ class CallVolumeOverview(CallOverview):
             'volume_by_shift': self.by_shift(),
             'heatmap': self.day_hour_heatmap(),
             'beat_ids': self.beat_ids(),
+            'district_ids': self.district_ids(),
         }
 
 

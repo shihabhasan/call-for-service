@@ -33,6 +33,15 @@ class SiteConfigurationAdmin(SingletonModelAdmin):
                 'use_cancelled',
             ),
         }),
+        ('Geography', {
+            'fields': (
+                'geo_center',
+                'geo_ne_bound',
+                'geo_sw_bound',
+                'geo_default_zoom',
+                'geojson_url',
+            )
+        })
     )
 
 

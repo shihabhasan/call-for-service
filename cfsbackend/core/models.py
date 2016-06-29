@@ -14,6 +14,7 @@ from pg.view import MaterializedView
 from django.contrib.postgres.fields import ArrayField
 from solo.models import SingletonModel
 from adminsortable.models import SortableMixin
+from geoposition.fields import GeopositionField
 
 
 class SiteConfiguration(SingletonModel):
@@ -37,6 +38,11 @@ class SiteConfiguration(SingletonModel):
     use_cancelled = models.BooleanField("Use cancelled?", default=False)
 
     # Geography
+    geo_center = GeopositionField("Center", blank=True)
+    geo_ne_bound = GeopositionField("Northeast bound", blank=True)
+    geo_sw_bound = GeopositionField("Southwest bound", blank=True)
+    geo_default_zoom = models.PositiveIntegerField("Default zoom level", default=11)
+    geojson_url = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return "Site Configuration"

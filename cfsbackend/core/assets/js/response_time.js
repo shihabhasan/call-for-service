@@ -8,7 +8,7 @@ import {
 import {
   HorizontalBarChart,
   DiscreteBarChart,
-  DurhamMap
+  RegionMap
 } from "./charts";
 import _ from "underscore-contrib";
 import d3 from "d3";
@@ -134,7 +134,7 @@ function cleanupData(data) {
   return data;
 }
 
-var responseTimeMap = new DurhamMap({
+var responseTimeMap = new RegionMap({
   el: "#map",
   dashboard: dashboard,
   colorScheme: colorbrewer.Oranges,

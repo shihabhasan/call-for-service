@@ -9,7 +9,7 @@ import {
     HorizontalBarChart,
     DiscreteBarChart,
     Heatmap,
-    DurhamMap
+    RegionMap
 } from "./charts";
 import _ from "underscore-contrib";
 import d3 from "d3";
@@ -121,12 +121,21 @@ function cleanupData(data) {
         values: data.volume_by_source
     }];
 
-    data.map_data = _.reduce(
-        data.volume_by_beat,
-        function (memo, d) {
-            memo[d.name] = d.volume;
-            return memo;
-        }, {});
+    if (siteConfig.use_beat) {
+        data.map_data = _.reduce(
+            data.volume_by_beat,
+            function (memo, d) {
+                memo[d.name] = d.volume;
+                return memo;
+            }, {});
+    } else if (siteConfig.use_district) {
+        data.map_data = _.reduce(
+            data.volume_by_district,
+            function (memo, d) {
+                memo[d.name] = d.volume;
+                return memo;
+            }, {});
+    }
 
     data.volume_by_beat = [{
         key: "Volume By Beat",
@@ -312,7 +321,7 @@ if (siteConfig.use_call_source) {
 }
 
 
-var volumeMap = new DurhamMap({
+var volumeMap = new RegionMap({
     el: "#map",
     dashboard: dashboard,
     colorScheme: colorbrewer.Blues,
