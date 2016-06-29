@@ -24,7 +24,6 @@ class CallViewSet(viewsets.ReadOnlyModelViewSet):
         .select_related('district') \
         .select_related('beat') \
         .select_related('city') \
-        .select_related('zip_code') \
         .select_related('priority') \
         .select_related('call_source') \
         .select_related('nature') \

@@ -97,7 +97,6 @@ class NatureGroupSerializer(serializers.ModelSerializer):
 
 class CallExportSerializer(NonNullSerializer):
     city = CharField(source="city.descr", read_only=True)
-    zip_code = CharField(source="zip_code.descr", read_only=True)
 
     primary_unit = CharField(source="primary_unit.descr", read_only=True)
     first_dispatched = CharField(source="first_dispatched.descr", read_only=True)
@@ -115,7 +114,7 @@ class CallExportSerializer(NonNullSerializer):
         model = Call
         fields = (
             'call_id', 'city', 'zip_code', 'district', 'beat',
-            'street_num', 'street_name', 'crossroad1', 'crossroad2', 'geox',
+            'street_address', 'crossroad1', 'crossroad2', 'geox',
             'geoy',
             'call_source', 'primary_unit', 'first_dispatched', 'close_code',
             'nature', 'nature_group',
@@ -131,7 +130,6 @@ class CallExportSerializer(NonNullSerializer):
 
 class CallSerializer(NonNullSerializer):
     city = CharField(source="city.descr", read_only=True)
-    zip_code = CharField(source="zip_code.descr", read_only=True)
 
     primary_unit = CallUnitSerializer(read_only=True, allow_null=False)
     first_dispatched = CallUnitSerializer(read_only=True)
@@ -148,7 +146,7 @@ class CallSerializer(NonNullSerializer):
         model = Call
         fields = (
             'call_id', 'city', 'zip_code', 'district', 'beat',
-            'street_num', 'street_name', 'crossroad1', 'crossroad2', 'geox',
+            'street_address', 'crossroad1', 'crossroad2', 'geox',
             'geoy',
             'call_source', 'primary_unit', 'first_dispatched', 'close_code',
             'nature', 'nature_group',
