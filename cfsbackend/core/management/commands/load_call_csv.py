@@ -118,7 +118,9 @@ class Command(BaseCommand):
                                 nature_id=safe_int(c['Nature ID']),
                                 priority_id=safe_int(c['Priority ID']),
                                 district_id=safe_int(c['District ID']),
-                                close_code_id=safe_int(c['Close Code ID']))
+                                close_code_id=safe_int(c['Close Code ID']),
+                                geox=c['Longitude'],
+                                geoy=c['Latitude'])
                     call.update_derived_fields()
                     calls.append(call)
 

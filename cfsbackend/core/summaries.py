@@ -256,14 +256,14 @@ class CallResponseTimeOverview(CallOverview):
 
 class CallMapOverview(CallOverview):
     def locations(self):
-        return self.qs.values_list('geox', 'geoy', 'street_num', 'street_name',
+        return self.qs.values_list('geoy', 'geox', 'street_address',
                                    'business')
 
     def top_users(self):
         return self.qs. \
             exclude(street_name=""). \
-            values('street_num', 'street_name', 'business'). \
-            annotate(total=Count('street_num')). \
+            values('street_address', 'business'). \
+            annotate(total=Count('street_address')). \
             order_by('-total')[:20]
 
     def to_dict(self):
@@ -273,32 +273,4 @@ class CallMapOverview(CallOverview):
             'count': self.count(),
             'locations': self.locations()
         }
-
-
-class MapOverview(CallOverview):
-    def officer_response_time_by_beat(self):
-        results = self.qs \
-            .annotate(name=F("beat__descr")) \
-            .values("name") \
-            .exclude(name=None) \
-            .annotate(mean=Avg(Secs("officer_response_time"))) \
-            .order_by("-mean")
-        return results
-
-    def volume_by_beat(self):
-        qs = self.qs \
-            .annotate(name=F('beat__descr')) \
-            .values('name') \
-            .exclude(name=None)
-
-        return qs.annotate(volume=Count('name'))
-
-    def to_dict(self):
-        return {
-            'filter': self.filter.data,
-            'count': self.count(),
-            'officer_response_time': self.officer_response_time_by_beat(),
-            'call_volume': self.volume_by_beat()
-        }
-
 

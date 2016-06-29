@@ -49,9 +49,6 @@ var webpackConfigs = [{
         })
     ],
     module: {
-        noParse: [
-            /proj4\.js/
-        ],
         loaders: [{
             test: /.js$/,
             exclude: /node_modules/,

@@ -197,8 +197,9 @@ class Call(models.Model):
 
         if self.first_unit_arrive is not None and self.time_received is not None:
             self.overall_response_time = self.first_unit_arrive - self.time_received
-        if self.overall_response_time < timedelta(0):
-            self.overall_response_time = None
+
+            if self.overall_response_time < timedelta(0):
+                self.overall_response_time = None
 
         if self.first_unit_arrive is not None and self.first_unit_dispatch is not None\
                 and self.first_unit_arrive >= self.first_unit_dispatch:

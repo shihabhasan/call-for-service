@@ -10,9 +10,7 @@ import {
 import Q from "q";
 import L from "leaflet";
 import d3 from "d3";
-import $ from "jquery";
 import _ from "underscore-contrib";
-import proj4 from "proj4";
 
 import "leaflet-easybutton";
 
@@ -22,10 +20,6 @@ var Cluster = require(
     "exports?PruneClusterForLeaflet&PruneCluster!prunecluster/dist/PruneCluster.js");
 var PruneClusterForLeaflet = Cluster.PruneClusterForLeaflet;
 var PruneCluster = Cluster.PruneCluster;
-
-var utm = "+proj=utm +zone=32";
-var ncStatePlane = "+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.2192024384 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs";
-var wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs";
 
 var url = "/api/call_map/";
 
@@ -49,14 +43,12 @@ var dashboard = new Page({
 
 function cleanData(data) {
     var locations = data.locations.map(function (datum) {
-        var loc = proj4(ncStatePlane, wgs84, [datum[0], datum[1]]);
+        var loc = [datum[0], datum[1]];
         return {
-            lat: loc[1],
-            lng: loc[0],
-            address: _([datum[2], datum[3]]).reject(_.isNull).join(" "),
-            street_num: datum[2],
-            street_name: datum[3],
-            business: datum[4]
+            lat: loc[0],
+            lng: loc[1],
+            address: datum[2],
+            business: datum[3]
         }
     });
 
@@ -96,7 +88,7 @@ function getTopAddresses(locations, count) {
     });
 }
 
-var DurhamClusterMap = function (options) {
+var ClusterMap = function (options) {
     var self = this;
     var dashboard = options.dashboard;
 
@@ -137,17 +129,17 @@ var DurhamClusterMap = function (options) {
     }
 
     this.create = function () {
-        var northEast = L.latLng(36.13898378070337, -78.75068664550781),
-            southWest = L.latLng(35.860952532806905, -79.04937744140625),
+        var northEast = L.latLng.apply(null, siteConfig.geo_ne_bound),
+            southWest = L.latLng.apply(null, siteConfig.geo_sw_bound),
             bounds = L.latLngBounds(southWest, northEast);
 
         var map = L.map(
             "map", {
-                center: [36.0, -78.9],
-                zoom: 11,
+                center: siteConfig.geo_center,
+                zoom: siteConfig.geo_default_zoom,
                 maxBounds: bounds,
-                minZoom: 11,
-                maxZoom: 18,
+                minZoom: Math.min(siteConfig.geo_default_zoom, 11),
+                maxZoom: Math.max(siteConfig.geo_default_zoom, 18),
                 scrollWheelZoom: true
             });
         this.map = map;
@@ -252,7 +244,7 @@ var DurhamClusterMap = function (options) {
     });
 };
 
-var map = new DurhamClusterMap({
+var map = new ClusterMap({
     el: "#map",
     dashboard: dashboard,
     ratio: 0.9
