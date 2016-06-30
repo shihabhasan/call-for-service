@@ -1,5 +1,5 @@
 import "leaflet/dist/leaflet.css";
-import "prunecluster/dist/LeafletStyleSheet.css";
+import "prunecluster/LeafletStyleSheet.css";
 
 import {
     Page,

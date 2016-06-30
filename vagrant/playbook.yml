@@ -12,7 +12,7 @@
     - name: Add PPAs
       apt_repository: repo="{{item}}"
       with_items:
-        - "deb https://deb.nodesource.com/node_0.12 trusty main"
+        - "deb https://deb.nodesource.com/node_6.x trusty main"
         - "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main"
     - name: Update apt cache
       apt: update_cache=yes
@@ -43,7 +43,7 @@
         - postgresql-9.4-postgis-scripts
         - python-psycopg2
     - name: Install Node
-      apt: name=nodejs state=present
+      apt: name=nodejs state=latest
     - name: Install webpack
       npm: name=webpack global=yes
     - name: Install sass
@@ -54,6 +54,8 @@
       template: src=files/bashrc dest=/home/vagrant/.bashrc owner=vagrant
     - name: "pip install"
       pip: executable=pip3 requirements=/vagrant/requirements.txt
+    - name: Install Honcho
+      pip: executable=pip3 name=honcho
     - name: Configure PostgreSQL
       copy: src=files/postgresql.conf dest=/etc/postgresql/9.4/main/postgresql.conf owner=postgres group=postgres force=yes
       notify:
@@ -62,6 +64,8 @@
       copy: src=files/pg_hba.conf dest=/etc/postgresql/9.4/main/pg_hba.conf owner=postgres group=postgres force=yes
       notify:
         - Restart Postgres
+    - name: Install webapp credentials
+      copy: src=files/credentials.py dest=/vagrant/cfs/webapp_credentials.py
   handlers:
     - name: Restart Postgres
       service: name=postgresql state=restarted
@@ -71,9 +75,9 @@
   become_method: sudo
   become_user: postgres
   tasks:
-    - name: "Create datascientist user for Postgres"
-      postgresql_user: name=datascientist password=1234thumbwar role_attr_flags=CREATEDB
+    - name: "Create CFS user for Postgres"
+      postgresql_user: name=cfs password=cfs role_attr_flags=CREATEDB
     - name: "Create Vagrant user for Postgres"
       postgresql_user: name=vagrant role_attr_flags=CREATEDB,CREATEROLE,SUPERUSER
     - name: "Create PostgreSQL databases"
-      postgresql_db: name=cfs owner=datascientist state=present
+      postgresql_db: name=cfs owner=cfs state=present
