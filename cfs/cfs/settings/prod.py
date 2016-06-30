@@ -4,7 +4,7 @@ from .base import *
 DEBUG = False
 COMPRESS_OFFLINE = True
 
-ALLOWED_HOSTS = ['159.203.84.81', 'dpdcfs.rticds.org']
+ALLOWED_HOSTS = ['159.203.84.81', '*.rticds.org']
 
 LOGGING = {
     'version': 1,
