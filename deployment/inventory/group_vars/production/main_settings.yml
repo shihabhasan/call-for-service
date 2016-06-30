@@ -23,13 +23,13 @@ database:
   user: datascientist
 
 django:
-  settings: cfsbackend.settings.prod
-  wsgi: cfsbackend.wsgi
+  settings: cfs.settings.prod
+  wsgi: cfs.wsgi
   port: 8000
   # absolute path to the root of your django project
   # in my case this is where the manage.py lives
   # It's also where the SCM module dumps your project
-  root: "{{ project.root }}src/cfsbackend/"
+  root: "{{ project.root }}src/cfs/"
 
 nginx:
   servernames:

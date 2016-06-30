@@ -3,4 +3,4 @@ alias python=python3
 # Make the pip command invoke pip3
 alias pip=pip3
 
-export DJANGO_SETTINGS_MODULE=cfsbackend.settings.local
+export DJANGO_SETTINGS_MODULE=cfs.settings.local
