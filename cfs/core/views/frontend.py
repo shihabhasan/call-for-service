@@ -4,6 +4,7 @@ from io import StringIO
 from django.http import StreamingHttpResponse
 from django.shortcuts import render_to_response
 from django.views.generic import View, TemplateView
+from django.conf import settings
 from url_filter.filtersets import StrictMode
 
 from core import models
@@ -35,8 +36,12 @@ def build_filter(filter_set):
     return out
 
 
-class LandingPageView(TemplateView):
-    template_name = "landing_page.html"
+class LandingPageView(View):
+    def get(self, request):
+        return render_to_response(
+            "landing_page.html",
+            dict(show_allocation=(
+                'officer_allocation' in settings.INSTALLED_APPS)))
 
 
 class CallListView(View):

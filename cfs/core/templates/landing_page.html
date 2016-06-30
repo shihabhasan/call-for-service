@@ -128,17 +128,31 @@
             <p>Evaluate performance metrics.</p>
         </div>
         <div class="col-md-4">
-            <div>
-                <a href="/officer_allocation">
-                    <i class="fa fa-calendar fa-5x fa-border"></i>
-                </a>
-            </div>
-            <h3>
-                <a href="/officer_allocation">
-                    Officer Allocation
-                </a>
-            </h3>
-            <p>Visualize how your resources are being used.</p>
+            {% if show_allocation %}
+                <div>
+                    <a href="/officer_allocation">
+                        <i class="fa fa-calendar fa-5x fa-border"></i>
+                    </a>
+                </div>
+                <h3>
+                    <a href="/officer_allocation">
+                        Officer Allocation
+                    </a>
+                </h3>
+                <p>Visualize how your resources are being used.</p>
+            {% else %}
+                <div>
+                    <a href="/call_map">
+                        <i class="fa fa-map-o fa-5x fa-border"></i>
+                    </a>
+                </div>
+                <h3>
+                    <a href="/call_map">
+                        Utilization Map
+                    </a>
+                </h3>
+                <p>Find high-volume call locations.</p>
+            {% endif %}
         </div>
     </div>
 </div>
