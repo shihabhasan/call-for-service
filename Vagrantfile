@@ -3,7 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "cfsbackend"
+  config.vm.hostname = "cfs"
 
   config.vm.provider "virtualbox" do |vb|
     # Customize the amount of memory on the VM:
@@ -21,7 +21,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provider "virtualbox" do |v|
-    v.name = "cfsbackend"
+    v.name = "cfs"
   end
 
 end

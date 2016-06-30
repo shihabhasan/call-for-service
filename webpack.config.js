@@ -5,7 +5,7 @@ var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var CleanWebpackPlugin = require('clean-webpack-plugin');
 
 var webpackConfigs = [{
-    context: path.join(__dirname, "cfsbackend", "core", "assets"),
+    context: path.join(__dirname, "cfs", "core", "assets"),
     entry: {
         call_volume: "./js/call_volume",
         response_time: "./js/response_time",
@@ -14,7 +14,7 @@ var webpackConfigs = [{
         call_map: "./js/call_map",
     },
     output: {
-        path: path.join(__dirname, "cfsbackend", "core", "assets", "bundles"),
+        path: path.join(__dirname, "cfs", "core", "assets", "bundles"),
         filename: "[name]-[hash].js"
     },
     resolve: {
@@ -25,7 +25,7 @@ var webpackConfigs = [{
         }
     },
     plugins: [
-        new CleanWebpackPlugin(['cfsbackend/core/assets/bundles'], {
+        new CleanWebpackPlugin(['cfs/core/assets/bundles'], {
             verbose: true,
             dry: false
         }),
@@ -102,7 +102,7 @@ function hydrateConfig(configFile, config) {
     return config;
 }
 
-var configs = glob.sync(path.join(__dirname, "cfsbackend", "*", "webpack.config.js"));
+var configs = glob.sync(path.join(__dirname, "cfs", "*", "webpack.config.js"));
 configs.forEach(function (configFile) {
     var config = require(configFile);
     if (Array.isArray(config)) {

@@ -131,8 +131,8 @@ exec/
 
 # Front end
 node_modules
-cfsbackend/assets/bundles/
-cfsbackend/webpack-stats.json
+cfs/assets/bundles/
+cfs/webpack-stats.json
 
 # Various
 /*.sql
@@ -140,7 +140,7 @@ cfsbackend/webpack-stats.json
 .idea
 .direnv/
 .envrc
-cfsbackend/cfsbackend/staticfiles/
+cfs/cfsbackend/staticfiles/
 
 # Created by https://www.gitignore.io/api/ipythonnotebook
 
