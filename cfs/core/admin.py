@@ -70,6 +70,8 @@ class NatureInline(admin.StackedInline):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
+    can_delete = False
+
 
 
 class ShiftUnitInline(admin.TabularInline):
@@ -152,6 +154,7 @@ class NatureAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
+    list_display = ('descr', 'nature_group',)
 
 
 @admin.register(NatureGroup)
@@ -160,6 +163,7 @@ class NatureGroupAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': TextInput}
     }
+    # filter_horizontal = ('nature_set',)
 
 
 @admin.register(Officer)

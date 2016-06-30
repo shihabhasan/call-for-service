@@ -82,6 +82,20 @@ class ModelWithDescr(models.Model):
         abstract = True
         ordering = ['descr']
 
+class ModelWithCodeAndDescr(models.Model):
+    code = models.CharField("Unique code", max_length=64, unique=True)
+    descr = models.CharField("Description", max_length=255)
+
+    def __str__(self):
+        if self.descr and self.code:
+            return "{} ({})".format(self.descr, self.code)
+        else:
+            return super().__str__()
+
+    class Meta:
+        abstract = True
+        ordering = ['descr']
+
 
 class Beat(ModelWithDescr):
     beat_id = models.AutoField(primary_key=True)
@@ -255,9 +269,8 @@ class City(ModelWithDescr):
         verbose_name_plural = "cities"
 
 
-class CloseCode(ModelWithDescr):
+class CloseCode(ModelWithCodeAndDescr):
     close_code_id = models.AutoField(primary_key=True)
-    code = models.CharField(max_length=10, unique=True)
 
     class Meta:
         db_table = 'close_code'
@@ -293,6 +306,7 @@ class Nature(ModelWithDescr):
 
     class Meta:
         db_table = 'nature'
+        ordering = ('descr',)
 
 
 class NatureGroup(ModelWithDescr):
@@ -300,6 +314,7 @@ class NatureGroup(ModelWithDescr):
 
     class Meta:
         db_table = 'nature_group'
+        ordering = ('descr',)
 
 
 class Officer(models.Model):

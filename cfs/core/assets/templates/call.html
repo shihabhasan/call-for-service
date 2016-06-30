@@ -17,7 +17,7 @@
                 <dt>Nature Group</dt>
                 <dd><ClickField field="nature__nature_group" value="{{ nature_group.nature_group_id }}" descr="{{ nature_group.descr }}" /></dd>
                 {{ /if }}
-                {{ #if config.use_nature }}
+                {{ #if nature }}
                 <dt>Nature</dt>
                 <dd>{{ d(nature.descr) }}</dd>
                 {{ /if }}

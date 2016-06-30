@@ -96,40 +96,42 @@ class Command(BaseCommand):
         self.create_calls()
 
     def create_calls(self):
-        try:
-            start = 0
-            while start < len(self.df):
-                batch = self.df[start:start + self.batch_size]
-                calls = []
+        start = 0
+        while start < len(self.df):
+            batch = self.df[start:start + self.batch_size]
+            calls = []
 
-                for idx, c in batch.iterrows():
-                    if Call.objects.filter(pk=c['Internal ID']).count() > 0:
-                        continue
+            for idx, c in batch.iterrows():
+                if Call.objects.filter(pk=c['Internal ID']).count() > 0:
+                    continue
 
-                    call = Call(call_id=c['Internal ID'],
-                                time_received=safe_datetime(c['Time Received']),
-                                first_unit_dispatch=safe_datetime(
-                                    c['Time Dispatched']),
-                                first_unit_arrive=safe_datetime(
-                                    c['Time Arrived']),
-                                time_closed=safe_datetime(c['Time Closed']),
-                                street_address=c['Street Address'],
-                                zip_code=safe_zip(c['Zip']),
-                                nature_id=safe_int(c['Nature ID']),
-                                priority_id=safe_int(c['Priority ID']),
-                                district_id=safe_int(c['District ID']),
-                                close_code_id=safe_int(c['Close Code ID']),
-                                geox=c['Longitude'],
-                                geoy=c['Latitude'])
-                    call.update_derived_fields()
-                    calls.append(call)
+                call = Call(call_id=c['Internal ID'],
+                            time_received=safe_datetime(c['Time Received']),
+                            first_unit_dispatch=safe_datetime(
+                                c['Time Dispatched']),
+                            first_unit_arrive=safe_datetime(
+                                c['Time Arrived']),
+                            time_closed=safe_datetime(c['Time Closed']),
+                            street_address=c['Street Address'],
+                            zip_code=safe_zip(c['Zip']),
+                            nature_id=safe_int(c['Nature ID']),
+                            priority_id=safe_int(c['Priority ID']),
+                            district_id=safe_int(c['District ID']),
+                            close_code_id=safe_int(c['Close Code ID']),
+                            geox=c['Longitude'],
+                            geoy=c['Latitude'])
+                call.update_derived_fields()
+                calls.append(call)
 
+            try:
                 Call.objects.bulk_create(calls)
                 self.log("Call {}-{} created".format(start, start + len(batch)))
                 start += self.batch_size
-        except Exception as ex:
-            import pdb;
-            pdb.set_trace()
+            except Exception as ex:
+                the_exception = ex
+                import pdb;
+                pdb.set_trace()
+
 
     def create_districts(self):
         self.log("Creating districts")
