@@ -176,3 +176,5 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
+
+GEOPOSITION_GOOGLE_MAPS_API_KEY = 'AIzaSyBYrbp34OohAHsX1cub8ZeHlMEFajv15fY'
