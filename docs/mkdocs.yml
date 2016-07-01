@@ -3,6 +3,7 @@ docs_dir: 'src'
 site_dir: 'build'
 pages:
   - 'Introduction': index.md
+  - 'Setup': development.md
   - 'Configuration': config.md
   - 'Loading data': data.md
   - 'Plugins': plugins.md
