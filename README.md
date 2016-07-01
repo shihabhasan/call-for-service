@@ -5,6 +5,11 @@ department's Call for Service data.
 
 The application is built with Python and JavaScript.
 
+## Setup
+
+See [our in-depth documentation](/docs/src/index.md) for information on
+configuration, data loading, and deployment.
+
 ## Development instructions
 
 We have provided a `Vagrantfile` to make setup easy by using 
