@@ -1,4 +1,4 @@
-site_name: My Docs
+site_name: CFS Analytics
 docs_dir: 'src'
 site_dir: 'build'
 pages:

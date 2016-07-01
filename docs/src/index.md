@@ -1,4 +1,4 @@
-# CFS Analytics documentation
+# Introduction
 
 ## Contents
 
