@@ -1,6 +1,0 @@
-site_name: Call for Service
-pages:
-- Home: index.md
-- About: about.md
-
-theme: journal
