@@ -48,7 +48,8 @@ function cleanData(data) {
             lat: loc[0],
             lng: loc[1],
             address: datum[2],
-            business: datum[3]
+            business: datum[3],
+            nature: datum[4]
         }
     });
 
@@ -222,6 +223,10 @@ var ClusterMap = function (options) {
                 marker.data.popup = `${datum.address} (${datum.business})`
             } else {
                 marker.data.popup = datum.address;
+            }
+
+            if (datum.nature) {
+                marker.data.popup += `<br/>${datum.nature}`;
             }
 
             return marker;

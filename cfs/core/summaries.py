@@ -257,7 +257,7 @@ class CallResponseTimeOverview(CallOverview):
 class CallMapOverview(CallOverview):
     def locations(self):
         return self.qs.values_list('geoy', 'geox', 'street_address',
-                                   'business')
+                                   'business', 'nature__descr')
 
     def top_users(self):
         return self.qs. \
