@@ -37,4 +37,9 @@ in site configuration. Once you have the key, you'll need to put it in
     GEOPOSITION_GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY'
 
 The default zoom level is how zoomed into the region your map should start. In
-general, this should be 11 for a town or small city and 10 for a larger city. 
+general, this should be 11 for a town or small city and 10 for a larger city.
+
+Finally, the "geojson URL" is the location of a [GeoJSON](https://en.wikipedia.org/wiki/GeoJSON)
+file describing your town or city's police districts and/or beats. The
+properties for each feature in your GeoJSON must have a "district" or "beat" key
+in order to be displayed.
