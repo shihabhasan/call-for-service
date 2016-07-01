@@ -1,7 +1,0 @@
-"QUERY PLAN"
-"Merge Join  (cost=13.43..3978.66 rows=41218 width=393) (actual time=0.038..73.335 rows=25418 loops=1)"
-"  Merge Cond: (incident.case_id = call.case_id)"
-"  ->  Index Scan using incident_case_id on incident  (cost=0.29..1210.32 rows=25016 width=136) (actual time=0.008..7.091 rows=25016 loops=1)"
-"  ->  Index Scan using call_case_id on call  (cost=0.42..20054.34 rows=373460 width=257) (actual time=0.007..20.766 rows=41613 loops=1)"
-"Planning time: 1.127 ms"
-"Execution time: 74.705 ms"
