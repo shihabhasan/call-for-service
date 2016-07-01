@@ -155,3 +155,5 @@ webpack-stats-*.json
 deployment/playbook/all.retry
 Untitled.ipynb
 working_files/
+ansible.cfg
+vagrant/playbook.retry
