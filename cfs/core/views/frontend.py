@@ -1,10 +1,10 @@
 import csv
 from io import StringIO
 
+from django.conf import settings
 from django.http import StreamingHttpResponse
 from django.shortcuts import render_to_response
-from django.views.generic import View, TemplateView
-from django.conf import settings
+from django.views.generic import View
 from url_filter.filtersets import StrictMode
 
 from core import models
@@ -102,7 +102,6 @@ class CallExportView(View):
             .select_related('district') \
             .select_related('beat') \
             .select_related('city') \
-            .select_related('zip_code') \
             .select_related('priority') \
             .select_related('call_source') \
             .select_related('nature') \
@@ -147,10 +146,7 @@ class CallExportView(View):
             'district',
             'beat',
             'business',
-            'street_num',
-            'street_name',
-            'crossroad1',
-            'crossroad2',
+            'street_address',
             'city',
             'zip_code',
             'geox',
