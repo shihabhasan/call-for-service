@@ -1,3 +1,4 @@
+import itertools
 import csv
 from io import StringIO
 
@@ -157,17 +158,28 @@ class CallExportView(View):
             'reporting_unit',
         ]
 
+        def grouper(n, iterable):
+            it = iter(iterable)
+            while True:
+                chunk = tuple(itertools.islice(it, n))
+                if not chunk:
+                    return
+                yield chunk
+
         def data():
             csvfile = StringIO()
             csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
             csvwriter.writerow(dict(zip(fields, fields)))
             yield csvfile.getvalue()
 
-            for record in filter_set.filter().iterator():
+            for records in grouper(2000, filter_set.filter().iterator()):
                 csvfile = StringIO()
                 csvwriter = csv.DictWriter(csvfile, fieldnames=fields)
-                serializer = CallExportSerializer(record)
-                csvwriter.writerow(serializer.data)
+                serializer = CallExportSerializer(records, many=True)
+
+                for record in serializer.data:
+                    csvwriter.writerow(record)
+
                 yield csvfile.getvalue()
 
         response = StreamingHttpResponse(data(), content_type='text/csv')
