@@ -1,5 +1,7 @@
 # 911 / Call For Service Analytics 
 
+[![DOI](https://zenodo.org/badge/19691/RTIInternational/call-for-service.svg)](https://zenodo.org/badge/latestdoi/19691/RTIInternational/call-for-service)
+
 This application provides a dashboard to get further insight into your police 
 department's Call for Service data.
 
